@@ -2,3 +2,4 @@ Name: Daniel Zhong, CCID: dzhong4
 Name: Ethan Carter, CCID: ecarter2, GitHub username: ethancarter7
 Name: Layne Pitman, CCID: lpitman, GitHub: Licensed-Driver
 Name: Bhuvnesh Batta, CCID: bbatta, Github username : BhuvneshBatta
+Name: Tatsat Shah, CCID : tatsat, Github username : tatsatshah05
