@@ -1,4 +1,4 @@
 Name: Daniel Zhong, CCID: dzhong4
-Name: Ethan Carter, CCID: ecarter2
+Name: Ethan Carter, CCID: ecarter2, GitHub username: ethancarter7
 Name: Layne Pitman, CCID: lpitman
 Name: Bhuvnesh Batta, CCID: bbatta
