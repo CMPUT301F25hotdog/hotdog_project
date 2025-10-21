@@ -86,3 +86,5 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 - Documents the core classes, their responsibilities, and collaborators used in the system’s design.
 
 5. [Story Board] - https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Story-Board
+
+- Shows the screen flow of the project
