@@ -5,7 +5,7 @@
 | Name | CCID | GitHub Username |
 |------|------|-----------------|
 | Bhuvnesh Batta | BBATTA | @BhuvneshBatta|
-| [Teammate 1] | [ccid1] | @[github1] |
+| Daniel Zhong | dzhong4 | @ShrimpFriedRice04|
 | [Teammate 2] | [ccid2] | @[github2] |
 | [Teammate 3] | [ccid3] | @[github3] |
 | [Teammate 4] | [ccid4] | @[github4] |
