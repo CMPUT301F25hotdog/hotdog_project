@@ -87,4 +87,4 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 5. [Story Board] - https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Story-Board
 
-- Shows the screen flow of the project
+- Shows the screen flow of the project and user interactions, showing how users navigate between screens and features.
