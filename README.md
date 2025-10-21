@@ -58,15 +58,11 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
    git clone https://github.com/CMPUT301F25hotdog/hotdog_project.git
    
 2. **Open the Project in Android Studio**
-
 - Open the cloned directory in Android Studio.
-
 - Ensure all Gradle dependencies are synced successfully.
 
 3. **Run the Application**
-
 - Use an emulator or physical Android device to launch the app.
-
 - Log in as an entrant, organizer, or admin to explore role-based functionalities.
 
 ---
