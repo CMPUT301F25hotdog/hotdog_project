@@ -59,15 +59,15 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 2. **Open the Project in Android Studio**
 
-Open the cloned directory in Android Studio.
+- Open the cloned directory in Android Studio.
 
-Ensure all Gradle dependencies are synced successfully.
+- Ensure all Gradle dependencies are synced successfully.
 
 3. **Run the Application**
 
-Use an emulator or physical Android device to launch the app.
+- Use an emulator or physical Android device to launch the app.
 
-Log in as an entrant, organizer, or admin to explore role-based functionalities.
+- Log in as an entrant, organizer, or admin to explore role-based functionalities.
 
 ---
 
@@ -75,16 +75,16 @@ Log in as an entrant, organizer, or admin to explore role-based functionalities.
 
 1. [Wiki Link] – https://github.com/[your-repo]/wiki
 
-Contains detailed design documentation, including refined requirements, UML diagrams, and discussions.
+- Contains detailed design documentation, including refined requirements, UML diagrams, and discussions.
 
 2. [Scrum Board] – https://github.com/orgs/[your-org]/projects
 
-Shows the project backlog, sprint progress, and team task assignments.
+- Shows the project backlog, sprint progress, and team task assignments.
 
 3. [UI Mockups] – https://github.com/[your-repo]/wiki/User-Interface-Mockups-and-Storyboard-Sequences
 
-Displays the visual layout of the app and storyboard transitions for major user flows.
+- Displays the visual layout of the app and storyboard transitions for major user flows.
 
 4. [CRC Cards] – https://github.com/[your-repo]/blob/main/Project_Documents/CRC_CARDS.pdf
 
-Documents the core classes, their responsibilities, and collaborators used in the system’s design.
+- Documents the core classes, their responsibilities, and collaborators used in the system’s design.
