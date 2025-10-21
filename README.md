@@ -7,7 +7,7 @@
 | Bhuvnesh Batta | BBATTA | @BhuvneshBatta|
 | Daniel Zhong | dzhong4 | @ShrimpFriedRice04|
 | Ethan Carter | ecarter2 | @ethancarter7 |
-| [Teammate 3] | [ccid3] | @[github3] |
+| Layne pitman | lpitman | @Licensed-Driver |
 | [Teammate 4] | [ccid4] | @[github4] |
 | Vatsal Jain | vatsal2 | @Vatsal-cs |
 
