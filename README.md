@@ -8,7 +8,7 @@
 | Daniel Zhong | dzhong4 | @ShrimpFriedRice04|
 | Ethan Carter | ecarter2 | @ethancarter7 |
 | Layne pitman | lpitman | @Licensed-Driver |
-| [Teammate 4] | [ccid4] | @[github4] |
+| Tatsat Shah | tatsat | @tatsatshah05 |
 | Vatsal Jain | vatsal2 | @Vatsal-cs |
 
 ---
