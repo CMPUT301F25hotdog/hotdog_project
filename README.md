@@ -1,10 +1,10 @@
-# **CMPUT 301 F25 – Team [Your Team Name]**
+# **CMPUT 301 F25 – Team Hotdog**
 
 ## **Team Members**
 
 | Name | CCID | GitHub Username |
 |------|------|-----------------|
-| [Your Name] | [yourccid] | @[yourGitHubUsername] |
+| Bhuvnesh Batta | BBATTA | @BhuvneshBatta|
 | [Teammate 1] | [ccid1] | @[github1] |
 | [Teammate 2] | [ccid2] | @[github2] |
 | [Teammate 3] | [ccid3] | @[github3] |
