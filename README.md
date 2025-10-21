@@ -69,7 +69,7 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 ## **Documentation**
 
-1. [Wiki Link] – https://github.com/[your-repo]/wiki
+1. [Wiki Link] – [https://github.com/[your-repo]/wiki](https://github.com/orgs/CMPUT301F25hotdog/projects/10)
 
 - Contains detailed design documentation, including refined requirements, UML diagrams, and discussions.
 
