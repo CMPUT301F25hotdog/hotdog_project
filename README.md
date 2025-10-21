@@ -4,7 +4,7 @@
 
 | Name | CCID | GitHub Username |
 |------|------|-----------------|
-| Bhuvnesh Batta | BBATTA | @BhuvneshBatta|
+| Bhuvnesh Batta | bbatta | @BhuvneshBatta|
 | Daniel Zhong | dzhong4 | @ShrimpFriedRice04|
 | Ethan Carter | ecarter2 | @ethancarter7 |
 | Layne pitman | lpitman | @Licensed-Driver |
