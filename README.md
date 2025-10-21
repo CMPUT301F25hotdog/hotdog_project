@@ -9,7 +9,7 @@
 | [Teammate 2] | [ccid2] | @[github2] |
 | [Teammate 3] | [ccid3] | @[github3] |
 | [Teammate 4] | [ccid4] | @[github4] |
-| [Teammate 5] | [ccid5] | @[github5] |
+| Vatsal Jain | vatsal2 | @Vatsal-cs |
 
 ---
 
