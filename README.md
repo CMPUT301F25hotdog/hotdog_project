@@ -1,4 +1,4 @@
-# **CMPUT 301 W25 – Team [Your Team Name]**
+# **CMPUT 301 F25 – Team [Your Team Name]**
 
 ## **Team Members**
 
