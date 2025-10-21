@@ -69,22 +69,22 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 ## **Documentation**
 
-1. [Wiki Link] – https://github.com/CMPUT301F25hotdog/hotdog_project/wiki
+1. [Project Wiki](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki)
 
 - Contains detailed design documentation, including refined requirements, UML diagrams, and discussions.
 
-2. [Scrum Board] – https://github.com/orgs/CMPUT301F25hotdog/projects/10
+2. [Scrum Board](https://github.com/orgs/CMPUT301F25hotdog/projects/10)
 
 - Shows the project backlog, sprint progress, team task assignments and story points (according to fibonacci series).
 
-3. [UI Mockups] – https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/UI-Mockup
+3. [UI Mockups](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/UI-Mockup)
 
 - Displays the visual layout of the app and storyboard transitions for major user flows.
 
-4. [CRC Cards] – [https://github.com/[your-repo]/blob/main/Project_Documents/CRC_CARDS.pdf](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/CRC-Cards)
+4. [CRC Cards](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/CRC-Cards)
 
 - Documents the core classes, their responsibilities, and collaborators used in the system’s design.
 
-5. [Story Board] - https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Story-Board
+5. [Story Board](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Story-Board)
 
 - Shows the screen flow of the project and user interactions, showing how users navigate between screens and features.
