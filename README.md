@@ -55,8 +55,8 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/[your-repo-link].git
-
+   git clone https://github.com/CMPUT301F25hotdog/hotdog_project.git
+   
 2. **Open the Project in Android Studio**
 
 - Open the cloned directory in Android Studio.
