@@ -77,10 +77,12 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 - Shows the project backlog, sprint progress, and team task assignments.
 
-3. [UI Mockups] – https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/UI%E2%80%90MOCKUPS
+3. [UI Mockups] – https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/UI-Mockup
 
 - Displays the visual layout of the app and storyboard transitions for major user flows.
 
 4. [CRC Cards] – [https://github.com/[your-repo]/blob/main/Project_Documents/CRC_CARDS.pdf](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/CRC-Cards)
 
 - Documents the core classes, their responsibilities, and collaborators used in the system’s design.
+
+5. [Story Board] - https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Story-Board
