@@ -75,7 +75,7 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 2. [Scrum Board] – https://github.com/orgs/CMPUT301F25hotdog/projects/10
 
-- Shows the project backlog, sprint progress, and team task assignments.
+- Shows the project backlog, sprint progress, team task assignments and story points (according to fibonacci series).
 
 3. [UI Mockups] – https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/UI-Mockup
 
