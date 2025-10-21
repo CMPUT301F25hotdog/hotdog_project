@@ -73,7 +73,7 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 - Contains detailed design documentation, including refined requirements, UML diagrams, and discussions.
 
-2. [Scrum Board] – https://github.com/[your-repo]/wiki](https://github.com/orgs/CMPUT301F25hotdog/projects/10)
+2. [Scrum Board] – https://github.com/orgs/CMPUT301F25hotdog/projects/10
 
 - Shows the project backlog, sprint progress, and team task assignments.
 
