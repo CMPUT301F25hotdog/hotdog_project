@@ -1,4 +1,4 @@
-package com.example.elotto.ui.home;
+package com.hotdog.elotto.ui.home;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

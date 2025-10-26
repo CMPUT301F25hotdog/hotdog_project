@@ -1,4 +1,4 @@
-package com.example.elotto;
+package com.hotdog.elotto;
 
 import android.os.Bundle;
 
@@ -10,7 +10,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.example.elotto.databinding.ActivityMainBinding;
+import com.hotdog.elotto.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 

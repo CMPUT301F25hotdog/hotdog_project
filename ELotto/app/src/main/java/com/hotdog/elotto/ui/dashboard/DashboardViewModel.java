@@ -1,4 +1,4 @@
-package com.example.elotto.ui.dashboard;
+package com.hotdog.elotto.ui.dashboard;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

@@ -1,4 +1,4 @@
-package com.example.elotto.ui.notifications;
+package com.hotdog.elotto.ui.notifications;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.elotto.databinding.FragmentNotificationsBinding;
+import com.hotdog.elotto.databinding.FragmentNotificationsBinding;
 
 public class NotificationsFragment extends Fragment {
 
