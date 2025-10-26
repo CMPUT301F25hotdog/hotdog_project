@@ -1,13 +1,14 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.elotto"
+    namespace = "com.hotdog.elotto"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.elotto"
+        applicationId = "com.hotdog.elotto"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -35,6 +36,12 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.analytics)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.launcher)
 
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -43,7 +50,6 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.ext.junit)
 }

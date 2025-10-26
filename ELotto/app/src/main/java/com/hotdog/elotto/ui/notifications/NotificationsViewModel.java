@@ -1,4 +1,4 @@
-package com.example.elotto.ui.notifications;
+package com.hotdog.elotto.ui.notifications;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

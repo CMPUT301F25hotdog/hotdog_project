@@ -1,4 +1,4 @@
-package com.example.elotto;
+package com.hotdog.elotto;
 
 import android.content.Context;
 
