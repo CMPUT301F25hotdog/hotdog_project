@@ -1,7 +1,7 @@
 [versions]
 agp = "8.13.0"
-junit = "4.13.2"
-junitVersion = "1.3.0"
+junit = "5.14.0"
+ext-junit = "1.3.0"
 espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.13.0"
@@ -14,8 +14,6 @@ google-services = "4.4.4"
 firebase-bom = "34.4.0"
 
 [libraries]
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -24,9 +22,15 @@ lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-lived
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
+
 firebase-firestore = {group = "com.google.firebase", name = "firebase-firestore"}
 firebase-bom = {group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom"}
 firebase-analytics = {group = "com.google.firebase", name = "firebase-analytics"}
+
+junit-bom = {group = "org.junit", name = "junit-bom", version.ref = "junit"}
+junit-jupiter = {group = "org.junit.jupiter", name = "junit-jupiter"}
+junit-launcher = {group = "org.junit.platform", name = "junit-platform-launcher"}
+ext-junit = {group = "androidx.test.ext", name = "junit", version.ref = "ext-junit"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
