@@ -7,4 +7,11 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+
+    <color name="main_icon_blue">#2460d1</color>
+    <color name="background_light_grey">#ECEFF1</color>
+    <color name="success_green">#68c151</color>
+    <color name="error_red">#D32F2F</color>
+    <color name="waitlist_orange">#FF9800</color>
 </resources>
