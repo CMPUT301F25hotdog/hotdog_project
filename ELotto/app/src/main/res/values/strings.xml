@@ -3,4 +3,8 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <string name="event_image_desc">Event preview image set by the event organizer.</string>
+    <string name="date_icon_desc">A clock icon indicating this field is the event date and time.</string>
+    <string name="location_icon_desc">A map pin Icon to indicate that this field is the location.</string>
+    <string name="entrants_icon_desc">An icon of two people to indicate the amount of people entered in the event.</string>
 </resources>
