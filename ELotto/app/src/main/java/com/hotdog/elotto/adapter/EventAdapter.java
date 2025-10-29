@@ -74,7 +74,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     }
 
     // ViewHolder class to reuse the views for efficiency
-    class EventViewHolder extends RecyclerView.ViewHolder {
+    public class EventViewHolder extends RecyclerView.ViewHolder {
         private ImageView eventImageView;
         private TextView eventNameTextView;
         private TextView eventDateTextView;

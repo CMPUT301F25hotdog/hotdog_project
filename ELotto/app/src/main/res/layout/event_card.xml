@@ -24,7 +24,7 @@
             android:layout_width="140dp"
             android:layout_height="140dp"
             android:scaleType="centerCrop"
-            android:contentDescription="@string/event_image"
+            android:contentDescription="@string/event_image_desc"
             android:background="@color/background_light_grey"
             android:src="@drawable/image_24px"/>
 
@@ -60,7 +60,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/alarm_24px"
-                    android:contentDescription="@string/date_icon"
+                    android:contentDescription="@string/date_icon_desc"
                     app:tint="@color/main_icon_blue" />
 
                 <TextView
@@ -84,7 +84,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/location_on_24px"
-                    android:contentDescription="@string/location_icon"
+                    android:contentDescription="@string/location_icon_desc"
                     app:tint="@color/main_icon_blue" />
 
                 <TextView
@@ -108,7 +108,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/group_24px"
-                    android:contentDescription="@string/entries_icon"
+                    android:contentDescription="@string/entrants_icon_desc"
                     app:tint="@color/main_icon_blue" />
 
                 <TextView
