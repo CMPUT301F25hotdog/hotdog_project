@@ -15,7 +15,7 @@ import com.hotdog.elotto.model.Event;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
-
+import android.graphics.drawable.GradientDrawable;
 /**
  * Adapter for displaying Event items in a RecyclerView.
  * Binds Event data to the event_card xml layout for each item in the list.
@@ -193,7 +193,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             }
 
             eventStatusTextView.setText(statusText);
-            eventStatusTextView.setBackgroundColor(backgroundColor);
+
+            // Using gradient drawable to be able to change the color of status_badge_background.xml
+            GradientDrawable drawable = (GradientDrawable) eventStatusTextView.getBackground().mutate();
+            drawable.setColor(backgroundColor);
+
         }
     }
 }
