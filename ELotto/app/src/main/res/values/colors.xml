@@ -14,4 +14,5 @@
     <color name="success_green">#68c151</color>
     <color name="error_red">#D32F2F</color>
     <color name="waitlist_orange">#FF9800</color>
+    <color name="border_grey">#E0E0E0</color>
 </resources>
