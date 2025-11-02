@@ -13,7 +13,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.hotdog.elotto.databinding.ActivityMainBinding;
 import com.hotdog.elotto.model.User;
 
@@ -52,9 +51,9 @@ public class MainActivity extends AppCompatActivity {
         if (!curUser.exists()) {
             // Either simple finish() or clear the task so back won’t escape login
             loginLauncher.launch(new Intent(this, LoginActivity.class));
+        } else {
+            initAfterLogin();
         }
-
-        initAfterLogin();
 
         return;
     }
@@ -63,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         // Make sure user object is up to date with any new information
         curUser.reload();
 
-        Log.d("USER_E", "" + curUser.exists());
+        Log.d("USER EXISTS", "" + curUser.exists());
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
