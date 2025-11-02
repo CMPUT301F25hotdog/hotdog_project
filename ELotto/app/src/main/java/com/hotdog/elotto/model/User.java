@@ -20,6 +20,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
 * A class containing all common information for a User.
@@ -33,6 +37,12 @@ public class User {
      */
     @Exclude
     private UserController controller;
+
+    /**
+     * AtomicUserCallback instance that will be the point of contact between the main thread and the synch thread.
+     */
+    @Exclude
+    private AtomicUserCallback atomicCallback;
 
     /**
      * A class that represents one registered event for a user. Each object holds a different event and information for one registration of one user.
@@ -49,58 +59,113 @@ public class User {
         }
     }
 
+    /**
+     * A nested class that defines a FirestoreCallback to handle the returned value of the user calls
+     * using AtomicReference and CountDownLatch to maintain thread safety in the case of atomic operations.
+     */
+    // Creates a callback that sets a reference to the returned user and edits the info of this outer class user object
+    private class AtomicUserCallback implements FirestoreCallback<User> {
+
+        private final AtomicReference<User> userRef = new AtomicReference<>();
+        private final CountDownLatch gate = new CountDownLatch(1);
+
+        /**
+         * Creates a new AtomicUserCallback instance with the calling user object set.
+         * @param superUser The User object that the callbacks are meant to check.
+         */
+        public AtomicUserCallback(User superUser) {userRef.set(superUser);}
+
+        public void onSuccess(User user) {
+            this.userRef.get().exists=true;
+            // Set the info to the returned user value
+            this.userRef.get().setUser(user);
+            this.gate.countDown();
+        }
+
+        public void onError(String errorMessage) {
+            Log.d("USER_REPO", errorMessage);
+            this.userRef.get().exists=false;
+            this.gate.countDown();
+        }
+
+        /**
+         * Used to block this thread until the callbacks have finished (so either a success or fail)
+         */
+        public void await() {
+            try {
+                this.gate.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
 
 
     // Personal Info
-    private String name;
-    private String email;
-    private String phone;
+    private String name="";
+    private String email="";
+    private String phone="";
 
     // Identifying information
     @DocumentId
     private final String deviceId;
 
     // Events
-    private List<RegisteredEvent> regEvents; // Events registered in
+    private List<RegisteredEvent> regEvents=new ArrayList<>(); // Events registered in
 
     // Repo control
+    @Exclude
     private boolean exists;
 
     // Permission control
     private UserType type;
 
     /**
-    * Class constructor that gets parent context to grab device ID and either pull or null User info.
+     * No arg constructor to be used by firestore to create a blank version of the User.
+     * NEVER USE THIS AS A PERSON
+     */
+    public User() {deviceId="";}
+
+    /**
+    * Class constructor that gets parent context to grab device ID and either pull or null User info synchronously.
+     * When atomic is specified, then this operation will block the main thread in order to wait for the result to be obtained before continuing.
+     * WARNING: THIS IS ATOMIC AND BLOCKS THE MAIN THREAD NO MATTER THE VALUE OF ATOMIC PARAM
     *
     * @param context The context of the caller to resolve device ID.
-    * @throws NoSuchFieldException When the android device ID cannot be found.
+     * @param atomic Specify this (ANYTHING) if you want to use this overloaded constructor
     */
-    public User(Context context) throws NoSuchFieldException {
+    public User(Context context, boolean atomic) /*throws NoSuchFieldException*/ {
         // Get deviceId
         this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        if(deviceId == null) throw new NoSuchFieldException("No android ID found.");
 
         // Create new controller
         this.controller = new UserController(this);
 
-        // Creates a callback that sets a reference to the returned user and edits the info of this outer class user object.
-        class UserCallback implements FirestoreCallback<User> {
+        final AtomicUserCallback atomicCallback = new AtomicUserCallback(this);
+        ExecutorService bgExec = Executors.newSingleThreadExecutor();
+        bgExec.execute(() -> {
+            UserRepository.getInstance().getUserById(this.deviceId, atomicCallback, bgExec);
+        });
 
-            User superUser;
-            public UserCallback(User superUser) {this.superUser=superUser;}
-            public void onSuccess(User user) {
-                // Set the info to the returned user value
-                this.superUser.setUser(user);
-                this.superUser.exists=true;
-            }
+        atomicCallback.await();
+    }
 
-            public void onError(String errorMessage) {
-                Log.d("USER_REPO", errorMessage);
-                this.superUser.exists=false;
-            }
-        }
+    /**
+     * Class constructor that gets parent context to grab device ID and either pull or null User info.
+     * WARNING: THIS WILL MOST LIKELY RETURN BEFORE ANY DATA HAS BEEN RETURNED: USE User(context, atomic) IF YOU NEED THE RESULT BEFORE CONTINUING.
+     *
+     * @param context The context of the caller to resolve device ID.
+     */
+    public User(Context context) /*throws NoSuchFieldException*/ {
+        // Get deviceId
+        this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        //if(deviceId == null) throw new NoSuchFieldException("No android ID found.");
 
-        UserRepository.getInstance().getUserById(this.deviceId, new UserCallback(this));
+        // Create new controller
+        this.controller = new UserController(this);
+
+        UserRepository.getInstance().getUserById(this.deviceId, new AtomicUserCallback(this));
     }
 
     /**
@@ -283,5 +348,28 @@ public class User {
      */
     private void updateUser() {
         controller.updateUser();
+    }
+
+    /**
+     * Reloads this User data in case it has been changed within the lifetime of this User object.
+     * NOTE: This should never be able to overwrite any unsaved changes since all changes are immediately pushed to firebase when using the given methods.
+     * WARNING: THIS WILL VERY LIKELY RETURN BEFORE A RESULT IS RECEIVED: USE atomicReload() IF YOU NEED THE RESULT BEFORE CONTINUING.
+     */
+    public void reload() {
+        UserRepository.getInstance().getUserById(this.deviceId, new AtomicUserCallback(this));
+    }
+
+    /**
+     * Reloads this User data in case it has been changed within the lifetime of this User object, but await this fetch to finish or fail before continuing on the main thread.
+     * NOTE: This should never be able to overwrite any unsaved changes since all changes are immediately pushed to firebase when using the given methods.
+     * WARNING: THIS WILL BLOCK THE MAIN THREAD UNTIL A RESULT IS RECEIVED
+     */
+    public void atomicReload() {
+        final AtomicUserCallback atomicCallback = new AtomicUserCallback(this);
+        ExecutorService bgExec = Executors.newSingleThreadExecutor();
+        bgExec.execute(() -> {
+            UserRepository.getInstance().getUserById(this.deviceId, atomicCallback, bgExec);
+        });
+        atomicCallback.await();
     }
 }
