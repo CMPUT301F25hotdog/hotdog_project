@@ -1,16 +1,19 @@
 package com.hotdog.elotto;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.hotdog.elotto.model.User;
 
-@RequiresApi(api = Build.VERSION_CODES.O)
+
+/**
+ * Activity for handling user login.
+ * @author Layne Pitman
+ * @version 1.0.0
+ */
 public class LoginActivity extends AppCompatActivity {
 
     EditText inputName, inputEmail, inputPhone;

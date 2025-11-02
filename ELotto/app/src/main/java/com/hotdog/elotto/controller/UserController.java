@@ -9,7 +9,9 @@ import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.UserRepository;
 
 /**
- * A controller class to update the UserRepository model for a single
+ * A controller class to update the UserRepository model for a single user.
+ * @author Layne Pitman
+ * @version 1.0.0
  */
 public class UserController {
     /**

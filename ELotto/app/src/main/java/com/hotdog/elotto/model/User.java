@@ -1,11 +1,8 @@
 package com.hotdog.elotto.model;
 
 import android.content.Context;
-import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
-
-import androidx.annotation.RequiresApi;
 
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
@@ -28,8 +25,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
 * A class containing all common information for a User.
 * All information required for Entrant is non-unique to Entrant, meaning we share it with Organizer and Administrator.
+ * @author Layne Pitman
+ * @version 1.0.0
 */
-@RequiresApi(api = Build.VERSION_CODES.O)
 public class User {
 
     /**
