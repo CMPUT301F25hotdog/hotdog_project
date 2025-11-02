@@ -5,12 +5,14 @@
         <item name="colorPrimary">@color/main_icon_blue</item>
         <item name="colorPrimaryVariant">@color/main_icon_blue</item>
         <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_700</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/main_icon_blue</item>
+        <item name="colorSecondaryVariant">@color/main_icon_blue</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Status bar color - Keep it white/light -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>
