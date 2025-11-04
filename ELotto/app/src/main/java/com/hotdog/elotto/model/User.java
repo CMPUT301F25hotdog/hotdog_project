@@ -98,7 +98,9 @@ public class User {
         }
     }
 
-
+    // Super User
+    @Exclude
+    private static User SuperUser;
 
     // Personal Info
     private String name="";
@@ -137,6 +139,14 @@ public class User {
         // Get deviceId
         this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 
+        if(SuperUser!=null) {
+            this.setUser(SuperUser);
+            this.controller=SuperUser.controller;
+            return;
+        }
+
+        SuperUser=this;
+
         // Create new controller
         this.controller = new UserController(this);
 
@@ -159,6 +169,12 @@ public class User {
         // Get deviceId
         this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         //if(deviceId == null) throw new NoSuchFieldException("No android ID found.");
+
+        if(SuperUser!=null) {
+            this.setUser(SuperUser);
+            this.controller=SuperUser.controller;
+            return;
+        }
 
         // Create new controller
         this.controller = new UserController(this);

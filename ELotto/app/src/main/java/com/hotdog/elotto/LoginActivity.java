@@ -1,6 +1,7 @@
 package com.hotdog.elotto;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -48,13 +49,15 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            User user;
+            User user = new User(getApplicationContext(), true);
 
-            user = new User(getApplicationContext());
+            Log.d("LOGIN USER", ""+user);
 
             user.updateEmail(email);
             user.updateName(name);
             user.updatePhone(phone);
+
+            setResult(RESULT_OK);
 
             finish();
         });

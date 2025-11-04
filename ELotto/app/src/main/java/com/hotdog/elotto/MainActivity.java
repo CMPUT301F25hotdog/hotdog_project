@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         curUser = new User(getApplicationContext(), true);
 
         Log.d("USER NAME", curUser.getName());
+        Log.d("CUR USER", ""+curUser);
 
         if (!curUser.exists()) {
             // Either simple finish() or clear the task so back won’t escape login
