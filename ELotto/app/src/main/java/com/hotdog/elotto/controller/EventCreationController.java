@@ -1,11 +1,13 @@
 package com.hotdog.elotto.controller;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Base64;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.firestore.CollectionReference;
@@ -13,7 +15,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.model.Event;
+import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.repository.EventRepository;
+import com.hotdog.elotto.repository.OrganizerRepository;
 import com.hotdog.elotto.ui.home.QRCodeView;
 
 import java.io.ByteArrayOutputStream;
@@ -63,7 +67,7 @@ public class EventCreationController {
      * Creates a new event record, including encoding its banner image and saving metadata.
      * <p>
      * If a banner image URI is provided, it is converted to a Base64-encoded string and
-     * passed along with other event data to {@link #SaveEvent(String, String, Date, Date, Date, int, int, String, double, boolean, String)}.
+     * passed along with other event data to {@link #SaveEvent(String,String, String, Date, Date, Date, int, int, String, double, boolean, String)}.
      * </p>
      * In the event of an error (e.g., null input stream or failed image decoding),
      * the controller stores a fallback banner string indicating the failure type.
@@ -83,7 +87,7 @@ public class EventCreationController {
      * @see <a href="https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database">
      *      Stack Overflow reference: How to add an image to a record in Firestore</a>
      */
-    public void CreateEvent(String name, String description, Date dateTime, Date openPeriod,
+    public void CreateEvent(String currentUser, String name, String description, Date dateTime, Date openPeriod,
                             Date closePeriod, int entrantLimit, int waitListSize,
                             String location, double price, boolean requireGeo, Uri bannerUri) {
         if (bannerUri != null) {
@@ -97,21 +101,21 @@ public class EventCreationController {
                     byte[] imageBytes = baos.toByteArray();
                     String base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
-                    SaveEvent(name, description, dateTime, openPeriod, closePeriod,
+                    SaveEvent(currentUser, name, description, dateTime, openPeriod, closePeriod,
                             entrantLimit, waitListSize, location, price, requireGeo, base64String);
                 } else {
-                    SaveEvent(name, description, dateTime, openPeriod, closePeriod,
+                    SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
                             entrantLimit, waitListSize, location, price, requireGeo,
                             "image_failed_nullinput_" + System.currentTimeMillis());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                SaveEvent(name, description, dateTime, openPeriod, closePeriod,
+                SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
                         entrantLimit, waitListSize, location, price, requireGeo,
                         "image_failed_exception_" + System.currentTimeMillis());
             }
         } else {
-            SaveEvent(name, description, dateTime, openPeriod, closePeriod,
+            SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
                     entrantLimit, waitListSize, location, price, requireGeo, "no_image");
         }
     }
@@ -136,10 +140,9 @@ public class EventCreationController {
      * @param requireGeo    whether the event enforces geolocation verification.
      * @param bannerUrl     the Base64-encoded image string or fallback identifier.
      */
-    public void SaveEvent(String name, String description, Date dateTime, Date openPeriod,
+    public void SaveEvent(String currentUser,String name, String description, Date dateTime, Date openPeriod,
                           Date closePeriod, int entrantLimit, int waitListSize,
                           String location, double price, boolean requireGeo, String bannerUrl) {
-
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
         event.setCreatedAt(new Date());
         event.setUpdatedAt(new Date());
@@ -153,6 +156,24 @@ public class EventCreationController {
             public void onSuccess() {
                 Toast.makeText(context, "Event created successfully!", Toast.LENGTH_SHORT).show();
 
+                OrganizerController organizerController = new OrganizerController();
+                organizerController.updateOrganizerEvents(currentUser,event.getId(),new OperationCallback() {
+                    @Override
+                    public void onSuccess() {
+                        ((Activity) context).runOnUiThread(() ->
+                                Toast.makeText(context, "Yep", Toast.LENGTH_LONG).show()
+                        );
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        ((Activity) context).runOnUiThread(() ->
+                                Toast.makeText(context, "Nope", Toast.LENGTH_LONG).show()
+                        );
+                        Log.e("EventCreation", "Failed to update organizer: " + errorMessage);
+                    }
+                });
+                Toast.makeText(context, "idk man", Toast.LENGTH_LONG).show();
                 Intent qrIntent = new Intent(context, QRCodeView.class);
                 qrIntent.putExtra("EVENT_NAME", name);
                 qrIntent.putExtra("EVENT_ID", event.getId());

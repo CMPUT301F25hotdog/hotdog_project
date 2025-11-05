@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         Button bruh = findViewById(R.id.bruh);
         bruh.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, EventCreationView.class);
+            intent.putExtra("CURRENT_USER_ID", curUser.getId());
             startActivity(intent);
         });
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);

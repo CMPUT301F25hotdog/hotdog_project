@@ -219,9 +219,9 @@ public class EventCreationView extends AppCompatActivity {
             Toast.makeText(this, "Please correct the highlighted fields", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        String currentUser = getIntent().getStringExtra("CURRENT_USER_ID");
         EventCreationController controller = new EventCreationController(this);
-        controller.CreateEvent(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
+        controller.CreateEvent(currentUser,eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
                 entrantLimit, waitListSize, location, price, requireGeo, selectedBannerUri);
 
         finish();
