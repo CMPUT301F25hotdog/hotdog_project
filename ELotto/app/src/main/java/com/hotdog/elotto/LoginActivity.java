@@ -7,6 +7,7 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.model.User;
 
 
@@ -54,6 +55,7 @@ public class LoginActivity extends AppCompatActivity {
             user.updateEmail(email);
             user.updateName(name);
             user.updatePhone(phone);
+            user.updateType(UserType.Entrant);
 
             Log.d("LOGIN USER", user.getName());
 

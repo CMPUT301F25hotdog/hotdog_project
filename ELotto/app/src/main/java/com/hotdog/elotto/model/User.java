@@ -203,18 +203,17 @@ public class User {
     }
 
     /**
-     * Set this user object info to the given user object info.
+     * Set this user object info to the given user object info. Effectively makes a copy of the given user that references all the same things.
      * <p><b>NOTE:</b> This is intended for internal use, so only use it if you are confident it is what you need.</p>
      * @param user The user object to grab info from.
-     * @return True if given user exists, false otherwise.
      */
-    private boolean setUser(User user) {
-        this.exists=SuperUser.exists;
+    private void setUser(User user) {
+        this.exists=user.exists;
         this.name=user.name;
         this.email=user.email;
         this.phone=user.phone;
         this.regEvents=user.regEvents;
-        return true;
+        this.type=user.type;
     }
 
     /**
