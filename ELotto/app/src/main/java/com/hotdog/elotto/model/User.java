@@ -5,6 +5,7 @@ import android.content.Context;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 import com.hotdog.elotto.callback.FirestoreCallback;
@@ -47,12 +48,12 @@ public class User {
      * A class that represents one registered event for a user. Each object holds a different event and information for one registration of one user.
      */
     private class RegisteredEvent implements Comparable<RegisteredEvent> {
-        LocalDateTime registeredDate;
+        Timestamp registeredDate;
         Status status;
         String eventId;
 
         public RegisteredEvent(String eventId) {
-            this.registeredDate = LocalDateTime.now();
+            this.registeredDate = Timestamp.now();
             this.status = Status.Pending;
             this.eventId = eventId;
         }
@@ -111,9 +112,9 @@ public class User {
         public AtomicUserCallback(User superUser) {userRef.set(superUser);}
 
         public void onSuccess(User user) {
-            this.userRef.get().exists=true;
             // Set the info to the returned user value
             this.userRef.get().setUser(user);
+            this.userRef.get().exists=true;
             this.gate.countDown();
         }
 
@@ -155,8 +156,39 @@ public class User {
     @Exclude
     private boolean exists;
 
+    /**
+     * Nested class container for UserType to allow for multiple references to be value changed by one.
+     */
+    private class TypeContainer {
+        private UserType type;
+
+        /**
+         * Creates a new type container with the type specified.
+         * @param type Type to contain.
+         */
+        public TypeContainer (UserType type) {
+            this.type=type;
+        }
+
+        /**
+         * Get the type contained.
+         * @return The type contained.
+         */
+        public UserType get() {
+            return this.type;
+        }
+
+        /**
+         * Set the type being contained.
+         * @param type Type to be contained.
+         */
+        public void set(UserType type) {
+            this.type=type;
+        }
+    }
+
     // Permission control
-    private UserType type;
+    private TypeContainer type=new TypeContainer(null);
 
     /**
      * No arg constructor to be used by firestore to create a blank version of the User.
@@ -299,7 +331,7 @@ public class User {
      * @param type The User type to be set. Uses the UserType Enum.
      */
     public void updateType(UserType type) {
-        this.type = type;
+        this.type.set(type);
         this.updateUser();
     }
 
@@ -308,7 +340,16 @@ public class User {
      * @return Type of the User.
      */
     public UserType getType() {
-        return type;
+        return type.get();
+    }
+
+    /**
+     * Sets this user objects type.
+     * <p><b>WARNING:</b> THIS DOES NOT UPDATE FIREBASE AND IS NOT MEANT FOR DEV USE.</p>
+     * @param type Type to be set.
+     */
+    public void setType(UserType type) {
+        this.type.set(type);
     }
 
     /**
@@ -370,6 +411,15 @@ public class User {
         int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
         if(index<0) throw new NoSuchFieldException("No such event ID " + eventId + " in this Users registered events.");
         this.regEvents.get(index).status=status;
+    }
+
+    /**
+     * Sets this user objects events.
+     * <p><b>WARNING:</b> THIS DOES NOT UPDATE FIREBASE AND IS NOT MEANT FOR DEV USE.</p>
+     * @param events Events to be set.
+     */
+    public void setRegEvents(List<RegisteredEvent> events) {
+        this.regEvents=events;
     }
 
     /**
