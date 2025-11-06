@@ -18,28 +18,17 @@ import android.util.Log;
     import java.util.concurrent.Executors;
 
 /**
- * Repository class responsible for handling Firestore database operations related to {@link Organizer}.
- * <p>
- * The {@code OrganizerRepository} provides methods to create, retrieve, and update organizer documents
- * stored in the Firestore database. It acts as the data access layer, isolating Firebase operations
- * from the rest of the application.
- * </p>
+ * Repository class responsible for handling Firestore database operations related to Organizer
+ *
  */
 public class OrganizerRepository {
-    /** The Firestore collection name where organizer documents are stored. */
     private static final String COLLECTION_NAME = "organizers";
-
-    /** Singleton instance of the repository (if used elsewhere). */
     private static OrganizerRepository instance;
-
-    /** The Firestore database reference. */
     private final FirebaseFirestore db;
-
-    /** A background thread executor for Firestore operations. */
     private final Executor bgThread = Executors.newSingleThreadExecutor();
 
     /**
-     * Constructs an {@code OrganizerRepository} instance and initializes Firestore.
+     * Constructs an OrganizerRepository instance and initializes Firestore.
      */
     public OrganizerRepository() {
         db = FirebaseFirestore.getInstance();
@@ -48,8 +37,8 @@ public class OrganizerRepository {
     /**
      * Creates a new organizer document in Firestore.
      *
-     * @param organizer the {@link Organizer} object to be stored in the database
-     * @param callback  the {@link OperationCallback} to handle success or failure events
+     * @param organizer the  Organizer object to be stored in the database
+     * @param callback  the callback to handle success or failure events
      */
     public void createOrganizer(Organizer organizer, OperationCallback callback) {
         String orgID = organizer.getOrgID();
@@ -57,7 +46,7 @@ public class OrganizerRepository {
                 .document(orgID)
                 .set(organizer)
                 .addOnSuccessListener(bgThread, aVoid -> {
-                    Log.d("UserRepository", "Organizer created successfully with ID: " + orgID);
+                    Log.d("UserRepository", "Organizer created with ID: " + orgID);
                     callback.onSuccess();
                 })
                 .addOnFailureListener(bgThread, e -> {
@@ -67,10 +56,10 @@ public class OrganizerRepository {
     }
 
     /**
-     * Retrieves an organizer document from Firestore using its unique ID.
+     * Retrieves an organizer document from Firestore using that organizers ID.
      *
-     * @param orgID    the unique ID of the organizer
-     * @param callback the {@link FirestoreCallback} that returns the {@link Organizer} object
+     * @param orgID    the ID of the organizer
+     * @param callback the FirestoreCallback that returns the Organizer object
      */
     public void getOrganizerById(String orgID, FirestoreCallback<Organizer> callback) {
         db.collection(COLLECTION_NAME)
@@ -88,16 +77,13 @@ public class OrganizerRepository {
     }
 
     /**
-     * Updates an existing organizer’s list of created events, or creates a new organizer if none exists.
-     * <p>
-     * This method first attempts to fetch the organizer document from Firestore.
-     * If it exists, the method adds the specified event ID to their list of created events (if not already present),
-     * then updates the document. If it does not exist, a new organizer document is created with the given event ID.
-     * </p>
+     * Checks if the organizer already exists for the given orgID, if so then updates that organizers list
+     * and checks if the event is already in the organizers list. If no organizer exists for that ID then creates
+     * a new organizer document
      *
      * @param orgID     the unique ID of the organizer to update or create
-     * @param eventID   the ID of the event to associate with the organizer
-     * @param callback  the {@link OperationCallback} to handle success or failure events
+     * @param eventID   the ID of the event created by the organizer
+     * @param callback  the callback to handle success or failure events
      */
     public void updateOrganizer(String orgID, String eventID, OperationCallback callback) {
         db.collection(COLLECTION_NAME)
@@ -110,7 +96,6 @@ public class OrganizerRepository {
                             if (!organizer.getCreatedEvents().contains(eventID)) {
                                 organizer.addCreatedEvent(eventID);
                             }
-
                             db.collection(COLLECTION_NAME)
                                     .document(orgID)
                                     .set(organizer)
@@ -128,7 +113,6 @@ public class OrganizerRepository {
                     } else {
                         Organizer newOrganizer = new Organizer(orgID);
                         newOrganizer.addCreatedEvent(eventID);
-
                         db.collection(COLLECTION_NAME)
                                 .document(orgID)
                                 .set(newOrganizer)
@@ -145,6 +129,20 @@ public class OrganizerRepository {
                 .addOnFailureListener(e -> {
                     Log.e("OrganizerRepository", "Error fetching organizer", e);
                     callback.onError("Error fetching organizer: " + e.getMessage());
+                });
+
+    }
+    public void deleteOrganizer(String orgID, OperationCallback callback) {
+        db.collection(COLLECTION_NAME)
+                .document(orgID)
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("OrganizerRepository", "Organizer deleted successfully: " + orgID);
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("OrganizerRepository", "Error deleting Organizer: " + orgID, e);
+                    callback.onError("Failed to delete Organizer: " + e.getMessage());
                 });
     }
 }

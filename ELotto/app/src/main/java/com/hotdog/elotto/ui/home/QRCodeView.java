@@ -12,30 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.controller.QRCodeController;
 /**
- * The {@code QRCodeView} class is an {@link AppCompatActivity} that displays a generated QR code
- * corresponding to a specific event. It allows users to view, download, and share the event's QR code.
- * <p>
- * This activity is launched after an event has been successfully created, displaying the event name
- * and generating a QR code using the event ID.
- * </p>
- *
- * <p><b>Features:</b></p>
- * <ul>
- *   <li>Generates a QR code from the event ID using {@link QRCodeController#generateQRCode(String, int, int)}</li>
- *   <li>Displays the generated QR code image on screen</li>
- *   <li>Allows downloading the QR code to the device gallery via {@link QRCodeController#downloadQR(Bitmap, String)}</li>
- *   <li>Provides UI elements for navigation and sharing (sharing currently unimplemented)</li>
- * </ul>
- *
- * <p><b>Related Classes:</b></p>
- * <ul>
- *   <li>{@link com.hotdog.elotto.controller.QRCodeController}</li>
- *   <li>{@link com.hotdog.elotto.ui.home.EventCreationView}</li>
- * </ul>
- *
- * @author
- *   Hotdog eLotto Development Team
- * @version 1.0
+ * Displays QRCode Screen with all its buttons such as the share button, download button etc
  */
 public class QRCodeView extends AppCompatActivity {
     private TextView eventName;
@@ -65,7 +42,7 @@ public class QRCodeView extends AppCompatActivity {
         eventName.setText(name);
         assert name != null;
         String formatedName = name
-                .replaceAll("[\\\\/:*?\"<>|]", "_")  // illegal characters
+                .replaceAll("[\\\\/:*?\"<>|]", "_")
                 .replaceAll("\\s+", "_");
         downloadButton.setOnClickListener(v -> {
            if(qrBitmap != null){
@@ -73,6 +50,8 @@ public class QRCodeView extends AppCompatActivity {
                 controller.downloadQR(qrBitmap,formatedName);
            }
         });
-        //todo, implement the back button
+        goBackButton.setOnClickListener(v ->{
+            finish();
+        });
     }
 }

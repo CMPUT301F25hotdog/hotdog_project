@@ -3,38 +3,32 @@ package com.hotdog.elotto.model;
 import java.util.ArrayList;
 
 /**
- * Represents an organizer within the eLotto application.
- * <p>
- * An {@code Organizer} is typically a user who can create and manage events.
- * Each organizer has a unique ID (usually matching their user ID) and a list
- * of event IDs that they have created.
- * </p>
+ * Represents an Organizer, containing their ID which should be the same as user ID and a list of
+ * created events in the form of their id's
  */
 public class Organizer {
-    /** The unique ID of the organizer, usually the same as the associated user ID. */
     private String orgID;
-
-    /** A list of event IDs that this organizer has created. */
     private ArrayList<String> createdEvents = new ArrayList<>();
 
     /**
-     * Default constructor that initializes an empty list of created events.
+     * Constructor that initializes the organizer with an empty list of created events.
+     * Used to allow FireStore to do doc.toObject(Organizer.class)
      */
     public Organizer() {
         this.createdEvents = new ArrayList<>();
     }
 
     /**
-     * Constructs an {@code Organizer} with a specified organizer ID.
+     * Constructs an Organizer with a specified organizer ID.
      *
-     * @param orgID the unique ID of the organizer
+     * @param orgID ID of the organizer
      */
     public Organizer(String orgID) {
         this.orgID = orgID;
     }
 
     /**
-     * Returns the unique ID of the organizer.
+     * Returns the ID of the organizer
      *
      * @return the organizer's ID
      */
@@ -43,9 +37,11 @@ public class Organizer {
     }
 
     /**
-     * Sets the unique ID for this organizer.
+     * Sets the ID for this organizer.
      *
      * @param orgID the organizer ID to set
+     *
+     * Shouldn't really have to use it*
      */
     public void setOrgID(String orgID) {
         this.orgID = orgID;
@@ -54,7 +50,7 @@ public class Organizer {
     /**
      * Returns a list of event IDs that this organizer has created.
      *
-     * @return a list of created event IDs
+     * @return the list of created event IDs
      */
     public ArrayList<String> getCreatedEvents() {
         return createdEvents;

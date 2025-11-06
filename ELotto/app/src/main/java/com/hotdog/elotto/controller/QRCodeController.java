@@ -44,18 +44,17 @@ public class QRCodeController {
 
     /**
      * Generates a QR code bitmap from the given data.
-     * <p>
-     * The QR code is generated using the ZXing {@link QRCodeWriter}, which encodes
-     * the input string into a {@link BitMatrix} and then converts it into a {@link Bitmap}.
-     * </p>
+     * <
+     * The QR code is generated using the ZXing library, which encodes the input string into a bitMatrix then to a bitmap
      *
-     * @param data   the text or data to encode into the QR code.
-     * @param width  the desired width of the generated bitmap.
-     * @param height the desired height of the generated bitmap.
-     * @return a {@link Bitmap} representing the QR code, or {@code null} if generation fails.
      *
-     * @see <a href="https://stackoverflow.com/questions/8800919/how-to-generate-a-qr-code-for-an-android-application">
-     *      Stack Overflow reference: Generating a QR code for an Android application</a>
+     * @param data   the string we want the qrcode to point to
+     * @param width  the width of the generated bitmap.
+     * @param height the height of the generated bitmap.
+     * @return a bitmap representing the QR code, or null if the generation fails.
+     *
+     * https://stackoverflow.com/questions/8800919/how-to-generate-a-qr-code-for-an-android-application
+     * used this to create QRCodes
      */
     public static Bitmap generateQRCode(String data, int width, int height) {
         try {
@@ -78,17 +77,16 @@ public class QRCodeController {
 
     /**
      * Downloads and saves the provided QR code bitmap to the device’s gallery.
-     * <p>
-     * The image is saved to the {@code Pictures/MyAppQRs} directory and made visible
-     * to the gallery automatically via the {@link MediaStore}. The image file will be
+     *
+     * The image is saved  and made visible to the gallery automatically using MediaStore. The image will be
      * stored in PNG format.
-     * </p>
+     *
      *
      * @param qrBitmap the QR code bitmap to save.
-     * @param fileName the base name of the file (without extension).
+     * @param fileName the name of the file
      *
-     * @see <a href="https://stackoverflow.com/questions/71729415/saving-an-image-and-displaying-it-in-gallery">
-     *      Stack Overflow reference: Saving an image and displaying it in gallery</a>
+     * https://stackoverflow.com/questions/71729415/saving-an-image-and-displaying-it-in-gallery
+     * used this to figure out how to use MediaStore to save images
      */
     public void downloadQR(Bitmap qrBitmap, String fileName) {
         ContentValues values = new ContentValues();

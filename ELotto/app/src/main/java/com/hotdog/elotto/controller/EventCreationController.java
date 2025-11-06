@@ -27,35 +27,17 @@ import java.util.Date;
 /**
  * Controller class responsible for managing event creation logic, including
  * data processing, image encoding, and interaction with Firestore and Storage.
- * <p>
- * The {@code EventCreationController} handles:
- * <ul>
- *     <li>Validating and encoding an event's banner image into Base64 format.</li>
- *     <li>Saving new event records to Firestore using {@link EventRepository}.</li>
- *     <li>Navigating to {@link QRCodeView} upon successful event creation.</li>
- * </ul>
- *
- * This controller bridges the app’s UI (such as {@link com.hotdog.elotto.ui.home.EventCreationView})
- * and the backend data management layers.
  */
 public class EventCreationController {
-
-    /** Firestore database instance for interacting with event data. */
     private FirebaseFirestore db;
-
-    /** Reference to the Firestore 'events' collection. */
     private CollectionReference eventsRef;
-
-    /** Firebase Storage instance (currently unused but reserved for image storage). */
     private FirebaseStorage storage;
-
-    /** Android context used for accessing content resolvers and starting new activities. */
     private final Context context;
 
     /**
-     * Constructs a new {@code EventCreationController}.
+     * Constructs a new EventCreationController.
      *
-     * @param context the current context, used for resource access and UI updates.
+     * @param context the current context
      */
     public EventCreationController(Context context) {
         this.context = context;
@@ -64,30 +46,25 @@ public class EventCreationController {
     }
 
     /**
-     * Creates a new event record, including encoding its banner image and saving metadata.
-     * <p>
-     * If a banner image URI is provided, it is converted to a Base64-encoded string and
-     * passed along with other event data to {@link #SaveEvent(String,String, String, Date, Date, Date, int, int, String, double, boolean, String)}.
-     * </p>
-     * In the event of an error (e.g., null input stream or failed image decoding),
-     * the controller stores a fallback banner string indicating the failure type.
+     * Encodes an image Uri into a string to be stored
+     *
      *
      * @param name          the name of the event.
-     * @param description   a short description of the event.
+     * @param description   the description of the event.
      * @param dateTime      the scheduled date and time of the event.
      * @param openPeriod    the event’s opening registration period.
      * @param closePeriod   the event’s closing registration period.
      * @param entrantLimit  the maximum number of entrants allowed.
      * @param waitListSize  the maximum size of the event waitlist.
      * @param location      the location of the event.
-     * @param price         the ticket or entry price for the event.
+     * @param price         the ticket price for the event.
      * @param requireGeo    whether geolocation is required for participation.
      * @param bannerUri     a URI pointing to the banner image selected by the user.
      *
-     * @see <a href="https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database">
-     *      Stack Overflow reference: How to add an image to a record in Firestore</a>
+     * https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database
+     * used to figure out how to convert images into strings to store
      */
-    public void CreateEvent(String currentUser, String name, String description, Date dateTime, Date openPeriod,
+    public void EncodeImage(String currentUser, String name, String description, Date dateTime, Date openPeriod,
                             Date closePeriod, int entrantLimit, int waitListSize,
                             String location, double price, boolean requireGeo, Uri bannerUri) {
         if (bannerUri != null) {
@@ -106,13 +83,13 @@ public class EventCreationController {
                 } else {
                     SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
                             entrantLimit, waitListSize, location, price, requireGeo,
-                            "image_failed_nullinput_" + System.currentTimeMillis());
+                            "image_failed_nullinput");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
                         entrantLimit, waitListSize, location, price, requireGeo,
-                        "image_failed_exception_" + System.currentTimeMillis());
+                        "image_failed_exception");
             }
         } else {
             SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
@@ -121,12 +98,8 @@ public class EventCreationController {
     }
 
     /**
-     * Saves an event object to Firestore and opens the QR code display screen upon success.
-     * <p>
-     * The event metadata is stored using an instance of {@link EventRepository}.
-     * If the save operation succeeds, the user is redirected to {@link QRCodeView},
-     * where a QR code for the newly created event is generated and displayed.
-     * </p>
+     * Creates a new event and saves it to FireStore using the EventRepository class, then opens up the QRCode
+     * Screen, also runs updateOrganizer which creates or updates an organizer
      *
      * @param name          the name of the event.
      * @param description   a brief description of the event.
@@ -160,9 +133,7 @@ public class EventCreationController {
                 organizerController.updateOrganizerEvents(currentUser,event.getId(),new OperationCallback() {
                     @Override
                     public void onSuccess() {
-                        ((Activity) context).runOnUiThread(() ->
-                                Toast.makeText(context, "Yep", Toast.LENGTH_LONG).show()
-                        );
+                        Log.e("EventCreation", "Organizer Updated" );
                     }
 
                     @Override
