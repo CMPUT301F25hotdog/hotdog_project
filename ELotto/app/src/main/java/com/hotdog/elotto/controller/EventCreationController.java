@@ -15,9 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.model.Event;
-import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.repository.EventRepository;
-import com.hotdog.elotto.repository.OrganizerRepository;
 import com.hotdog.elotto.ui.home.QRCodeView;
 
 import java.io.ByteArrayOutputStream;
@@ -129,21 +127,6 @@ public class EventCreationController {
             public void onSuccess() {
                 Toast.makeText(context, "Event created successfully!", Toast.LENGTH_SHORT).show();
 
-                OrganizerController organizerController = new OrganizerController();
-                organizerController.updateOrganizerEvents(currentUser,event.getId(),new OperationCallback() {
-                    @Override
-                    public void onSuccess() {
-                        Log.e("EventCreation", "Organizer Updated" );
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        ((Activity) context).runOnUiThread(() ->
-                                Toast.makeText(context, "Nope", Toast.LENGTH_LONG).show()
-                        );
-                        Log.e("EventCreation", "Failed to update organizer: " + errorMessage);
-                    }
-                });
                 Toast.makeText(context, "idk man", Toast.LENGTH_LONG).show();
                 Intent qrIntent = new Intent(context, QRCodeView.class);
                 qrIntent.putExtra("EVENT_NAME", name);
