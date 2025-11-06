@@ -55,7 +55,7 @@ public class LoginActivity extends AppCompatActivity {
             user.updateEmail(email);
             user.updateName(name);
             user.updatePhone(phone);
-            user.updateType(UserType.Organizer);
+            user.updateType(UserType.Entrant);
             Log.d("USER TYPE", user.getType().toString());
 
             Log.d("LOGIN USER", user.getName());
