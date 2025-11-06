@@ -51,11 +51,11 @@ public class LoginActivity extends AppCompatActivity {
 
             User user = new User(getApplicationContext(), true);
 
-            Log.d("LOGIN USER", ""+user);
-
             user.updateEmail(email);
             user.updateName(name);
             user.updatePhone(phone);
+
+            Log.d("LOGIN USER", user.getName());
 
             setResult(RESULT_OK);
 
