@@ -194,9 +194,8 @@ public class EventCreationView extends AppCompatActivity {
             Toast.makeText(this, "Please correct the highlighted fields", Toast.LENGTH_SHORT).show();
             return;
         }
-        String currentUser = getIntent().getStringExtra("CURRENT_USER_ID");
         EventCreationController controller = new EventCreationController(this);
-        controller.EncodeImage(currentUser,eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
+        controller.EncodeImage(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
                 entrantLimit, waitListSize, location, price, requireGeo, selectedBannerUri,tagList);
 
         finish();

@@ -68,7 +68,7 @@ public class EventCreationController {
      * https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database
      * used to figure out how to convert images into strings to store
      */
-    public void EncodeImage(String currentUser, String name, String description, Date dateTime, Date openPeriod,
+    public void EncodeImage(String name, String description, Date dateTime, Date openPeriod,
                             Date closePeriod, int entrantLimit, int waitListSize,
                             String location, double price, boolean requireGeo, Uri bannerUri, ArrayList<String> tags) {
         if (bannerUri != null) {
@@ -82,21 +82,21 @@ public class EventCreationController {
                     byte[] imageBytes = baos.toByteArray();
                     String base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
-                    SaveEvent(currentUser, name, description, dateTime, openPeriod, closePeriod,
+                    SaveEvent(name, description, dateTime, openPeriod, closePeriod,
                             entrantLimit, waitListSize, location, price, requireGeo, base64String,tags);
                 } else {
-                    SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
+                    SaveEvent(name, description, dateTime, openPeriod, closePeriod,
                             entrantLimit, waitListSize, location, price, requireGeo,
                             "image_failed_nullinput",tags);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
+                SaveEvent(name, description, dateTime, openPeriod, closePeriod,
                         entrantLimit, waitListSize, location, price, requireGeo,
                         "image_failed_exception",tags);
             }
         } else {
-            SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
+            SaveEvent(name, description, dateTime, openPeriod, closePeriod,
                     entrantLimit, waitListSize, location, price, requireGeo, "no_image",tags);
         }
     }
@@ -117,7 +117,7 @@ public class EventCreationController {
      * @param requireGeo    whether the event enforces geolocation verification.
      * @param bannerUrl     the Base64-encoded image string or fallback identifier.
      */
-    public void SaveEvent(String currentUser,String name, String description, Date dateTime, Date openPeriod,
+    public void SaveEvent(String name, String description, Date dateTime, Date openPeriod,
                           Date closePeriod, int entrantLimit, int waitListSize,
                           String location, double price, boolean requireGeo, String bannerUrl,ArrayList<String> tagList) {
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
@@ -138,6 +138,10 @@ public class EventCreationController {
                 qrIntent.putExtra("EVENT_NAME", name);
                 qrIntent.putExtra("EVENT_ID", event.getId());
                 context.startActivity(qrIntent);
+                if (context instanceof Activity) {
+                    ((Activity) context).setResult(Activity.RESULT_OK);
+                    ((Activity) context).finish();
+                }
             }
 
             @Override
