@@ -1,8 +1,8 @@
 package com.hotdog.elotto.ui.home;
-import com.hotdog.elotto.model.User;
-import com.hotdog.elotto.ui.home.EventDetailsFragment;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,7 +32,7 @@ import java.util.List;
  * Implements US 01.01.03 - As an entrant, I want to be able to see a list of events
  * that I can join the waiting list for.
  *
- *  View layer of MVC design
+ * serves as the View layer of MVC design
  *
  * Outstanding Issues:
  * Filter functionality not yet implemented
@@ -54,6 +56,7 @@ public class HomeFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Initialize repository
         eventRepository = new EventRepository();
 
         User currentUser = new User(requireContext(), true);
@@ -66,16 +69,9 @@ public class HomeFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Initialize views
         initializeViews(view);
-
-        // Setup RecyclerView
         setupRecyclerView();
-
-        // Setup listeners
         setupListeners();
-
-        // Load events from Firebase
         loadEvents();
 
         return view;
@@ -88,16 +84,13 @@ public class HomeFragment extends Fragment {
         searchView = view.findViewById(R.id.searchView);
         profileButton = view.findViewById(R.id.profileButton);
         filterButton = view.findViewById(R.id.filterButton);
-
         allEvents = new ArrayList<>();
     }
 
     private void setupRecyclerView() {
-        // Set layout manager
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         eventsRecyclerView.setLayoutManager(layoutManager);
 
-        // Initialize adapter
         eventAdapter = new EventAdapter(allEvents, currentUserId);
         eventsRecyclerView.setAdapter(eventAdapter);
 
@@ -113,25 +106,51 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupListeners() {
-        // Profile button click
-        profileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // TODO: Navigate to profile screen
-                Toast.makeText(getContext(), "Profile clicked", Toast.LENGTH_SHORT).show();
-            }
+        // Profile button dropdown menu
+        profileButton.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(requireContext(), v);
+            MenuInflater inflater = popupMenu.getMenuInflater();
+            inflater.inflate(R.menu.profile_menu, popupMenu.getMenu());
+
+            popupMenu.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+
+                if (id == R.id.action_profile) {
+                    NavController navController = NavHostFragment.findNavController(HomeFragment.this);
+                    navController.navigate(R.id.action_navigation_home_to_profileFragment);
+                    return true;
+                }
+                else if (id == R.id.action_inbox) {
+                    Toast.makeText(requireContext(), "Inbox clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else if (id == R.id.action_settings) {
+                    NavHostFragment.findNavController(HomeFragment.this)
+                            .navigate(R.id.action_navigation_home_to_settingsFragment);
+                    return true;
+
+                } else if (id == R.id.action_faq) {
+                    Toast.makeText(requireContext(), "FAQ clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else if (id == R.id.action_qr) {
+                    Toast.makeText(requireContext(), "Scan QR clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else {
+                    return false;
+                }
+            });
+
+            popupMenu.show();
         });
 
-        // Filter button click
-        filterButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // TODO: Show filter dialog
-                Toast.makeText(getContext(), "Filter clicked", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // Filter button
+        filterButton.setOnClickListener(v ->
+                Toast.makeText(getContext(), "Filter clicked", Toast.LENGTH_SHORT).show()
+        );
 
-        // Search functionality
+        // Search bar functionality
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -148,10 +167,8 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadEvents() {
-        // Show loading indicator
         showLoading(true);
 
-        // Fetch events from Firebase
         eventRepository.getAllEvents(new FirestoreListCallback<Event>() {
             @Override
             public void onSuccess(List<Event> events) {
@@ -160,12 +177,7 @@ public class HomeFragment extends Fragment {
                 allEvents.addAll(events);
                 eventAdapter.updateEvents(allEvents);
 
-                // Show empty state if no events
-                if (events.isEmpty()) {
-                    showEmptyState(true);
-                } else {
-                    showEmptyState(false);
-                }
+                showEmptyState(events.isEmpty());
             }
 
             @Override
@@ -179,12 +191,11 @@ public class HomeFragment extends Fragment {
 
     private void filterEvents(String query) {
         if (query == null || query.trim().isEmpty()) {
-            // Show all events
             eventAdapter.updateEvents(allEvents);
+            showEmptyState(allEvents.isEmpty());
             return;
         }
 
-        // Filter events by name or location
         List<Event> filteredEvents = new ArrayList<>();
         String lowerCaseQuery = query.toLowerCase();
 
@@ -196,8 +207,6 @@ public class HomeFragment extends Fragment {
         }
 
         eventAdapter.updateEvents(filteredEvents);
-
-        // Show empty state if no results
         showEmptyState(filteredEvents.isEmpty());
     }
 
