@@ -2,6 +2,7 @@ package com.hotdog.elotto.model;
 
 import com.google.firebase.firestore.DocumentId;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class Event {
     // Organizer Information
     private String organizerId;
     private String organizerName;
-
+    private ArrayList<String> tagList;
     // Event Status
     private String status;
 
@@ -351,7 +352,18 @@ public class Event {
     public void setPosterImageUrl(String posterImageUrl) {
         this.posterImageUrl = posterImageUrl;
     }
-
+    /**
+     * Sets the tagList to actual list of tags
+     *
+     * @param tags the arraylist of tags
+     */
+    public void setTagList(ArrayList<String> tags){this.tagList = tags;}
+    /**
+     * gets the list of tags the user set.
+     *
+     * @return the ArrayList of tags
+     */
+    public ArrayList<String> getTagList(){return tagList;}
     /**
      * Gets the price to attend the event.
      *

@@ -3,10 +3,14 @@ package com.hotdog.elotto.ui.home;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -19,6 +23,7 @@ import com.hotdog.elotto.controller.EventCreationController;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -44,7 +49,8 @@ public class EventCreationView extends AppCompatActivity {
     private ImageButton backButton;
     private ImageView bannerInput;
     private Uri selectedBannerUri;
-
+    private EditText tags;
+    private ArrayList<String> tagList = new ArrayList<>();
     /**
      * Initializes the activity and sets up UI event listeners.
      *
@@ -72,6 +78,8 @@ public class EventCreationView extends AppCompatActivity {
         confirmButton = findViewById(R.id.Confirm_Creation_Button);
         locationInput = findViewById(R.id.Event_Location_Input);
         priceInput = findViewById(R.id.Event_Price_Input);
+        tags = findViewById(R.id.Tag_Input);
+
 
         EditText[] fields = {
                 eventNameInput, eventDescriptionInput, timeInput, dateInput,
@@ -82,19 +90,34 @@ public class EventCreationView extends AppCompatActivity {
 
         cancelButton.setOnClickListener(v -> finish());
         backButton.setOnClickListener(v -> finish());
-
+        tags.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE ||
+                        (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                                && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                    String tag = tags.getText().toString().trim();
+                    if (!tag.isEmpty()) {
+                        tagList.add(tag);
+                        tags.setText("");
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
         confirmButton.setOnClickListener(v -> {
             if (!validateAllEditTexts(fields)) {
                 return;
             }
-            confirmationPass();
+            confirmationPass(tagList);
         });
     }
 
     /**
      * Validates all input fields, and gets all the strings then passes to the Controller
      */
-    private void confirmationPass() {
+    private void confirmationPass(ArrayList<String> tagList) {
         String eventName = eventNameInput.getText().toString().trim();
         String eventDescription = eventDescriptionInput.getText().toString().trim();
         String timeString = timeInput.getText().toString().trim();
@@ -174,7 +197,7 @@ public class EventCreationView extends AppCompatActivity {
         String currentUser = getIntent().getStringExtra("CURRENT_USER_ID");
         EventCreationController controller = new EventCreationController(this);
         controller.EncodeImage(currentUser,eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
-                entrantLimit, waitListSize, location, price, requireGeo, selectedBannerUri);
+                entrantLimit, waitListSize, location, price, requireGeo, selectedBannerUri,tagList);
 
         finish();
     }

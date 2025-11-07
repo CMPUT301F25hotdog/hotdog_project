@@ -349,7 +349,32 @@
                 android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/textView9"
+                android:id="@+id/TagHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15sp"
+                android:layout_marginTop="25sp"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:text="Event Tags" />
+
+            <EditText
+                android:id="@+id/Tag_Input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15sp"
+                android:layout_marginRight="15sp"
+                android:background="@android:drawable/editbox_background"
+                android:ems="10"
+                android:gravity="top|start"
+                android:hint="Enter Tags Then Press Enter"
+                android:inputType="text"
+                android:padding="12dp"
+                android:paddingLeft="10sp"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/waitListSizeHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15sp"

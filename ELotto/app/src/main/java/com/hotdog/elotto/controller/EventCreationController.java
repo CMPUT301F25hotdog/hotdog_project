@@ -21,6 +21,7 @@ import com.hotdog.elotto.ui.home.QRCodeView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -69,7 +70,7 @@ public class EventCreationController {
      */
     public void EncodeImage(String currentUser, String name, String description, Date dateTime, Date openPeriod,
                             Date closePeriod, int entrantLimit, int waitListSize,
-                            String location, double price, boolean requireGeo, Uri bannerUri) {
+                            String location, double price, boolean requireGeo, Uri bannerUri, ArrayList<String> tags) {
         if (bannerUri != null) {
             try {
                 InputStream inputStream = context.getContentResolver().openInputStream(bannerUri);
@@ -82,21 +83,21 @@ public class EventCreationController {
                     String base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
                     SaveEvent(currentUser, name, description, dateTime, openPeriod, closePeriod,
-                            entrantLimit, waitListSize, location, price, requireGeo, base64String);
+                            entrantLimit, waitListSize, location, price, requireGeo, base64String,tags);
                 } else {
                     SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
                             entrantLimit, waitListSize, location, price, requireGeo,
-                            "image_failed_nullinput");
+                            "image_failed_nullinput",tags);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
                         entrantLimit, waitListSize, location, price, requireGeo,
-                        "image_failed_exception");
+                        "image_failed_exception",tags);
             }
         } else {
             SaveEvent(currentUser,name, description, dateTime, openPeriod, closePeriod,
-                    entrantLimit, waitListSize, location, price, requireGeo, "no_image");
+                    entrantLimit, waitListSize, location, price, requireGeo, "no_image",tags);
         }
     }
 
@@ -118,14 +119,14 @@ public class EventCreationController {
      */
     public void SaveEvent(String currentUser,String name, String description, Date dateTime, Date openPeriod,
                           Date closePeriod, int entrantLimit, int waitListSize,
-                          String location, double price, boolean requireGeo, String bannerUrl) {
+                          String location, double price, boolean requireGeo, String bannerUrl,ArrayList<String> tagList) {
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
         event.setCreatedAt(new Date());
         event.setUpdatedAt(new Date());
         event.setGeolocationRequired(requireGeo);
         event.setPosterImageUrl(bannerUrl);
         event.setPrice(price);
-
+        event.setTagList(tagList);
         repository.createEvent(event, new OperationCallback() {
             @Override
             public void onSuccess() {
