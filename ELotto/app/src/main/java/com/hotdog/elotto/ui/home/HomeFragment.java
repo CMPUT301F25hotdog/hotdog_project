@@ -14,12 +14,20 @@ import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.repository.EventRepository;
+
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.widget.PopupMenu;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +37,11 @@ import java.util.List;
  * Implements US 01.01.03 - As an entrant, I want to be able to see a list of events
  * that I can join the waiting list for.
  *
- * serves as the View layer of MVC design
+ * Serves as the View layer of MVC design.
  *
  * Outstanding Issues:
- * Filter functionality not yet implemented
- * Profile navigation not yet implemented
+ * Filter functionality not yet implemented.
+ * Profile navigation not yet implemented.
  */
 public class HomeFragment extends Fragment {
 
@@ -56,8 +64,7 @@ public class HomeFragment extends Fragment {
         // Initialize repository
         eventRepository = new EventRepository();
 
-        // TODO: Get actual user ID from authentication system
-        // For now, using a placeholder
+        // TODO: Replace with real user ID when authentication is implemented
         currentUserId = "user123";
     }
 
@@ -67,16 +74,9 @@ public class HomeFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Initialize views
         initializeViews(view);
-
-        // Setup RecyclerView
         setupRecyclerView();
-
-        // Setup listeners
         setupListeners();
-
-        // Load events from Firebase
         loadEvents();
 
         return view;
@@ -89,49 +89,67 @@ public class HomeFragment extends Fragment {
         searchView = view.findViewById(R.id.searchView);
         profileButton = view.findViewById(R.id.profileButton);
         filterButton = view.findViewById(R.id.filterButton);
-
         allEvents = new ArrayList<>();
     }
 
     private void setupRecyclerView() {
-        // Set layout manager
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         eventsRecyclerView.setLayoutManager(layoutManager);
 
-        // Initialize adapter
         eventAdapter = new EventAdapter(allEvents, currentUserId);
         eventsRecyclerView.setAdapter(eventAdapter);
 
-        // Set click listener for event cards
-        eventAdapter.setOnEventClickListener(new EventAdapter.OnEventClickListener() {
-            @Override
-            public void onEventClick(Event event) {
-                // TODO: Navigate to event details screen
-                Toast.makeText(getContext(), "Clicked: " + event.getName(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        eventAdapter.setOnEventClickListener(event ->
+                Toast.makeText(getContext(), "Clicked: " + event.getName(), Toast.LENGTH_SHORT).show()
+        );
     }
 
     private void setupListeners() {
-        // Profile button click
-        profileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // TODO: Navigate to profile screen
-                Toast.makeText(getContext(), "Profile clicked", Toast.LENGTH_SHORT).show();
-            }
+        // Profile button dropdown menu
+        profileButton.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(requireContext(), v);
+            MenuInflater inflater = popupMenu.getMenuInflater();
+            inflater.inflate(R.menu.profile_menu, popupMenu.getMenu());
+
+            popupMenu.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+
+                if (id == R.id.action_profile) {
+                    NavController navController = NavHostFragment.findNavController(HomeFragment.this);
+                    navController.navigate(R.id.action_navigation_home_to_profileFragment);
+                    return true;
+                }
+                else if (id == R.id.action_inbox) {
+                    Toast.makeText(requireContext(), "Inbox clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else if (id == R.id.action_settings) {
+                    NavHostFragment.findNavController(HomeFragment.this)
+                            .navigate(R.id.action_navigation_home_to_settingsFragment);
+                    return true;
+
+                } else if (id == R.id.action_faq) {
+                    Toast.makeText(requireContext(), "FAQ clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else if (id == R.id.action_qr) {
+                    Toast.makeText(requireContext(), "Scan QR clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else {
+                    return false;
+                }
+            });
+
+            popupMenu.show();
         });
 
-        // Filter button click
-        filterButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // TODO: Show filter dialog
-                Toast.makeText(getContext(), "Filter clicked", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // Filter button
+        filterButton.setOnClickListener(v ->
+                Toast.makeText(getContext(), "Filter clicked", Toast.LENGTH_SHORT).show()
+        );
 
-        // Search functionality
+        // Search bar functionality
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -148,10 +166,8 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadEvents() {
-        // Show loading indicator
         showLoading(true);
 
-        // Fetch events from Firebase
         eventRepository.getAllEvents(new FirestoreListCallback<Event>() {
             @Override
             public void onSuccess(List<Event> events) {
@@ -160,12 +176,7 @@ public class HomeFragment extends Fragment {
                 allEvents.addAll(events);
                 eventAdapter.updateEvents(allEvents);
 
-                // Show empty state if no events
-                if (events.isEmpty()) {
-                    showEmptyState(true);
-                } else {
-                    showEmptyState(false);
-                }
+                showEmptyState(events.isEmpty());
             }
 
             @Override
@@ -179,12 +190,11 @@ public class HomeFragment extends Fragment {
 
     private void filterEvents(String query) {
         if (query == null || query.trim().isEmpty()) {
-            // Show all events
             eventAdapter.updateEvents(allEvents);
+            showEmptyState(allEvents.isEmpty());
             return;
         }
 
-        // Filter events by name or location
         List<Event> filteredEvents = new ArrayList<>();
         String lowerCaseQuery = query.toLowerCase();
 
@@ -196,29 +206,17 @@ public class HomeFragment extends Fragment {
         }
 
         eventAdapter.updateEvents(filteredEvents);
-
-        // Show empty state if no results
         showEmptyState(filteredEvents.isEmpty());
     }
 
     private void showLoading(boolean show) {
-        if (show) {
-            loadingProgressBar.setVisibility(View.VISIBLE);
-            eventsRecyclerView.setVisibility(View.GONE);
-            emptyStateLayout.setVisibility(View.GONE);
-        } else {
-            loadingProgressBar.setVisibility(View.GONE);
-            eventsRecyclerView.setVisibility(View.VISIBLE);
-        }
+        loadingProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        eventsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+        emptyStateLayout.setVisibility(View.GONE);
     }
 
     private void showEmptyState(boolean show) {
-        if (show) {
-            emptyStateLayout.setVisibility(View.VISIBLE);
-            eventsRecyclerView.setVisibility(View.GONE);
-        } else {
-            emptyStateLayout.setVisibility(View.GONE);
-            eventsRecyclerView.setVisibility(View.VISIBLE);
-        }
+        emptyStateLayout.setVisibility(show ? View.VISIBLE : View.GONE);
+        eventsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 }

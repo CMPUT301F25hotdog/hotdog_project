@@ -483,4 +483,9 @@ public class User {
         });
         atomicCallback.await();
     }
+    public String getDeviceId() {
+        return deviceId;
+    }
+
 }
+
