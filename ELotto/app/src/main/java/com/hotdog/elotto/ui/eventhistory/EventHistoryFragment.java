@@ -29,6 +29,31 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+/**
+ * EventHistoryFragment
+ * ---------------------
+ * Displays the event history for the currently logged-in user.
+ *
+ * Features:
+ *  - Shows two lists of events:
+ *      - Drawn Events (user was selected or accepted)
+ *      - Pending Events (user is still on the waitlist)
+ *  - Retrieves events from Firestore through EventRepository
+ *  - Sorts events by date
+ *  - Displays visual placeholders when event lists are empty
+ *  - Shows loading indicator while fetching data
+ *
+ * Architecture:
+ *  - Uses RecyclerView with EventHistoryAdapter for list rendering
+ *  - Uses FirestoreListCallback to receive async Firestore data
+ *  - Uses the device-generated User ID to determine user membership in events
+ *
+ * Navigation:
+ *  - Uses Toolbar back button to return to previous screen via Navigation component
+ *
+ * Author: <Your Name>
+ * Date: <Date>
+ */
 
 public class EventHistoryFragment extends Fragment {
 
@@ -54,6 +79,12 @@ public class EventHistoryFragment extends Fragment {
 
     private static final String TAG = "EventHistoryFragment";
 
+    /**
+     * Initializes Firestore reference and retrieves the current user ID.
+     *
+     * @param savedInstanceState Previous saved state (unused)
+     */
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +96,12 @@ public class EventHistoryFragment extends Fragment {
         User currentUser = new User(requireContext(), false);
         currentUserId = currentUser.getId();
     }
+
+    /**
+     * Inflates the layout, initializes UI components, and triggers event loading.
+     *
+     * @return The inflated fragment view
+     */
 
     @Nullable
     @Override
@@ -81,6 +118,11 @@ public class EventHistoryFragment extends Fragment {
 
         return view;
     }
+    /**
+     * Connects XML view components to Java variables using findViewById().
+     *
+     * @param view The root view returned by onCreateView
+     */
 
     private void initViews(View view) {
         toolbar = view.findViewById(R.id.toolbar);
@@ -91,11 +133,21 @@ public class EventHistoryFragment extends Fragment {
         loadingProgressBar = view.findViewById(R.id.loadingProgressBar);
     }
 
+    /**
+     * Configures toolbar functionality, enabling back navigation.
+     */
+
     private void setupToolbar() {
         toolbar.setNavigationOnClickListener(v ->
                 NavHostFragment.findNavController(this).popBackStack()
         );
     }
+    /**
+     * Sets up RecyclerViews with LinearLayoutManagers and adapters.
+     *
+     * - `drawnEventsAdapter`: For events where the user was selected/accepted.
+     * - `pendingEventsAdapter`: For events where the user is on the waiting list.
+     */
 
     private void setupRecyclerViews() {
         drawnEventsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -112,6 +164,20 @@ public class EventHistoryFragment extends Fragment {
         drawnEventsRecyclerView.setAdapter(drawnEventsAdapter);
         pendingEventsRecyclerView.setAdapter(pendingEventsAdapter);
     }
+
+    /**
+     * Retrieves all events from Firestore and filters them based on the user's status.
+     *
+     * Logic:
+     *  - User appears in `acceptedEntrantIds` or `selectedEntrantIds` → Drawn Events list.
+     *  - User appears in `waitlistEntrantIds` → Pending Events list.
+     *
+     * Sorting:
+     *  - Events are sorted chronologically using eventDateTime.
+     *
+     * Error handling:
+     *  - Displays Toast + logs error if Firestore fails.
+     */
 
     private void loadEventsFromFirestore() {
         showLoading(true);
@@ -167,10 +233,19 @@ public class EventHistoryFragment extends Fragment {
         });
     }
 
+    /**
+     * Shows or hides placeholder text when event lists are empty.
+     */
+
     private void updateEmptyStates() {
         emptyDrawnEventsTextView.setVisibility(drawnEvents.isEmpty() ? View.VISIBLE : View.GONE);
         emptyPendingEventsTextView.setVisibility(pendingEvents.isEmpty() ? View.VISIBLE : View.GONE);
     }
+    /**
+     * Toggles visibility of loading spinner and event lists.
+     *
+     * @param loading If true, shows progress indicator and hides RecyclerViews.
+     */
 
     private void showLoading(boolean loading) {
         loadingProgressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
