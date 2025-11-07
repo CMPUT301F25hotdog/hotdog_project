@@ -85,14 +85,6 @@ public class MainActivity extends AppCompatActivity {
         // Setup bottom navigation
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
-        binding.bottomNavigation.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.navigation_my_events) {
-                Intent intent = new Intent(MainActivity.this, MyEventsView.class);
-                startActivity(intent);
-                return true;
-            }
-            return NavigationUI.onNavDestinationSelected(item, navController);
-        });
 
     }
 }

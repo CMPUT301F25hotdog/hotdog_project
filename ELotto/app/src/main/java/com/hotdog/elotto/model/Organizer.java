@@ -8,6 +8,7 @@ import android.util.Log;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 import com.hotdog.elotto.callback.FirestoreCallback;
+import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.controller.OrganizerController;
 import com.hotdog.elotto.repository.EventRepository;
@@ -19,9 +20,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.security.auth.callback.Callback;
 
 public class Organizer {
 
@@ -115,6 +119,63 @@ public class Organizer {
         this.myEvents.sort(Comparator.naturalOrder());
         this.updateOrganizer();
         return true;
+    }
+
+    /**
+     * Gets the list of event objects for this organizer
+     * @return  List of events for this organizer, or empty list if they can't be found or there is an error
+     */
+    public List<Event> getEventList(boolean atomic) {
+        ExecutorService bgExec = Executors.newSingleThreadExecutor();
+        EventRepository repo = new EventRepository();
+        final CountDownLatch gate = new CountDownLatch(1);
+        final AtomicReference<List<Event>> EventsRef = new AtomicReference<>();
+        repo.getEventsByOrganizer(this.getId(), new FirestoreListCallback<Event>() {
+            @Override
+            public void onSuccess(List<Event> results) {
+                EventsRef.set(results);
+                gate.countDown();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.d("EVENT BY ORG", errorMessage);
+                EventsRef.set(new ArrayList<>());
+                gate.countDown();
+            }
+        });
+
+        if(atomic) {
+            try {
+                gate.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        Log.d("ORGANIZER EVENTS", ""+EventsRef.get());
+
+        return EventsRef.get();
+    }
+
+    /**
+     * Gets the list of event objects for this organizer
+     * @param callback Extra actions to perform on result (whether success or fail)
+     */
+    public void getEventList(FirestoreCallback<List<Event>> callback) {
+        EventRepository repo = new EventRepository();
+        repo.getEventsByOrganizer(this.getId(), new FirestoreListCallback<Event>() {
+            @Override
+            public void onSuccess(List<Event> results) {
+                callback.onSuccess(results);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.d("EVENT BY ORG", errorMessage);
+                callback.onError(errorMessage);
+            }
+        });
     }
 
     /**

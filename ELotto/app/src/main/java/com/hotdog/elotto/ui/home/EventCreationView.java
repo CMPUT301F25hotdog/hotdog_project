@@ -198,6 +198,8 @@ public class EventCreationView extends AppCompatActivity {
         controller.EncodeImage(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
                 entrantLimit, waitListSize, location, price, requireGeo, selectedBannerUri,tagList);
 
+
+
         finish();
     }
 

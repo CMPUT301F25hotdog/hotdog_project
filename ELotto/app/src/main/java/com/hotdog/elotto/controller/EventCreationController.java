@@ -127,6 +127,8 @@ public class EventCreationController {
         event.setPosterImageUrl(bannerUrl);
         event.setPrice(price);
         event.setTagList(tagList);
+        Organizer org = new Organizer(context);
+        event.setOrganizerId(org.getId());
         repository.createEvent(event, new OperationCallback() {
             @Override
             public void onSuccess() {

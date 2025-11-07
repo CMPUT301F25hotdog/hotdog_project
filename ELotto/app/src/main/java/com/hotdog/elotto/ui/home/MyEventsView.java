@@ -1,9 +1,22 @@
 package com.hotdog.elotto.ui.home;
 
+import static android.app.Activity.RESULT_OK;
+import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
+
+import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -21,73 +34,87 @@ import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.OrganizerRepository;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class MyEventsView extends AppCompatActivity {
+import javax.security.auth.callback.Callback;
+
+public class MyEventsView extends Fragment {
     private FloatingActionButton createEventButton;
     private EventAdapter eventAdapter;
-    private EventRepository eventRepository;
-    private ArrayList<Event> orgEvents;
-    private List<String> eventIds;
+    private ProgressBar loadingProgressBar;
     private ActivityResultLauncher<Intent> createEventLauncher;
     private Organizer organizer;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.my_events);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
 
-        organizer = new Organizer(this);
-        String currentOrg = organizer.getId();
-        orgEvents = new ArrayList();
-        eventAdapter = new EventAdapter(orgEvents,currentOrg);
-        eventRepository = new EventRepository();
+        // Safe to init non-view stuff here
+        organizer = new Organizer(requireContext());
 
-        RecyclerView recyclerView = findViewById(R.id.OrganizerEvents);
-        recyclerView.setAdapter(eventAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        eventAdapter = new EventAdapter(new ArrayList<>(), organizer.getId());
+        this.loadEvents();
 
-
+        // Register the launcher in onCreate (per docs)
         createEventLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
-                        loadEvents();
+                        loadEvents(); // refresh after creating a new event
                     }
                 }
         );
+    }
 
-        createEventButton = findViewById(R.id.CreateNewEventButton);
-        createEventButton.setOnClickListener(v->{
-            Intent intent = new Intent(MyEventsView.this, EventCreationView.class);
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        // Inflate your fragment layout
+        View view = inflater.inflate(R.layout.fragment_my_events, container, false);
+
+        loadingProgressBar = view.findViewById(R.id.myEventsLoadingProgressBar);
+
+        return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Now the view exists—do all findViewById / listeners here
+        RecyclerView recyclerView = view.findViewById(R.id.OrganizerEvents);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.setAdapter(eventAdapter);
+
+        createEventButton = view.findViewById(R.id.CreateNewEventButton);
+        createEventButton.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), EventCreationView.class);
             createEventLauncher.launch(intent);
         });
 
+        // Initial load
         loadEvents();
-
     }
-    private void loadEvents(){
-        Organizer organizer = new Organizer(this);
-        List<String> eventIds = organizer.getMyEvents();
-        orgEvents.clear();
-        if(eventIds!=null){
-            for(String eventId : eventIds){
-                eventRepository.getEventById(eventId, new FirestoreCallback<Event>() {
-                    @Override
-                    public void onSuccess(Event result) {
-                        orgEvents.add(result);
-                        eventAdapter.notifyDataSetChanged();
-                    }
-                    @Override
-                    public void onError(String errorMessage) {
-                        Log.e("MyEvents", "Failed to fetch event: " + errorMessage);
-                    }
-                });
-            }
-        }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        this.loadEvents();
+    }
+
+    private void loadEvents(){
+        organizer.getEventList(new FirestoreCallback<>() {
+            @Override
+            public void onSuccess(List<Event> result) {
+                eventAdapter.updateEvents(result);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+            }
+        });
     }
 }
