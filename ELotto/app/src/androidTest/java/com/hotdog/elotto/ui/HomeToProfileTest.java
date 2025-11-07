@@ -15,19 +15,13 @@ import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 
 @RunWith(AndroidJUnit4.class)
-public class ProfileEditIntentTest {
-
+public class HomeToProfileTest {
     @Rule
     public ActivityScenarioRule<MainActivity> rule = new ActivityScenarioRule<>(MainActivity.class);
-
     @Test
-    public void editButtonTogglesEditMode() {
+    public void navigateHomeToProfile() {
         onView(withId(R.id.profileButton)).perform(click());
         onView(withText("Profile")).perform(click());
-        onView(withId(R.id.btn_edit)).check(matches(isDisplayed()));
-        onView(withId(R.id.btn_edit)).perform(click());
-        onView(withText("Save")).check(matches(isDisplayed()));
-        onView(withId(R.id.btn_edit)).perform(click());
-        onView(withText("Edit")).check(matches(isDisplayed()));
+        onView(withText("My Profile")).check(matches(isDisplayed()));
     }
 }

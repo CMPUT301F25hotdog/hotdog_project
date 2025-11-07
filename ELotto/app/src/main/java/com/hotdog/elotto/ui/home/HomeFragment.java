@@ -26,6 +26,9 @@ import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 
+import android.view.MenuInflater;
+import android.widget.PopupMenu;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,11 +37,11 @@ import java.util.List;
  * Implements US 01.01.03 - As an entrant, I want to be able to see a list of events
  * that I can join the waiting list for.
  *
- * serves as the View layer of MVC design
+ * Serves as the View layer of MVC design.
  *
  * Outstanding Issues:
- * Filter functionality not yet implemented
- * Profile navigation not yet implemented
+ * Filter functionality not yet implemented.
+ * Profile navigation not yet implemented.
  */
 public class HomeFragment extends Fragment {
 
@@ -58,7 +61,7 @@ public class HomeFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
+        // Initialize repository
         eventRepository = new EventRepository();
 
         User currentUser = new User(requireContext(), true);
@@ -133,7 +136,8 @@ public class HomeFragment extends Fragment {
                     return true;
 
                 } else if (id == R.id.action_faq) {
-                    Toast.makeText(requireContext(), "FAQ clicked", Toast.LENGTH_SHORT).show();
+                    NavHostFragment.findNavController(HomeFragment.this)
+                            .navigate(R.id.action_navigation_home_to_faqFragment);
                     return true;
 
                 } else if (id == R.id.action_qr) {

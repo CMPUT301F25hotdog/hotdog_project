@@ -106,7 +106,8 @@ public class MyEventsView extends Fragment {
                     return true;
 
                 } else if (id == R.id.action_faq) {
-                    Toast.makeText(requireContext(), "FAQ clicked", Toast.LENGTH_SHORT).show();
+                    NavHostFragment.findNavController(MyEventsView.this)
+                            .navigate(R.id.action_navigation_my_events_to_faqFragment);
                     return true;
 
                 } else if (id == R.id.action_qr) {
