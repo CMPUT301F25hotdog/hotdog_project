@@ -17,7 +17,6 @@ import org.w3c.dom.Document;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 /**
  * Repository class responsible for managing Event data access with Firebase Firestore.
@@ -259,26 +258,6 @@ public class EventRepository {
                     callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("EventRepository", "Error deleting event: " + eventId, e);
-                    callback.onError("Failed to delete event: " + e.getMessage());
-                });
-    }
-
-    /**
-     * Deletes an event from the Firestore database atomically, blocking the main thread until finished execution.
-     *
-     * @param eventId the unique identifier of the event to delete
-     * @param callback the callback to receive success confirmation or error message
-     */
-    public void deleteEvent(String eventId, OperationCallback callback, Executor bgThread) {
-        db.collection(COLLECTION_NAME)
-                .document(eventId)
-                .delete()
-                .addOnSuccessListener(bgThread, aVoid -> {
-                    Log.d("EventRepository", "Event deleted successfully: " + eventId);
-                    callback.onSuccess();
-                })
-                .addOnFailureListener(bgThread, e -> {
                     Log.e("EventRepository", "Error deleting event: " + eventId, e);
                     callback.onError("Failed to delete event: " + e.getMessage());
                 });
