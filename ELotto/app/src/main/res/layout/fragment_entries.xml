@@ -22,7 +22,7 @@
 
         <!-- Profile Button -->
         <ImageButton
-            android:id="@+id/profileButton"
+            android:id="@+id/entriesProfileButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:padding="8dp"

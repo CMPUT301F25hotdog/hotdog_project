@@ -9,10 +9,13 @@ import android.os.Bundle;
 import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,6 +24,8 @@ import androidx.fragment.app.Fragment;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -76,6 +81,44 @@ public class MyEventsView extends Fragment {
         View view = inflater.inflate(R.layout.fragment_my_events, container, false);
 
         loadingProgressBar = view.findViewById(R.id.myEventsLoadingProgressBar);
+
+        view.findViewById(R.id.profileButtonMyEvents).setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(requireContext(), v);
+            MenuInflater menuInflater = popupMenu.getMenuInflater();
+            menuInflater.inflate(R.menu.profile_menu, popupMenu.getMenu());
+
+            popupMenu.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+
+                if (id == R.id.action_profile) {
+                    NavController navController = NavHostFragment.findNavController(this);
+                    navController.navigate(R.id.action_navigation_my_events_to_profileFragment);
+                    return true;
+                }
+                else if (id == R.id.action_inbox) {
+                    Toast.makeText(requireContext(), "Inbox clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else if (id == R.id.action_settings) {
+                    NavHostFragment.findNavController(this)
+                            .navigate(R.id.action_navigation_my_events_to_settingsFragment);
+                    return true;
+
+                } else if (id == R.id.action_faq) {
+                    Toast.makeText(requireContext(), "FAQ clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else if (id == R.id.action_qr) {
+                    Toast.makeText(requireContext(), "Scan QR clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else {
+                    return false;
+                }
+            });
+
+            popupMenu.show();
+        });
 
         return view;
     }
