@@ -23,15 +23,37 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Adapter for displaying event history in two modes:
- * - DRAWN: Events where lottery has been completed
- * - PENDING: Events still waiting for lottery draw
+ * RecyclerView adapter used for displaying event history for a user.
+ * The adapter supports two different display modes:
+ *
+ * <ul>
+ *     <li><b>DRAWN</b> – The lottery for the event has been completed.
+ *         Displays the user's final status (Selected / Accepted / Wait-listed).</li>
+ *     <li><b>PENDING</b> – Lottery has not been drawn yet.
+ *         Displays a "Pending" status indicating the event draw is not finalized.</li>
+ * </ul>
+ *
+ * Features:
+ * <ul>
+ *     <li>Decodes Base64 image strings to show event posters</li>
+ *     <li>Determines user-specific status based on Event participant lists</li>
+ *     <li>Supports click events via {@link OnEventClickListener}</li>
+ *     <li>Handles null Firestore arrays safely</li>
+ * </ul>
+ *
+ * Usage:
+ * - Used in {@code EventHistoryFragment} to populate two RecyclerViews:
+ *   one for drawn events and one for pending events.
+ *
+ * @see com.hotdog.elotto.ui.eventhistory.EventHistoryFragment
  */
+
 public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapter.VH> {
 
     public interface OnEventClickListener {
         void onEventClick(Event event);
     }
+
 
     public enum Mode {
         DRAWN,      // Lottery completed - show results
@@ -42,16 +64,34 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
     private final String currentUserId;
     private final Mode mode;
     private OnEventClickListener listener;
-
+    /**
+     * Creates a new instance of the adapter.
+     *
+     * @param items         list of Event objects to display
+     * @param currentUserId ID of the currently logged-in user
+     * @param mode          determines whether the adapter displays DRAWN or PENDING status
+     */
     public EventHistoryAdapter(List<Event> items, String currentUserId, Mode mode) {
         this.items = items;
         this.currentUserId = currentUserId;
         this.mode = mode;
     }
 
+    /**
+     * Registers a listener for click events on event cards.
+     *
+     * @param listener callback invoked when an event card is tapped
+     */
+
     public void setOnEventClickListener(OnEventClickListener listener) {
         this.listener = listener;
     }
+
+    /**
+     * Replaces the current dataset and refreshes the RecyclerView.
+     *
+     * @param newItems new list of events to display
+     */
 
     public void update(List<Event> newItems) {
         items.clear();
@@ -61,11 +101,21 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
 
     @NonNull
     @Override
+    /**
+     * Inflates the event card layout and creates a ViewHolder.
+     */
+
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.event_history_card, parent, false);
         return new VH(view);
     }
+    /**
+     * Binds event data to the ViewHolder for rendering.
+     *
+     * @param holder   recycled item view
+     * @param position index of the event in the dataset
+     */
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
@@ -77,6 +127,16 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
     public int getItemCount() {
         return items.size();
     }
+
+    /**
+     * ViewHolder responsible for binding event data into a card layout.
+     * Handles:
+     * <ul>
+     *     <li>Image loading (Base64 → Bitmap)</li>
+     *     <li>Date, title, location formatting</li>
+     *     <li>Status badge display based on lottery results</li>
+     * </ul>
+     */
 
     static class VH extends RecyclerView.ViewHolder {
         ImageView eventImageView;
@@ -95,6 +155,15 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
             eventStatusTextView = itemView.findViewById(R.id.eventStatusTextView);
             eventSecondaryStatusTextView = itemView.findViewById(R.id.eventSecondaryStatusTextView);
         }
+
+        /**
+         * Binds event details and user lottery status to the UI components.
+         *
+         * @param event    event being displayed
+         * @param userId   current user ID, used to determine user status
+         * @param mode     adapter mode (DRAWN or PENDING)
+         * @param listener optional click listener for event selection
+         */
 
         void bind(Event event, String userId, Mode mode, OnEventClickListener listener) {
             // Click listener
@@ -126,7 +195,8 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         }
 
         /**
-         * Load event poster image from Base64 string
+         * Converts a Base64 string to a Bitmap and sets it to the ImageView.
+         * If decoding fails, keeps the default placeholder image.
          */
         private void loadEventImage(Event event) {
             String base64Image = event.getPosterImageUrl();
@@ -144,8 +214,13 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         }
 
         /**
-         * Determine user's status and set appropriate badges with colors
+         * Determines the correct status badge based on user participation in the event:
+         * - Selected → User is chosen (may or may not have accepted yet)
+         * - Accepted → User confirmed participation
+         * - Wait-listed → User did not win the draw
+         * - Pending → Lottery hasn't been drawn yet
          */
+
         private void determineAndSetStatus(Event event, String userId, Mode mode) {
             // Reset secondary badge
             eventSecondaryStatusTextView.setVisibility(View.GONE);
