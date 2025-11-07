@@ -56,6 +56,8 @@ public class LoginActivity extends AppCompatActivity {
             user.updateName(name);
             user.updatePhone(phone);
 
+            setResult(RESULT_OK);
+
             finish();
         });
     }

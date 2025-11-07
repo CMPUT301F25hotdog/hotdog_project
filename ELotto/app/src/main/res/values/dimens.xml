@@ -2,4 +2,14 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- Admin Dashboard Dimensions -->
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_margin">8dp</dimen>
+    <dimen name="overview_card_padding">16dp</dimen>
+    <dimen name="manage_card_padding">16dp</dimen>
+    <dimen name="icon_size">24dp</dimen>
+    <dimen name="overview_icon_size">32dp</dimen>
+    <dimen name="section_margin_top">24dp</dimen>
 </resources>

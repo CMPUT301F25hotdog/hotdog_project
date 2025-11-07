@@ -38,4 +38,21 @@
     <string name="phone_hint">Phone (optional)</string>
     <string name="name_hint">Name</string>
     <string name="create_event_button">Create</string>
+    <!-- Admin Dashboard Strings -->
+    <string name="admin_dashboard">Admin Dashboard</string>
+    <string name="overview">Overview</string>
+    <string name="total_events">Total Events</string>
+    <string name="total_users">Total Users</string>
+    <string name="total_images">Total Images</string>
+    <string name="notifications_count">Notifications</string>
+    <string name="manage">Manage</string>
+    <string name="browse_events">Browse Events</string>
+    <string name="browse_events_desc">View and manage all events</string>
+    <string name="browse_profiles">Browse Profiles</string>
+    <string name="browse_profiles_desc">View and manage user profiles</string>
+    <string name="browse_images">Browse Images</string>
+    <string name="browse_images_desc">View and remove uploaded images</string>
+    <string name="notification_logs">Notification Logs</string>
+    <string name="notification_logs_desc">Review all sent notifications</string>
+    <string name="placeholder_number">#</string>
 </resources>
