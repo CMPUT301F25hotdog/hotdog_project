@@ -72,7 +72,7 @@ public class UserUnitTests {
 
     // Just make a user without repo to make sure the internals work
     @Test
-    void ctor_withContext_readsDeviceId_andCopiesSuperUser_withoutRepo() {
+    void constructor_withContext_readsDeviceId_andCopiesSuperUser_withoutRepo() {
         // Seed a SuperUser so the repo path is skipped.
         User superU = new User();
         superU.setName("Seed Name");

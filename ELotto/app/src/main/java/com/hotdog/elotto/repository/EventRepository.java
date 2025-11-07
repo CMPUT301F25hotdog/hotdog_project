@@ -165,7 +165,6 @@ public class EventRepository {
         db.collection(COLLECTION_NAME)
                 .add(event)
                 .addOnSuccessListener(documentReference -> {
-                    event.setId(documentReference.getId());
                 })
                 .addOnFailureListener(e -> {
                     Log.e("EventRepository", "Error creating event", e);

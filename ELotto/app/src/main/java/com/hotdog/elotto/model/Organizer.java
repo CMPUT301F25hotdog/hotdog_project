@@ -96,6 +96,13 @@ public class Organizer {
         atomicCallback.await();
     }
 
+    /**
+     * No arg constructor for firebase.
+     */
+    public Organizer() {
+        this.deviceId=null;
+    }
+
     public void setOrg(Organizer org) {
         this.user=org.user;
         this.myEvents=org.myEvents;
