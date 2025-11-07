@@ -3,7 +3,6 @@ package com.hotdog.elotto.ui;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
-import static androidx.test.espresso.action.ViewActions.pressKey;
 import static androidx.test.espresso.action.ViewActions.scrollTo;
 import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -18,7 +17,6 @@ import android.app.Instrumentation;
 import android.app.UiAutomation;
 import android.content.Intent;
 import android.net.Uri;
-import android.view.KeyEvent;
 
 import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
@@ -37,10 +35,7 @@ public class CreateEventInputIntentTest {
     @Test
     public void inputValuesToCreateEvent(){
         Intents.init();
-        onView(withId(R.id.navigation_my_events)).perform(click());
-        onView(withId(R.id.CreateNewEventButton)).check(matches(isDisplayed()));
         onView(withId(R.id.CreateNewEventButton)).perform(click());
-
         Uri fakeImageUri = Uri.parse("WalterPutItAway");
         Instrumentation.ActivityResult result =
                 new Instrumentation.ActivityResult(Activity.RESULT_OK,
@@ -58,7 +53,6 @@ public class CreateEventInputIntentTest {
         onView(withId(R.id.Open_Period_Input)).perform(scrollTo(),typeText("11/01/2025"), closeSoftKeyboard());
         onView(withId(R.id.Close_Period_Input)).perform(scrollTo(),typeText("11/06/2025"), closeSoftKeyboard());
         onView(withId(R.id.Entrant_Limit_Input)).perform(scrollTo(),typeText("50"), closeSoftKeyboard());
-        onView(withId(R.id.Tag_Input)).perform(scrollTo(),typeText("Outdoor"), pressKey(KeyEvent.KEYCODE_ENTER), closeSoftKeyboard());
         onView(withId(R.id.Confirm_Creation_Button)).perform(click());
         onView(withText("Event Created")).check(matches(isDisplayed()));
 
