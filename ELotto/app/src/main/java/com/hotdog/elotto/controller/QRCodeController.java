@@ -17,12 +17,7 @@ import java.io.OutputStream;
 
 /**
  * Controller class responsible for generating and downloading QR codes.
- * <p>
- * This class provides two main functionalities:
- * <ul>
- *     <li>Generating a QR code bitmap from a given string of data.</li>
- *     <li>Saving a generated QR code bitmap to the device gallery.</li>
- * </ul>
+ *
  * It uses the ZXing library to encode data into a QR code format.
  */
 public class QRCodeController {
@@ -88,7 +83,7 @@ public class QRCodeController {
      * https://stackoverflow.com/questions/71729415/saving-an-image-and-displaying-it-in-gallery
      * used this to figure out how to use MediaStore to save images
      */
-    public void downloadQR(Bitmap qrBitmap, String fileName) {
+    public boolean downloadQR(Bitmap qrBitmap, String fileName) {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName + ".png");
         values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
@@ -97,8 +92,10 @@ public class QRCodeController {
         Uri uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         try (OutputStream out = context.getContentResolver().openOutputStream(uri)) {
             qrBitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 }

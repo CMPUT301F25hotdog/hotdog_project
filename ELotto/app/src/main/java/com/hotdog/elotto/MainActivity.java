@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         // Setup bottom navigation
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
-        Button bruh = findViewById(R.id.bruh);
+        Button bruh = findViewById(R.id.CreateEventButton);
         bruh.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, EventCreationView.class);
             intent.putExtra("CURRENT_USER_ID", curUser.getId());

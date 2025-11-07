@@ -24,6 +24,9 @@ public class QRCodeView extends AppCompatActivity {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
         setContentView(R.layout.qr_code_activity);
         eventName = findViewById(R.id.qr_code_event_name);
         downloadButton = findViewById(R.id.download_qr_button);

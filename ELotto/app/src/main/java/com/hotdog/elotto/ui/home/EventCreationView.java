@@ -54,7 +54,9 @@ public class EventCreationView extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.event_creation);
-
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
         backButton = findViewById(R.id.Back_button);
         bannerInput = findViewById(R.id.Event_Poster_Input);
         eventNameInput = findViewById(R.id.Event_Name_Input);
