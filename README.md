@@ -89,7 +89,7 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 - Shows the screen flow of the project and user interactions, showing how users navigate between screens and features.
 
-6.[Meeting Minutes](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Meeting-Minutes)
+6. [Meeting Minutes](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Meeting-Minutes)
 
 - Contains weekly meeting logs, action items, decisions, assigned tasks, and progress tracking for each sprint.
 
