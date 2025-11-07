@@ -1,5 +1,6 @@
 package com.hotdog.elotto.ui.home;
-
+import com.hotdog.elotto.model.User;
+import com.hotdog.elotto.ui.home.EventDetailsFragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,7 +30,7 @@ import java.util.List;
  * Implements US 01.01.03 - As an entrant, I want to be able to see a list of events
  * that I can join the waiting list for.
  *
- * serves as the View layer of MVC design
+ *  View layer of MVC design
  *
  * Outstanding Issues:
  * Filter functionality not yet implemented
@@ -53,12 +54,10 @@ public class HomeFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize repository
         eventRepository = new EventRepository();
 
-        // TODO: Get actual user ID from authentication system
-        // For now, using a placeholder
-        currentUserId = "user123";
+        User currentUser = new User(requireContext(), true);
+        currentUserId = currentUser.getId();
     }
 
     @Nullable
@@ -106,8 +105,9 @@ public class HomeFragment extends Fragment {
         eventAdapter.setOnEventClickListener(new EventAdapter.OnEventClickListener() {
             @Override
             public void onEventClick(Event event) {
-                // TODO: Navigate to event details screen
-                Toast.makeText(getContext(), "Clicked: " + event.getName(), Toast.LENGTH_SHORT).show();
+                EventDetailsFragment fragment = EventDetailsFragment.newInstance(event);
+                requireActivity().getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment_activity_main, fragment)
+                        .addToBackStack(null).commit();
             }
         });
     }

@@ -2,6 +2,7 @@ package com.hotdog.elotto.model;
 
 import com.google.firebase.firestore.DocumentId;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -27,7 +28,7 @@ import java.util.List;
  * @version 1.0
  * @since 2025-10-27
  */
-public class Event {
+public class Event implements Serializable {
 
     //@DocumentId
     private String id;                      // Unique event ID (Firebase generated)

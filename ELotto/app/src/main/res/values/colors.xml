@@ -17,4 +17,5 @@
     <color name="border_grey">#E0E0E0</color>
     <color name="light_blue_background">#CDE4F6</color>
     <color name="light_orange_background">#FACFB3</color>
+    <color name="gray">#CECCCC</color>
 </resources>
