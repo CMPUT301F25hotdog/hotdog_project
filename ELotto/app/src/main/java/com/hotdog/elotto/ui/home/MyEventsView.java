@@ -38,6 +38,7 @@ import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.OrganizerRepository;
+import com.hotdog.elotto.ui.entries.EntriesFragment;
 
 
 import java.util.ArrayList;
@@ -131,6 +132,17 @@ public class MyEventsView extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.OrganizerEvents);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(eventAdapter);
+
+        // Set click listener for event cards
+        eventAdapter.setOnEventClickListener(new EventAdapter.OnEventClickListener() {
+            @Override
+            public void onEventClick(Event event) {
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("event", event);
+                NavController navController = NavHostFragment.findNavController(MyEventsView.this);
+                navController.navigate(R.id.action_navigation_my_events_to_eventDetailsFragment, bundle);
+            }
+        });
 
         createEventButton = view.findViewById(R.id.CreateNewEventButton);
         createEventButton.setOnClickListener(v -> {

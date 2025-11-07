@@ -134,6 +134,17 @@ public class EntriesFragment extends Fragment {
         curUser=new User(context, true);
         eventAdapter=new EventAdapter(new ArrayList<>(), curUser.getId());
         entriesView.setAdapter(eventAdapter);
+
+        // Set click listener for event cards
+        eventAdapter.setOnEventClickListener(new EventAdapter.OnEventClickListener() {
+            @Override
+            public void onEventClick(Event event) {
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("event", event);
+                NavController navController = NavHostFragment.findNavController(EntriesFragment.this);
+                navController.navigate(R.id.action_navigation_entries_to_eventDetailsFragment, bundle);
+            }
+        });
         loadEvents();
     }
 

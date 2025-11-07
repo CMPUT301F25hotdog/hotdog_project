@@ -196,7 +196,7 @@ public class EventDetailsFragment extends Fragment {
         if (event == null || currentUser == null) return;
 
         // Check if user is already registered for this event
-        List<String> registeredEvents = currentUser.getRegEvents();
+        List<String> registeredEvents = currentUser.getRegEventIds();
         boolean isRegistered = registeredEvents.contains(event.getId());
 
         if (isRegistered) {
@@ -228,7 +228,7 @@ public class EventDetailsFragment extends Fragment {
             navController.navigateUp();
         });
         enterLotteryButton.setOnClickListener(v ->{
-            List<String> registeredEvents = currentUser.getRegEvents();
+            List<String> registeredEvents = currentUser.getRegEventIds();
             boolean isRegistered = registeredEvents.contains(event.getId());
 
             if (isRegistered){
