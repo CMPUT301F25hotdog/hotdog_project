@@ -188,19 +188,10 @@ public class UserRepository {
         db.collection(COLLECTION_NAME)
                 .add(User)
                 .addOnSuccessListener(bgThread, documentReference -> {
-                    String uid = User.getId();
-                    // Update the document with its own ID
-                    documentReference.update("id", uid)
-                            .addOnSuccessListener(aVoid -> {
-                                Log.d("UserRepository", "User created successfully with ID: " + uid);
-                                callback.onSuccess();
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("UserRepository", "Error updating User ID", e);
-                                callback.onError("User created but failed to update ID: " + e.getMessage());
-                            });
+                    Log.d("UserRepository", "Successfully created user: " + documentReference.getId());
+                    callback.onSuccess();
                 })
-                .addOnFailureListener(bgThread, e -> {
+                .addOnFailureListener(e -> {
                     Log.e("UserRepository", "Error creating User", e);
                     callback.onError("Failed to create User: " + e.getMessage());
                 });
