@@ -11,6 +11,7 @@ import com.hotdog.elotto.model.Event;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 /**
  * Repository class responsible for managing Event data access with Firebase Firestore.
@@ -164,19 +165,7 @@ public class EventRepository {
         db.collection(COLLECTION_NAME)
                 .add(event)
                 .addOnSuccessListener(documentReference -> {
-                    String generatedId = documentReference.getId();
-                    event.setId(generatedId);
-
-                    // Update the document with its own ID
-                    documentReference.update("id", generatedId)
-                            .addOnSuccessListener(aVoid -> {
-                                Log.d("EventRepository", "Event created successfully with ID: " + generatedId);
-                                callback.onSuccess();
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("EventRepository", "Error updating event ID", e);
-                                callback.onError("Event created but failed to update ID: " + e.getMessage());
-                            });
+                    event.setId(documentReference.getId());
                 })
                 .addOnFailureListener(e -> {
                     Log.e("EventRepository", "Error creating event", e);
@@ -225,6 +214,26 @@ public class EventRepository {
                     callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
+                    Log.e("EventRepository", "Error deleting event: " + eventId, e);
+                    callback.onError("Failed to delete event: " + e.getMessage());
+                });
+    }
+
+    /**
+     * Deletes an event from the Firestore database atomically, blocking the main thread until finished execution.
+     *
+     * @param eventId the unique identifier of the event to delete
+     * @param callback the callback to receive success confirmation or error message
+     */
+    public void deleteEvent(String eventId, OperationCallback callback, Executor bgThread) {
+        db.collection(COLLECTION_NAME)
+                .document(eventId)
+                .delete()
+                .addOnSuccessListener(bgThread, aVoid -> {
+                    Log.d("EventRepository", "Event deleted successfully: " + eventId);
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(bgThread, e -> {
                     Log.e("EventRepository", "Error deleting event: " + eventId, e);
                     callback.onError("Failed to delete event: " + e.getMessage());
                 });

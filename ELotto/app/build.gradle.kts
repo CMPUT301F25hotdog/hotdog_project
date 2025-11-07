@@ -1,20 +1,26 @@
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
+    id("de.mannodermaus.android-junit5") version "1.14.0.0"
 }
 
 android {
     namespace = "com.hotdog.elotto"
     compileSdk = 36
+    defaultConfig {
+        vectorDrawables.useSupportLibrary = true
+    }
 
     defaultConfig {
         applicationId = "com.hotdog.elotto"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments["runnerBuilder"] =
+            "de.mannodermaus.junit5.AndroidJUnit5Builder"
     }
 
     buildTypes {
@@ -33,15 +39,23 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    tasks.withType<Test>{
+        useJUnitPlatform()
+    }
 }
 
 dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.storage)
+    implementation(libs.core)
     testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.mockito.junit)
+    testImplementation(libs.mockito.inline)
     testImplementation(libs.junit.jupiter)
-    testRuntimeOnly(libs.junit.launcher)
+    testRuntimeOnly(libs.android.test.runner)
+    testRuntimeOnly(libs.junit.engine)
 
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -52,4 +66,14 @@ dependencies {
     implementation(libs.navigation.ui)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.intents)
+    androidTestImplementation(libs.junit.jupiter)
+    androidTestRuntimeOnly(libs.android.test.runner)
+    androidTestImplementation(libs.core.v161)
+    androidTestImplementation(libs.runner)
+
+    implementation(libs.zxing.core)
+}
+tasks.withType<Test>{
+    useJUnitPlatform()
 }
