@@ -1,6 +1,7 @@
 package com.hotdog.elotto.ui.eventhistory;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +38,7 @@ public class EventHistoryFragment extends Fragment {
     private RecyclerView pendingEventsRecyclerView;
     private TextView emptyDrawnEventsTextView;
     private TextView emptyPendingEventsTextView;
-    private ProgressBar loadingProgressBar; // optional if you add it to XML
+    private ProgressBar loadingProgressBar;
 
     // Adapters (history-specific)
     private EventHistoryAdapter drawnEventsAdapter;
@@ -48,12 +50,18 @@ public class EventHistoryFragment extends Fragment {
     private final List<Event> pendingEvents = new ArrayList<>();
     private String currentUserId;
 
+    private FirebaseFirestore db;
+
+    private static final String TAG = "EventHistoryFragment";
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        db = FirebaseFirestore.getInstance();
         eventRepository = new EventRepository();
 
-        // Device-ID identity (your existing approach)
+        // Device-ID identity (your existing logic)
         User currentUser = new User(requireContext(), false);
         currentUserId = currentUser.getId();
     }
@@ -62,11 +70,15 @@ public class EventHistoryFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_event_history, container, false);
+
         initViews(view);
         setupToolbar();
         setupRecyclerViews();
-        loadEvents();
+
+        loadEventsFromFirestore();
+
         return view;
     }
 
@@ -76,11 +88,10 @@ public class EventHistoryFragment extends Fragment {
         pendingEventsRecyclerView = view.findViewById(R.id.pendingEventsRecyclerView);
         emptyDrawnEventsTextView = view.findViewById(R.id.emptyDrawnEventsTextView);
         emptyPendingEventsTextView = view.findViewById(R.id.emptyPendingEventsTextView);
-        // loadingProgressBar = view.findViewById(R.id.loadingProgressBar);
+        loadingProgressBar = view.findViewById(R.id.loadingProgressBar);
     }
 
     private void setupToolbar() {
-        // Safer back behavior: pop current screen
         toolbar.setNavigationOnClickListener(v ->
                 NavHostFragment.findNavController(this).popBackStack()
         );
@@ -94,78 +105,76 @@ public class EventHistoryFragment extends Fragment {
 
         drawnEventsAdapter = new EventHistoryAdapter(
                 drawnEvents, currentUserId, EventHistoryAdapter.Mode.DRAWN);
+
         pendingEventsAdapter = new EventHistoryAdapter(
                 pendingEvents, currentUserId, EventHistoryAdapter.Mode.PENDING);
 
         drawnEventsRecyclerView.setAdapter(drawnEventsAdapter);
         pendingEventsRecyclerView.setAdapter(pendingEventsAdapter);
-
-        drawnEventsAdapter.setOnEventClickListener(event ->
-                Toast.makeText(getContext(),
-                        "Event: " + event.getName() + " (Selected)", Toast.LENGTH_SHORT).show());
-
-        pendingEventsAdapter.setOnEventClickListener(event ->
-                Toast.makeText(getContext(),
-                        "Event: " + event.getName() + " (Pending/Waitlisted)", Toast.LENGTH_SHORT).show());
     }
 
-    private void loadEvents() {
-        // showLoading(true);
+    private void loadEventsFromFirestore() {
+        showLoading(true);
 
         eventRepository.getAllEvents(new FirestoreListCallback<Event>() {
+
             @Override
             public void onSuccess(List<Event> events) {
-                // showLoading(false);
+                Log.d(TAG, "✅ Firestore returned " + events.size() + " events");
+                showLoading(false);
 
                 drawnEvents.clear();
                 pendingEvents.clear();
 
                 for (Event e : events) {
-                    boolean inSelected = isUserInList(e.getSelectedEntrantIds());
-                    boolean inAccepted = isUserInList(e.getAcceptedEntrantIds());
-                    boolean inWaitlist = isUserInList(e.getWaitlistEntrantIds());
 
-                    // History should only show events relevant to this user
-                    if (inSelected || inAccepted) {
-                        drawnEvents.add(e);          // “Selected” section
-                    } else if (inWaitlist) {
-                        pendingEvents.add(e);        // “Pending/Waitlisted” section
+                    // 🔥 Avoid null pointer crashes (your screenshot shows null values)
+                    List<String> selected = e.getSelectedEntrantIds() != null ? e.getSelectedEntrantIds() : new ArrayList<>();
+                    List<String> accepted = e.getAcceptedEntrantIds() != null ? e.getAcceptedEntrantIds() : new ArrayList<>();
+                    List<String> waitlist = e.getWaitlistEntrantIds() != null ? e.getWaitlistEntrantIds() : new ArrayList<>();
+
+                    if (accepted.contains(currentUserId) || selected.contains(currentUserId)) {
+                        drawnEvents.add(e);
+                    } else if (waitlist.contains(currentUserId)) {
+                        pendingEvents.add(e);
                     }
                 }
 
-                // Sort by event datetime (nulls last) for nicer display
+                // Nicely sort by date
                 Comparator<Event> byDate = (a, b) -> {
                     if (a.getEventDateTime() == null && b.getEventDateTime() == null) return 0;
                     if (a.getEventDateTime() == null) return 1;
                     if (b.getEventDateTime() == null) return -1;
                     return a.getEventDateTime().compareTo(b.getEventDateTime());
                 };
+
                 Collections.sort(drawnEvents, byDate);
                 Collections.sort(pendingEvents, byDate);
 
                 drawnEventsAdapter.update(new ArrayList<>(drawnEvents));
                 pendingEventsAdapter.update(new ArrayList<>(pendingEvents));
+
                 updateEmptyStates();
             }
 
             @Override
             public void onError(String error) {
-                // showLoading(false);
+                showLoading(false);
+                Log.e(TAG, "❌ Firestore error: " + error);
                 Toast.makeText(getContext(), "Error loading events: " + error, Toast.LENGTH_SHORT).show();
                 updateEmptyStates();
             }
         });
     }
 
-    private boolean isUserInList(List<String> ids) {
-        return ids != null && currentUserId != null && ids.contains(currentUserId);
-    }
-
     private void updateEmptyStates() {
         emptyDrawnEventsTextView.setVisibility(drawnEvents.isEmpty() ? View.VISIBLE : View.GONE);
-        drawnEventsRecyclerView.setVisibility(drawnEvents.isEmpty() ? View.GONE : View.VISIBLE);
-
         emptyPendingEventsTextView.setVisibility(pendingEvents.isEmpty() ? View.VISIBLE : View.GONE);
-        pendingEventsRecyclerView.setVisibility(pendingEvents.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
+    private void showLoading(boolean loading) {
+        loadingProgressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+        drawnEventsRecyclerView.setVisibility(loading ? View.GONE : View.VISIBLE);
+        pendingEventsRecyclerView.setVisibility(loading ? View.GONE : View.VISIBLE);
     }
 }
