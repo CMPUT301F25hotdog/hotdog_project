@@ -1,6 +1,9 @@
 package com.hotdog.elotto.ui.home;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +16,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.callback.OperationCallback;
@@ -28,11 +33,10 @@ import java.util.Locale;
 
 /**
  * EventDetailsFragment displays detailed information about a selected event.
+ * Also allows the user to join and leave a waiting list for an event
  *
  *
  * Outstanding Issues:
- * - Image loading not yet implemented
- * - Need to add event to Event's waitlist in Firebase (currently only updates User)
  * - Lottery drawn date needs to be added to Event model
  */
 public class EventDetailsFragment extends Fragment {
@@ -41,7 +45,6 @@ public class EventDetailsFragment extends Fragment {
     private Event event;
     private User currentUser;
 
-    // UI Components
     private ImageButton backButton;
     private ImageView eventImageView;
     private TextView eventTitleTextView;
@@ -71,7 +74,7 @@ public class EventDetailsFragment extends Fragment {
             event = (Event) getArguments().getSerializable("event");
         }
 
-        // Load current user
+
         currentUser = new User(requireContext(), true);
     }
 
@@ -138,7 +141,7 @@ public class EventDetailsFragment extends Fragment {
         }
 
         // Set lottery drawn date
-        // TODO: Add lottery drawn date to Event model
+        // TODO: Add lottery drawn date to Event model once its ready
         lotteryDrawnDateTextView.setText("Monday, June 8");
 
         // Set description
@@ -148,13 +151,47 @@ public class EventDetailsFragment extends Fragment {
             eventDescriptionTextView.setText("No description available.");
         }
 
-        // TODO: Load event image from Url
-        // For now, placeholder will show
+
+        loadEventImage();
 
         // Update button state based on user's registration status
         updateButtonState();
     }
 
+    private void loadEventImage() {
+        String posterImageUrl = event.getPosterImageUrl();
+
+
+        if (posterImageUrl == null || posterImageUrl.isEmpty() ||
+                posterImageUrl.equals("no_image") ||
+                posterImageUrl.startsWith("image_failed_")) {
+            // No image or failed image - keep placeholder
+            eventImageView.setImageResource(R.drawable.image_24px);
+            return;
+        }
+
+        try {
+            // Decoding Base64 string to bitmap
+            byte[] decodedBytes = Base64.decode(posterImageUrl, Base64.DEFAULT);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+
+            if (bitmap != null) {
+                eventImageView.setImageBitmap(bitmap);
+                eventImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            } else {
+
+                eventImageView.setImageResource(R.drawable.image_24px);
+            }
+        } catch (IllegalArgumentException e) {
+
+            e.printStackTrace();
+            eventImageView.setImageResource(R.drawable.image_24px);
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            eventImageView.setImageResource(R.drawable.image_24px);
+        }
+    }
     private void updateButtonState() {
         if (event == null || currentUser == null) return;
 
@@ -187,7 +224,8 @@ public class EventDetailsFragment extends Fragment {
 
     private void setupListeners() {
         backButton.setOnClickListener(v -> {
-            requireActivity().getSupportFragmentManager().popBackStack();
+            NavController navController = NavHostFragment.findNavController(EventDetailsFragment.this);
+            navController.navigateUp();
         });
         enterLotteryButton.setOnClickListener(v ->{
             List<String> registeredEvents = currentUser.getRegEvents();
@@ -209,7 +247,7 @@ public class EventDetailsFragment extends Fragment {
         }
 
 
-        // Check if already registered
+        // Checks if already registered
         if (currentUser.getRegEvents().contains(event.getId())) {
             Toast.makeText(getContext(),
                     "You're already registered for this event",
@@ -217,13 +255,12 @@ public class EventDetailsFragment extends Fragment {
             return;
         }
 
-        // Disable button while processing
+
         enterLotteryButton.setEnabled(false);
         enterLotteryButton.setText("Joining...");
 
         try {
             // Add event to user's registered events
-            // This automatically saves to Firebase via User's controller
             currentUser.addRegEvent(event.getId());
 
             String userId = currentUser.getId();
@@ -253,7 +290,7 @@ public class EventDetailsFragment extends Fragment {
                             "Error joining waitlist: " + errorMessage,
                             Toast.LENGTH_SHORT).show();
 
-                    // show button again
+
                     enterLotteryButton.setEnabled(true);
                     enterLotteryButton.setText("Enter Lottery");
                 }
@@ -276,7 +313,7 @@ public class EventDetailsFragment extends Fragment {
             return;
         }
 
-        // Confirm with user first
+
         new android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Leave Waitlist")
                 .setMessage("Are you sure you want to leave the waitlist for " + event.getName() + "?")
@@ -293,33 +330,35 @@ public class EventDetailsFragment extends Fragment {
 
         try {
             String userId = currentUser.getId();
+            boolean removed = currentUser.removeRegEvent(event.getId());
+
+            // this should never happen
+            if (!removed) {
+                Toast.makeText(getContext(), "Event not found in your registered events", Toast.LENGTH_SHORT).show();
+                enterLotteryButton.setEnabled(true);
+                enterLotteryButton.setText("Leave Waitlist");
+                return;
+            }
+
             List<String> waitlistIds = event.getWaitlistEntrantIds();
             if (waitlistIds != null) {
                 waitlistIds.remove(userId);
             }
 
-            // Update the event in Firebase
             EventRepository eventRepository = new EventRepository();
             eventRepository.updateEvent(event, new OperationCallback() {
                 @Override
                 public void onSuccess() {
-                    // Step 2: Remove event from user's registered events
-                    // Note: User class needs a removeRegEvent method
-                    // For now, we'll need to reload the user
+                    Toast.makeText(getContext(), "Successfully left waitlist for " + event.getName(), Toast.LENGTH_SHORT).show();
 
-                    Toast.makeText(getContext(),
-                            "Successfully left waitlist for " + event.getName(),
-                            Toast.LENGTH_SHORT).show();
-
-                    // Reload user data to reflect changes
-                    currentUser.atomicReload();
-
-                    // Update button state
                     updateButtonState();
                 }
 
                 @Override
                 public void onError(String errorMessage) {
+                    // Rollback: Add event back to user's registered events
+                    currentUser.addRegEvent(event.getId());
+
                     Toast.makeText(getContext(),
                             "Error leaving waitlist: " + errorMessage,
                             Toast.LENGTH_SHORT).show();
@@ -329,15 +368,9 @@ public class EventDetailsFragment extends Fragment {
                     enterLotteryButton.setText("Leave Waitlist");
                 }
             });
-
         } catch (Exception e) {
-            Toast.makeText(getContext(),
-                    "Error leaving waitlist: " + e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
-
-            // Re-enable button
+            Toast.makeText(getContext(), "Error leaving waitlist: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             enterLotteryButton.setEnabled(true);
             enterLotteryButton.setText("Leave Waitlist");
         }
-    }
-}
+    }}

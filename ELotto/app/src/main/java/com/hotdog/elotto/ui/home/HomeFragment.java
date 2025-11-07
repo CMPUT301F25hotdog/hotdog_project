@@ -6,6 +6,7 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -22,6 +23,7 @@ import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.model.Event;
+import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 
 import java.util.ArrayList;
@@ -56,7 +58,7 @@ public class HomeFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize repository
+
         eventRepository = new EventRepository();
 
         User currentUser = new User(requireContext(), true);
@@ -98,9 +100,10 @@ public class HomeFragment extends Fragment {
         eventAdapter.setOnEventClickListener(new EventAdapter.OnEventClickListener() {
             @Override
             public void onEventClick(Event event) {
-                EventDetailsFragment fragment = EventDetailsFragment.newInstance(event);
-                requireActivity().getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment_activity_main, fragment)
-                        .addToBackStack(null).commit();
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("event", event);
+                NavController navController = NavHostFragment.findNavController(HomeFragment.this);
+                navController.navigate(R.id.action_navigation_home_to_eventDetails, bundle);
             }
         });
     }
