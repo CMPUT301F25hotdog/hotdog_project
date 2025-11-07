@@ -15,6 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.model.Event;
+import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.ui.home.QRCodeView;
 
@@ -31,7 +32,7 @@ public class EventCreationController {
     private CollectionReference eventsRef;
     private FirebaseStorage storage;
     private final Context context;
-
+    private EventRepository repository;
     /**
      * Constructs a new EventCreationController.
      *
@@ -41,8 +42,12 @@ public class EventCreationController {
         this.context = context;
         db = FirebaseFirestore.getInstance();
         eventsRef = db.collection("events");
+        this.repository = new EventRepository();
     }
-
+    public EventCreationController(Context context, EventRepository repository) {
+        this.context = context;
+        this.repository = repository;
+    }
     /**
      * Encodes an image Uri into a string to be stored
      *
@@ -121,13 +126,13 @@ public class EventCreationController {
         event.setPosterImageUrl(bannerUrl);
         event.setPrice(price);
 
-        EventRepository repository = new EventRepository();
         repository.createEvent(event, new OperationCallback() {
             @Override
             public void onSuccess() {
                 Toast.makeText(context, "Event created successfully!", Toast.LENGTH_SHORT).show();
 
-                Toast.makeText(context, "idk man", Toast.LENGTH_LONG).show();
+                Organizer organizer = new Organizer(context);
+                organizer.addEvent(event.getId());
                 Intent qrIntent = new Intent(context, QRCodeView.class);
                 qrIntent.putExtra("EVENT_NAME", name);
                 qrIntent.putExtra("EVENT_ID", event.getId());

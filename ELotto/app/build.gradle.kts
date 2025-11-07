@@ -48,7 +48,7 @@ dependencies {
 
     testImplementation("org.mockito:mockito-core:5.5.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.5.0")
-
+    testImplementation("org.robolectric:robolectric:4.10")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)

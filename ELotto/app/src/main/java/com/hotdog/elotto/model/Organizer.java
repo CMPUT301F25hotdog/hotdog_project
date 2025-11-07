@@ -95,6 +95,9 @@ public class Organizer {
         bgExec.execute(() -> OrganizerRepository.getInstance().getOrganizerById(this.deviceId, atomicCallback, bgExec));
         atomicCallback.await();
     }
+    public Organizer() {
+        this.deviceId = null;
+    }
 
     public void setOrg(Organizer org) {
         this.user=org.user;
