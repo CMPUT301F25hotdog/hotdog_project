@@ -1,9 +1,11 @@
 package com.hotdog.elotto.model;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 import com.hotdog.elotto.callback.FirestoreCallback;
@@ -45,15 +47,51 @@ public class User {
     /**
      * A class that represents one registered event for a user. Each object holds a different event and information for one registration of one user.
      */
-    private class RegisteredEvent {
-        LocalDateTime registeredDate;
+    private class RegisteredEvent implements Comparable<RegisteredEvent> {
+        Timestamp registeredDate;
         Status status;
         String eventId;
 
         public RegisteredEvent(String eventId) {
-            this.registeredDate = LocalDateTime.now();
+            this.registeredDate = Timestamp.now();
             this.status = Status.Pending;
             this.eventId = eventId;
+        }
+
+        @Override
+        public int compareTo(RegisteredEvent o) {
+            return eventId.compareTo(o.eventId);
+        }
+    }
+
+    /**
+     * A class to store a firebase compatible shared string that is mutable and can be updated by multiple references.
+     */
+    public class SharedString {
+        String value;
+
+        /**
+         * Creates the initial shared string.
+         * @param value String to be shared.
+         */
+        public SharedString(String value) {
+            this.value = value;
+        }
+
+        /**
+         * Sets the shared string to a new value.
+         * @param value The string to be set.
+         */
+        public void set(String value) {
+            this.value=value;
+        }
+
+        /**
+         * Gets the current value of the shared string.
+         * @return Current state of shared string.
+         */
+        public String get() {
+            return this.value;
         }
     }
 
@@ -74,9 +112,9 @@ public class User {
         public AtomicUserCallback(User superUser) {userRef.set(superUser);}
 
         public void onSuccess(User user) {
-            this.userRef.get().exists=true;
             // Set the info to the returned user value
             this.userRef.get().setUser(user);
+            this.userRef.get().exists=true;
             this.gate.countDown();
         }
 
@@ -98,12 +136,14 @@ public class User {
         }
     }
 
-
+    // Super User
+    @Exclude
+    private static User SuperUser;
 
     // Personal Info
-    private String name="";
-    private String email="";
-    private String phone="";
+    private SharedString name=new SharedString("");
+    private SharedString email=new SharedString("");
+    private SharedString phone=new SharedString("");
 
     // Identifying information
     @DocumentId
@@ -116,8 +156,39 @@ public class User {
     @Exclude
     private boolean exists;
 
+    /**
+     * Nested class container for UserType to allow for multiple references to be value changed by one.
+     */
+    private class TypeContainer {
+        private UserType type;
+
+        /**
+         * Creates a new type container with the type specified.
+         * @param type Type to contain.
+         */
+        public TypeContainer (UserType type) {
+            this.type=type;
+        }
+
+        /**
+         * Get the type contained.
+         * @return The type contained.
+         */
+        public UserType get() {
+            return this.type;
+        }
+
+        /**
+         * Set the type being contained.
+         * @param type Type to be contained.
+         */
+        public void set(UserType type) {
+            this.type=type;
+        }
+    }
+
     // Permission control
-    private UserType type;
+    private TypeContainer type=new TypeContainer(null);
 
     /**
      * No arg constructor to be used by firestore to create a blank version of the User.
@@ -126,59 +197,55 @@ public class User {
     public User() {deviceId="";}
 
     /**
-    * Class constructor that gets parent context to grab device ID and either pull or null User info synchronously.
-     * When atomic is specified, then this operation will block the main thread in order to wait for the result to be obtained before continuing.
-     * WARNING: THIS IS ATOMIC AND BLOCKS THE MAIN THREAD NO MATTER THE VALUE OF ATOMIC PARAM
+    * Class Constructor that will <b>ALWAYS</b> get the user of this phone.
+     * If atomic is true, then the main thread will not run until either a result or error has returned.
+     * <p><b>WARNING:</b> This <b>cannot</b> be used to get any other user than the current phone user, and updating the info of a user object created with this constructor will update the current phone user no matter what!</p>
     *
     * @param context The context of the caller to resolve device ID.
-     * @param atomic Specify this (ANYTHING) if you want to use this overloaded constructor
+     * @param atomic Specify whether this User creation will block the main thread until we have fetched the data.
     */
-    public User(Context context, boolean atomic) /*throws NoSuchFieldException*/ {
+    @SuppressLint("HardwareIds")
+    public User(Context context, boolean atomic) {
         // Get deviceId
         this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        if(SuperUser!=null) {
+            this.setUser(SuperUser);
+            this.controller=SuperUser.controller;
+            Log.d("SUPER USER", "SU Name: " + SuperUser.getName() + "SU Email: " + SuperUser.getEmail() + "SU Phone: " + SuperUser.getPhone());
+            return;
+        }
+
+        SuperUser=this;
 
         // Create new controller
         this.controller = new UserController(this);
 
         final AtomicUserCallback atomicCallback = new AtomicUserCallback(this);
-        ExecutorService bgExec = Executors.newSingleThreadExecutor();
-        bgExec.execute(() -> {
-            UserRepository.getInstance().getUserById(this.deviceId, atomicCallback, bgExec);
-        });
 
-        atomicCallback.await();
+        if(atomic) {
+            ExecutorService bgExec = Executors.newSingleThreadExecutor();
+            bgExec.execute(() -> {
+                UserRepository.getInstance().getUserById(this.deviceId, atomicCallback, bgExec);
+            });
+            atomicCallback.await();
+        } else {
+            UserRepository.getInstance().getUserById(this.deviceId, atomicCallback);
+        }
     }
 
     /**
-     * Class constructor that gets parent context to grab device ID and either pull or null User info.
-     * WARNING: THIS WILL MOST LIKELY RETURN BEFORE ANY DATA HAS BEEN RETURNED: USE User(context, atomic) IF YOU NEED THE RESULT BEFORE CONTINUING.
-     *
-     * @param context The context of the caller to resolve device ID.
-     */
-    public User(Context context) /*throws NoSuchFieldException*/ {
-        // Get deviceId
-        this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        //if(deviceId == null) throw new NoSuchFieldException("No android ID found.");
-
-        // Create new controller
-        this.controller = new UserController(this);
-
-        UserRepository.getInstance().getUserById(this.deviceId, new AtomicUserCallback(this));
-    }
-
-    /**
-     * Set this user object info to the given user object info.
+     * Set this user object info to the given user object info. Effectively makes a copy of the given user that references all the same things.
+     * <p><b>NOTE:</b> This is intended for internal use, so only use it if you are confident it is what you need.</p>
      * @param user The user object to grab info from.
-     * @return True if given user exists, false otherwise.
      */
-    private boolean setUser(User user) {
-        if (!this.exists) return false;
-
+    private void setUser(User user) {
+        this.exists=user.exists;
         this.name=user.name;
         this.email=user.email;
         this.phone=user.phone;
         this.regEvents=user.regEvents;
-        return true;
+        this.type=user.type;
     }
 
     /**
@@ -186,7 +253,7 @@ public class User {
      * @param name Name to be set.
      */
     public void updateName(String name) {
-        this.name = name;
+        this.name.set(name);
         this.updateUser();
     }
 
@@ -195,7 +262,16 @@ public class User {
      * @return Name of the User.
      */
     public String getName() {
-        return name;
+        return name.get();
+    }
+
+    /**
+     * Sets this user objects name.
+     * <p><b>WARNING:</b> THIS DOES NOT UPDATE FIREBASE AND IS NOT MEANT FOR DEV USE.</p>
+     * @param name Name to be set.
+     */
+    public void setName(String name) {
+        this.name.set(name);
     }
 
     /**
@@ -203,7 +279,7 @@ public class User {
      * @param email Email to be set.
      */
     public void updateEmail(String email) {
-        this.email = email;
+        this.email.set(email);
         this.updateUser();
     }
 
@@ -212,7 +288,16 @@ public class User {
      * @return Email of the User.
      */
     public String getEmail() {
-        return email;
+        return email.get();
+    }
+
+    /**
+     * Sets this user objects email.
+     * <p><b>WARNING:</b> THIS DOES NOT UPDATE FIREBASE AND IS NOT MEANT FOR DEV USE.</p>
+     * @param email Email to be set.
+     */
+    public void setEmail(String email) {
+        this.email.set(email);
     }
 
     /**
@@ -220,7 +305,7 @@ public class User {
      * @param phone Phone number to be set.
      */
     public void updatePhone(String phone) {
-        this.phone = phone;
+        this.phone.set(phone);
         this.updateUser();
     }
 
@@ -229,7 +314,16 @@ public class User {
      * @return Phone number of the User.
      */
     public String getPhone() {
-        return phone;
+        return phone.get();
+    }
+
+    /**
+     * Sets this user objects phone.
+     * <p><b>WARNING:</b> THIS DOES NOT UPDATE FIREBASE AND IS NOT MEANT FOR DEV USE.</p>
+     * @param phone Phone to be set.
+     */
+    public void setPhone(String phone) {
+        this.phone.set(phone);
     }
 
     /**
@@ -237,7 +331,7 @@ public class User {
      * @param type The User type to be set. Uses the UserType Enum.
      */
     public void updateType(UserType type) {
-        this.type = type;
+        this.type.set(type);
         this.updateUser();
     }
 
@@ -246,7 +340,16 @@ public class User {
      * @return Type of the User.
      */
     public UserType getType() {
-        return type;
+        return type.get();
+    }
+
+    /**
+     * Sets this user objects type.
+     * <p><b>WARNING:</b> THIS DOES NOT UPDATE FIREBASE AND IS NOT MEANT FOR DEV USE.</p>
+     * @param type Type to be set.
+     */
+    public void setType(UserType type) {
+        this.type.set(type);
     }
 
     /**
@@ -254,10 +357,13 @@ public class User {
      * <p>NOTE: This does not do any checking with regards to the event in question. Calling this will ALWAYS add the event to the users registered events.</p>
      *
      * @param eventId ID of the event being registered.
+     * @return True if the event was added, false if the event is already registered.
      */
-    public void addRegEvent(String eventId) {
+    public boolean addRegEvent(String eventId) {
+        if(this.findRegEvent(eventId)) return false;
         this.regEvents.add(new RegisteredEvent(eventId));
         this.sort();
+        return true;
     }
 
     /**
@@ -273,15 +379,47 @@ public class User {
     }
 
     /**
+     * Remove an event from this users registered events based on the event ID.
+     * @param eventId ID of the event you wish to remove.
+     * @return True if the event is found and subsequently removed, false if the event could not be found.
+     */
+    public boolean removeRegEvent(String eventId) {
+        int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
+        if(index<0) {
+            return false;
+        }
+        this.regEvents.remove(index);
+        return true;
+    }
+
+    /**
+     * Check if an event is in regEvents.
+     * @param eventId ID of the event you wish to check.
+     * @return True if the event is in the list, false otherwise.
+     */
+    public boolean findRegEvent(String eventId) {
+        return Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId)) >= 0;
+    }
+
+    /**
      * Sets the status of an event this user is registered in, denoted by the event ID provided.
      * @param eventId ID of the event to have it's status changed.
      * @param status Status of the event to be set.
      * @throws NoSuchFieldException Thrown if the User does not have this event registered.
      */
     public void setRegEventStatus(String eventId, Status status) throws NoSuchFieldException {
-        int index = Collections.binarySearch(this.getRegEvents(), eventId, (String id1, String id2) -> id1.compareTo(id2));
+        int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
         if(index<0) throw new NoSuchFieldException("No such event ID " + eventId + " in this Users registered events.");
         this.regEvents.get(index).status=status;
+    }
+
+    /**
+     * Sets this user objects events.
+     * <p><b>WARNING:</b> THIS DOES NOT UPDATE FIREBASE AND IS NOT MEANT FOR DEV USE.</p>
+     * @param events Events to be set.
+     */
+    public void setRegEvents(List<RegisteredEvent> events) {
+        this.regEvents=events;
     }
 
     /**
@@ -300,45 +438,11 @@ public class User {
     }
 
     /**
-     * Sets the user's basic information when the user doesn't already exist.
-     * NOTE: DO NOT use this to update user values. Use the corresponding User.update___ method instead.
-     * @param name Users name
-     * @param email Users email
-     */
-    public void setUser(String name, String email) {
-        this.name=name;
-        this.email=email;
-        this.phone="";
-        this.type=UserType.Entrant;
-        this.updateUser();
-    }
-
-    /**
-     * Sets the user's basic information when the user doesn't already exist.
-     * NOTE: DO NOT use this to update user values. Use the corresponding User.update___ method instead.
-     * @param name Users name
-     * @param email Users email
-     * @param phone Users phone number
-     */
-    public void setUser(String name, String email, String phone) {
-        this.name=name;
-        this.email=email;
-        this.phone=phone;
-        this.type=UserType.Entrant;
-        this.updateUser();
-    }
-
-    /**
      * Sorts this Users registered events by EventID. Called every time a new registered event is added.
      */
     private void sort() {
         // Sort purely based on the Event ID
-        this.regEvents.sort(new Comparator<RegisteredEvent>() {
-            @Override
-            public int compare(RegisteredEvent o1, RegisteredEvent o2) {
-                return o1.eventId.compareTo(o2.eventId);
-            }
-        });
+        this.regEvents.sort(Comparator.comparing(o -> o.eventId));
     }
 
     /**
@@ -353,8 +457,17 @@ public class User {
      * NOTE: This should never be able to overwrite any unsaved changes since all changes are immediately pushed to firebase when using the given methods.
      * WARNING: THIS WILL VERY LIKELY RETURN BEFORE A RESULT IS RECEIVED: USE atomicReload() IF YOU NEED THE RESULT BEFORE CONTINUING.
      */
-    public void reload() {
-        UserRepository.getInstance().getUserById(this.deviceId, new AtomicUserCallback(this));
+    public void reload(boolean atomic) {
+        AtomicUserCallback atomicCallback = new AtomicUserCallback(this);
+        if(atomic) {
+            ExecutorService bgExec = Executors.newSingleThreadExecutor();
+            bgExec.execute(() -> {
+                UserRepository.getInstance().getUserById(this.deviceId, atomicCallback, bgExec);
+            });
+            atomicCallback.await();
+        } else {
+            UserRepository.getInstance().getUserById(this.deviceId, atomicCallback);
+        }
     }
 
     /**
@@ -370,4 +483,9 @@ public class User {
         });
         atomicCallback.await();
     }
+    public String getDeviceId() {
+        return deviceId;
+    }
+
 }
+
