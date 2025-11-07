@@ -68,6 +68,7 @@ public class EventRepository {
 
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Event event = document.toObject(Event.class);
+                        event.setId(document.getId());
                         events.add(event);
                     }
 
@@ -93,6 +94,7 @@ public class EventRepository {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         Event event = documentSnapshot.toObject(Event.class);
+                        event.setId(documentSnapshot.getId());
                         Log.d("EventRepository", "Successfully fetched event: " + eventId);
                         callback.onSuccess(event);
                     } else {
@@ -155,6 +157,7 @@ public class EventRepository {
 
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Event event = document.toObject(Event.class);
+                        event.setId(document.getId());
                         events.add(event);
                     }
 
@@ -182,6 +185,7 @@ public class EventRepository {
 
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Event event = document.toObject(Event.class);
+                        event.setId(document.getId());
                         events.add(event);
                     }
 
@@ -296,6 +300,7 @@ public class EventRepository {
 
                     // Try to add to waitlist if it exists, if not then create the waitlist.
                     if (event != null) {
+                        event.setId(documentSnapshot.getId());
                         List<String> waitlist = event.getWaitlistEntrantIds();
                         if (waitlist == null) {
                             waitlist = new ArrayList<>();
@@ -334,6 +339,7 @@ public class EventRepository {
                     Event event = documentSnapshot.toObject(Event.class);
 
                     if (event != null) {
+                        event.setId(documentSnapshot.getId());
                         List<String> waitlist = event.getWaitlistEntrantIds();
                         if (waitlist != null && waitlist.contains(entrantId)) {
                             waitlist.remove(entrantId);

@@ -3,6 +3,7 @@ package com.hotdog.elotto.model;
 import com.google.firebase.firestore.DocumentId;
 
 import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 

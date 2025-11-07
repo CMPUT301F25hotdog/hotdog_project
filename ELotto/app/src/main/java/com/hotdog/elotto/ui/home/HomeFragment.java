@@ -2,9 +2,11 @@ package com.hotdog.elotto.ui.home;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -12,22 +14,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.navigation.fragment.NavHostFragment;
 
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.model.Event;
+import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
-
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.widget.PopupMenu;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +34,11 @@ import java.util.List;
  * Implements US 01.01.03 - As an entrant, I want to be able to see a list of events
  * that I can join the waiting list for.
  *
- * Serves as the View layer of MVC design.
+ * serves as the View layer of MVC design
  *
  * Outstanding Issues:
- * Filter functionality not yet implemented.
- * Profile navigation not yet implemented.
+ * Filter functionality not yet implemented
+ * Profile navigation not yet implemented
  */
 public class HomeFragment extends Fragment {
 
@@ -61,11 +58,11 @@ public class HomeFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize repository
+
         eventRepository = new EventRepository();
 
-        // TODO: Replace with real user ID when authentication is implemented
-        currentUserId = "user123";
+        User currentUser = new User(requireContext(), true);
+        currentUserId = currentUser.getId();
     }
 
     @Nullable
@@ -99,9 +96,16 @@ public class HomeFragment extends Fragment {
         eventAdapter = new EventAdapter(allEvents, currentUserId);
         eventsRecyclerView.setAdapter(eventAdapter);
 
-        eventAdapter.setOnEventClickListener(event ->
-                Toast.makeText(getContext(), "Clicked: " + event.getName(), Toast.LENGTH_SHORT).show()
-        );
+        // Set click listener for event cards
+        eventAdapter.setOnEventClickListener(new EventAdapter.OnEventClickListener() {
+            @Override
+            public void onEventClick(Event event) {
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("event", event);
+                NavController navController = NavHostFragment.findNavController(HomeFragment.this);
+                navController.navigate(R.id.action_navigation_home_to_eventDetails, bundle);
+            }
+        });
     }
 
     private void setupListeners() {
@@ -210,13 +214,23 @@ public class HomeFragment extends Fragment {
     }
 
     private void showLoading(boolean show) {
-        loadingProgressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        eventsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-        emptyStateLayout.setVisibility(View.GONE);
+        if (show) {
+            loadingProgressBar.setVisibility(View.VISIBLE);
+            eventsRecyclerView.setVisibility(View.GONE);
+            emptyStateLayout.setVisibility(View.GONE);
+        } else {
+            loadingProgressBar.setVisibility(View.GONE);
+            eventsRecyclerView.setVisibility(View.VISIBLE);
+        }
     }
 
     private void showEmptyState(boolean show) {
-        emptyStateLayout.setVisibility(show ? View.VISIBLE : View.GONE);
-        eventsRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+        if (show) {
+            emptyStateLayout.setVisibility(View.VISIBLE);
+            eventsRecyclerView.setVisibility(View.GONE);
+        } else {
+            emptyStateLayout.setVisibility(View.GONE);
+            eventsRecyclerView.setVisibility(View.VISIBLE);
+        }
     }
 }
