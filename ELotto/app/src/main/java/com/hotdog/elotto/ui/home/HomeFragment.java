@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.NavController;
 
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.EventAdapter;
@@ -23,11 +24,7 @@ import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.repository.EventRepository;
 
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.widget.PopupMenu;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +38,8 @@ import java.util.List;
  *
  * Outstanding Issues:
  * Filter functionality not yet implemented.
- * Profile navigation not yet implemented.
  */
+
 public class HomeFragment extends Fragment {
 
     private RecyclerView eventsRecyclerView;
@@ -60,12 +57,8 @@ public class HomeFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Initialize repository
         eventRepository = new EventRepository();
-
-        // TODO: Replace with real user ID when authentication is implemented
-        currentUserId = "user123";
+        currentUserId = "user123"; // temporary placeholder until auth
     }
 
     @Nullable
@@ -105,7 +98,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupListeners() {
-        // Profile button dropdown menu
+        // Dropdown menu on profile button
         profileButton.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(requireContext(), v);
             MenuInflater inflater = popupMenu.getMenuInflater();
@@ -113,23 +106,22 @@ public class HomeFragment extends Fragment {
 
             popupMenu.setOnMenuItemClickListener(item -> {
                 int id = item.getItemId();
+                NavController navController = NavHostFragment.findNavController(HomeFragment.this);
 
                 if (id == R.id.action_profile) {
-                    NavController navController = NavHostFragment.findNavController(HomeFragment.this);
                     navController.navigate(R.id.action_navigation_home_to_profileFragment);
                     return true;
-                }
-                else if (id == R.id.action_inbox) {
+
+                } else if (id == R.id.action_inbox) {
                     Toast.makeText(requireContext(), "Inbox clicked", Toast.LENGTH_SHORT).show();
                     return true;
 
                 } else if (id == R.id.action_settings) {
-                    NavHostFragment.findNavController(HomeFragment.this)
-                            .navigate(R.id.action_navigation_home_to_settingsFragment);
+                    navController.navigate(R.id.action_navigation_home_to_settingsFragment);
                     return true;
 
                 } else if (id == R.id.action_faq) {
-                    Toast.makeText(requireContext(), "FAQ clicked", Toast.LENGTH_SHORT).show();
+                    navController.navigate(R.id.action_navigation_home_to_faqFragment);
                     return true;
 
                 } else if (id == R.id.action_qr) {
@@ -144,12 +136,12 @@ public class HomeFragment extends Fragment {
             popupMenu.show();
         });
 
-        // Filter button
+        // Filter button (currently not implemented)
         filterButton.setOnClickListener(v ->
                 Toast.makeText(getContext(), "Filter clicked", Toast.LENGTH_SHORT).show()
         );
 
-        // Search bar functionality
+        // Search bar logic
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -175,7 +167,6 @@ public class HomeFragment extends Fragment {
                 allEvents.clear();
                 allEvents.addAll(events);
                 eventAdapter.updateEvents(allEvents);
-
                 showEmptyState(events.isEmpty());
             }
 

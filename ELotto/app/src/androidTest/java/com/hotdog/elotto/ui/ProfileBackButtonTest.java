@@ -15,18 +15,16 @@ import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 
 @RunWith(AndroidJUnit4.class)
-public class SettingsToggleIntentTest {
+public class ProfileBackButtonTest {
 
     @Rule
     public ActivityScenarioRule<MainActivity> rule = new ActivityScenarioRule<>(MainActivity.class);
 
     @Test
-    public void toggleNotificationsWorks() {
+    public void backButtonNavigatesToHome() {
         onView(withId(R.id.profileButton)).perform(click());
-        onView(withText("Settings")).perform(click());
-        onView(withId(R.id.switchOrganizer)).check(matches(isDisplayed()));
-        onView(withId(R.id.switchOrganizer)).perform(click());
-        onView(withId(R.id.switchAdmin)).check(matches(isDisplayed()));
-        onView(withId(R.id.switchAdmin)).perform(click());
+        onView(withText("Profile")).perform(click());
+        onView(withId(R.id.btn_back)).perform(click());
+        onView(withId(R.id.eventsRecyclerView)).check(matches(isDisplayed()));
     }
 }
