@@ -64,4 +64,5 @@
     <string name="notification_logs">Notification Logs</string>
     <string name="notification_logs_desc">Review all sent notifications</string>
     <string name="placeholder_number">#</string>
+
 </resources>

@@ -30,15 +30,29 @@
                 android:layout_height="wrap_content"
                 android:padding="16dp">
 
+                <!-- Back Button -->
+                <ImageButton
+                    android:id="@+id/back_button"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/back"
+                    android:src="@drawable/baseline_arrow_back_24"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/black" />
+
                 <!-- Admin Icon -->
                 <ImageView
                     android:id="@+id/admin_icon"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
                     android:contentDescription="@string/admin_dashboard"
                     android:src="@drawable/account_circle_24px"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/back_button"
                     app:layout_constraintTop_toTopOf="parent"
                     app:tint="@color/main_icon_blue" />
 
@@ -67,6 +81,7 @@
                     android:contentDescription="@string/admin_dashboard"
                     android:padding="8dp"
                     android:src="@drawable/ic_qr_code"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"

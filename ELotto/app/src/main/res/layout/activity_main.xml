@@ -33,13 +33,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_nav_menu" />
 
+    <!-- Create Event Button -->
     <Button
         android:id="@+id/bruh"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/create_event_button"
+        android:layout_margin="10dp"
         app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_margin="10dp"/>
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <!-- Admin FAB (Hidden by default) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/admin_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="@string/admin_dashboard"
+        android:src="@drawable/account_circle_24px"
+        android:visibility="gone"
+        app:backgroundTint="@color/main_icon_blue"
+        app:tint="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintEnd_toStartOf="@+id/bruh" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,23 +13,58 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ELotto">
+
+        <!-- Main Activity (Launcher) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginActivity"/>
+
+        <!-- Login Activity -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+
+        <!-- Event Creation Activity -->
         <activity
             android:name=".ui.home.EventCreationView"
             android:exported="false" />
-        <activity android:name=".ui.home.QRCodeView"
-            android:exported="true">
-        </activity>
+
+        <!-- QR Code Activity -->
+        <activity
+            android:name=".ui.home.QRCodeView"
+            android:exported="true" />
+
+        <!-- Admin Dashboard Activity -->
+        <activity
+            android:name=".ui.AdminDashboardActivity"
+            android:exported="false" />
+
+        <!-- Browse Events Activity -->
+        <activity
+            android:name=".ui.BrowseEventsActivity"
+            android:exported="false" />
+
+        <!-- Browse Profiles Activity -->
+        <activity
+            android:name=".ui.BrowseProfilesActivity"
+            android:exported="false" />
+
+        <!-- Browse Images Activity -->
+        <activity
+            android:name=".ui.BrowseImagesActivity"
+            android:exported="false" />
+
+        <!-- Notification Logs Activity -->
+        <activity
+            android:name=".ui.NotificationLogsActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
