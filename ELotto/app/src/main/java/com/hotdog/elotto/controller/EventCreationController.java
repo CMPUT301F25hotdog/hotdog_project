@@ -1,11 +1,13 @@
 package com.hotdog.elotto.controller;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Base64;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.firestore.CollectionReference;
@@ -13,79 +15,62 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.model.Event;
+import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.ui.home.QRCodeView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
  * Controller class responsible for managing event creation logic, including
  * data processing, image encoding, and interaction with Firestore and Storage.
- * <p>
- * The {@code EventCreationController} handles:
- * <ul>
- *     <li>Validating and encoding an event's banner image into Base64 format.</li>
- *     <li>Saving new event records to Firestore using {@link EventRepository}.</li>
- *     <li>Navigating to {@link QRCodeView} upon successful event creation.</li>
- * </ul>
- *
- * This controller bridges the app’s UI (such as {@link com.hotdog.elotto.ui.home.EventCreationView})
- * and the backend data management layers.
  */
 public class EventCreationController {
-
-    /** Firestore database instance for interacting with event data. */
     private FirebaseFirestore db;
-
-    /** Reference to the Firestore 'events' collection. */
     private CollectionReference eventsRef;
-
-    /** Firebase Storage instance (currently unused but reserved for image storage). */
     private FirebaseStorage storage;
-
-    /** Android context used for accessing content resolvers and starting new activities. */
     private final Context context;
-
+    private EventRepository repository;
     /**
-     * Constructs a new {@code EventCreationController}.
+     * Constructs a new EventCreationController.
      *
-     * @param context the current context, used for resource access and UI updates.
+     * @param context the current context
      */
     public EventCreationController(Context context) {
         this.context = context;
         db = FirebaseFirestore.getInstance();
         eventsRef = db.collection("events");
+        this.repository = new EventRepository();
     }
-
+    public EventCreationController(Context context, EventRepository repository) {
+        this.context = context;
+        this.repository = repository;
+    }
     /**
-     * Creates a new event record, including encoding its banner image and saving metadata.
-     * <p>
-     * If a banner image URI is provided, it is converted to a Base64-encoded string and
-     * passed along with other event data to {@link #SaveEvent(String, String, Date, Date, Date, int, int, String, double, boolean, String)}.
-     * </p>
-     * In the event of an error (e.g., null input stream or failed image decoding),
-     * the controller stores a fallback banner string indicating the failure type.
+     * Encodes an image Uri into a string to be stored
+     *
      *
      * @param name          the name of the event.
-     * @param description   a short description of the event.
+     * @param description   the description of the event.
      * @param dateTime      the scheduled date and time of the event.
      * @param openPeriod    the event’s opening registration period.
      * @param closePeriod   the event’s closing registration period.
      * @param entrantLimit  the maximum number of entrants allowed.
      * @param waitListSize  the maximum size of the event waitlist.
      * @param location      the location of the event.
-     * @param price         the ticket or entry price for the event.
+     * @param price         the ticket price for the event.
      * @param requireGeo    whether geolocation is required for participation.
      * @param bannerUri     a URI pointing to the banner image selected by the user.
      *
-     * @see <a href="https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database">
-     *      Stack Overflow reference: How to add an image to a record in Firestore</a>
+     * https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database
+     * used to figure out how to convert images into strings to store
      */
-    public void CreateEvent(String name, String description, Date dateTime, Date openPeriod,
+    public void EncodeImage(String name, String description, Date dateTime, Date openPeriod,
                             Date closePeriod, int entrantLimit, int waitListSize,
-                            String location, double price, boolean requireGeo, Uri bannerUri) {
+                            String location, double price, boolean requireGeo, Uri bannerUri, ArrayList<String> tags) {
         if (bannerUri != null) {
             try {
                 InputStream inputStream = context.getContentResolver().openInputStream(bannerUri);
@@ -98,31 +83,27 @@ public class EventCreationController {
                     String base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
                     SaveEvent(name, description, dateTime, openPeriod, closePeriod,
-                            entrantLimit, waitListSize, location, price, requireGeo, base64String);
+                            entrantLimit, waitListSize, location, price, requireGeo, base64String,tags);
                 } else {
                     SaveEvent(name, description, dateTime, openPeriod, closePeriod,
                             entrantLimit, waitListSize, location, price, requireGeo,
-                            "image_failed_nullinput_" + System.currentTimeMillis());
+                            "image_failed_nullinput",tags);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 SaveEvent(name, description, dateTime, openPeriod, closePeriod,
                         entrantLimit, waitListSize, location, price, requireGeo,
-                        "image_failed_exception_" + System.currentTimeMillis());
+                        "image_failed_exception",tags);
             }
         } else {
             SaveEvent(name, description, dateTime, openPeriod, closePeriod,
-                    entrantLimit, waitListSize, location, price, requireGeo, "no_image");
+                    entrantLimit, waitListSize, location, price, requireGeo, "no_image",tags);
         }
     }
 
     /**
-     * Saves an event object to Firestore and opens the QR code display screen upon success.
-     * <p>
-     * The event metadata is stored using an instance of {@link EventRepository}.
-     * If the save operation succeeds, the user is redirected to {@link QRCodeView},
-     * where a QR code for the newly created event is generated and displayed.
-     * </p>
+     * Creates a new event and saves it to FireStore using the EventRepository class, then opens up the QRCode
+     * Screen, also runs updateOrganizer which creates or updates an organizer
      *
      * @param name          the name of the event.
      * @param description   a brief description of the event.
@@ -138,25 +119,31 @@ public class EventCreationController {
      */
     public void SaveEvent(String name, String description, Date dateTime, Date openPeriod,
                           Date closePeriod, int entrantLimit, int waitListSize,
-                          String location, double price, boolean requireGeo, String bannerUrl) {
-
+                          String location, double price, boolean requireGeo, String bannerUrl,ArrayList<String> tagList) {
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
         event.setCreatedAt(new Date());
         event.setUpdatedAt(new Date());
         event.setGeolocationRequired(requireGeo);
         event.setPosterImageUrl(bannerUrl);
         event.setPrice(price);
-
-        EventRepository repository = new EventRepository();
+        event.setTagList(tagList);
+        Organizer org = new Organizer(context);
+        event.setOrganizerId(org.getId());
         repository.createEvent(event, new OperationCallback() {
             @Override
             public void onSuccess() {
                 Toast.makeText(context, "Event created successfully!", Toast.LENGTH_SHORT).show();
 
+                Organizer organizer = new Organizer(context);
+                organizer.addEvent(event.getId());
                 Intent qrIntent = new Intent(context, QRCodeView.class);
                 qrIntent.putExtra("EVENT_NAME", name);
                 qrIntent.putExtra("EVENT_ID", event.getId());
                 context.startActivity(qrIntent);
+                if (context instanceof Activity) {
+                    ((Activity) context).setResult(Activity.RESULT_OK);
+                    ((Activity) context).finish();
+                }
             }
 
             @Override
