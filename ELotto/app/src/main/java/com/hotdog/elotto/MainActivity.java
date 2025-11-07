@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         curUser = new User(getApplicationContext(), true);
 
         Log.d("USER NAME", curUser.getName());
+        Log.d("CUR USER", ""+curUser);
 
         if (!curUser.exists()) {
             // Either simple finish() or clear the task so back won’t escape login
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initAfterLogin() {
         // Make sure user object is up to date with any new information
-        curUser.reload();
+        curUser.reload(true);
 
         Log.d("USER EXISTS", "" + curUser.exists());
 

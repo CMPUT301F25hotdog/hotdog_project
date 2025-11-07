@@ -6,6 +6,9 @@ plugins {
 android {
     namespace = "com.hotdog.elotto"
     compileSdk = 36
+    defaultConfig {
+        vectorDrawables.useSupportLibrary = true
+    }
 
     defaultConfig {
         applicationId = "com.hotdog.elotto"
@@ -54,5 +57,7 @@ dependencies {
     implementation(libs.navigation.ui)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
+
     implementation("com.google.zxing:core:3.5.3")
 }

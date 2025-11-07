@@ -1,0 +1,8 @@
+<resources>
+
+    <style name="ProfileHintText" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">#333333</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+</resources>

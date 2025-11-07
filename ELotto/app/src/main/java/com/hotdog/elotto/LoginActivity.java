@@ -1,11 +1,13 @@
 package com.hotdog.elotto;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.model.User;
 
 
@@ -48,13 +50,16 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            User user;
-
-            user = new User(getApplicationContext());
+            User user = new User(getApplicationContext(), true);
 
             user.updateEmail(email);
             user.updateName(name);
             user.updatePhone(phone);
+            user.updateType(UserType.Entrant);
+
+            Log.d("LOGIN USER", user.getName());
+
+            setResult(RESULT_OK);
 
             setResult(RESULT_OK);
 
