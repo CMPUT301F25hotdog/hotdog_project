@@ -26,7 +26,6 @@ public class FaqFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_faq, container, false);
 
-        // Bind UI
         backButtonFaq = v.findViewById(R.id.backButtonFaq);
         faqCard = v.findViewById(R.id.faqCard);
         dropArrow = v.findViewById(R.id.dropArrow);
@@ -40,7 +39,6 @@ public class FaqFragment extends Fragment {
          faqSubtext.setText("Tap to learn about the selection criteria");
         dropArrow.setRotation(0);
 
-        // Toggle expand/collapse
         faqCard.setOnClickListener(v1 -> toggleFaq());
 
         return v;
