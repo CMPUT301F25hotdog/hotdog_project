@@ -1,8 +1,5 @@
 package com.hotdog.elotto.adapter;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -131,19 +128,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
             // Set status badge
             setStatusBadge(event);
-            String base64Image = event.getPosterImageUrl(); // assuming your Base64 string is stored here
-            if (base64Image != null && !base64Image.isEmpty()) {
-                try {
-                    byte[] decodedBytes = Base64.decode(base64Image, Base64.DEFAULT);
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                    eventImageView.setImageBitmap(bitmap);
-                } catch (IllegalArgumentException e) {
-                    // Base64 string is invalid
-                    eventImageView.setImageResource(R.drawable.baseline_image_24); // fallback
-                }
-            } else {
-                eventImageView.setImageResource(R.drawable.baseline_image_24); // fallback
-            }
+
             // TODO: Load event image from URL when images are implemented
             // For now just the placeholder icon will show
         }
