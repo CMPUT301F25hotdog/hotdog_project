@@ -20,6 +20,7 @@ mockito-junit = "5.0.1"
 mockito-inline = "5.2.0"
 core = "1.7.0"
 runner = "1.7.0"
+recyclerview = "1.4.0"
 
 [libraries]
 android-test-runner = { module = "de.mannodermaus.junit5:android-test-runner", version.ref = "androidTestRunner" }
@@ -49,6 +50,7 @@ mockito-inline = {group="org.mockito", name = "mockito-inline", version.ref = "m
 core = { group = "androidx.test", name = "core", version.ref = "core" }
 runner = { module = "androidx.test:runner", version.ref = "runner" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "googleCore" }
+recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

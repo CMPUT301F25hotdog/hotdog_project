@@ -19,6 +19,9 @@ import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.ui.home.EventCreationView;
 import com.hotdog.elotto.model.User;
+import com.hotdog.elotto.ui.home.MyEventsView;
+
+import java.util.Arrays;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
@@ -84,11 +87,6 @@ public class MainActivity extends AppCompatActivity {
         // Setup bottom navigation
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
-        Button bruh = findViewById(R.id.bruh);
-        bruh.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, EventCreationView.class);
-            startActivity(intent);
-        });
-        NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
+
     }
 }

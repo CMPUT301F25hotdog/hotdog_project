@@ -99,7 +99,7 @@ public class UserUnitTests {
         Assertions.assertEquals("seed@mail", u.getEmail());
         Assertions.assertEquals("555-0000", u.getPhone());
         Assertions.assertEquals(UserType.Entrant, u.getType());
-        Assertions.assertEquals(List.of("Z1"), u.getRegEvents());
+        Assertions.assertEquals(List.of("Z1"), u.getRegEventIds());
     }
 
     // Bruh idk I got like no ideas for tests
@@ -110,7 +110,7 @@ public class UserUnitTests {
         Assertions.assertEquals("", u.getEmail());
         Assertions.assertEquals("", u.getPhone());
         Assertions.assertNull(u.getType());
-        Assertions.assertEquals(List.of(), u.getRegEvents());
+        Assertions.assertEquals(List.of(), u.getRegEventIds());
         Assertions.assertEquals("", u.getId());
         Assertions.assertFalse(u.exists());
     }
@@ -148,7 +148,7 @@ public class UserUnitTests {
         Assertions.assertFalse(u.addRegEvent("Bongus")); // duplicate ignored
 
         // Sorted them stinkers
-        Assertions.assertEquals(List.of("Bingus", "Bongus"), u.getRegEvents());
+        Assertions.assertEquals(List.of("Bingus", "Bongus"), u.getRegEventIds());
     }
 
     @Test
@@ -168,7 +168,7 @@ public class UserUnitTests {
         Assertions.assertTrue(u.removeRegEvent("E1"));
         Assertions.assertFalse(u.findRegEvent("E1"));
         Assertions.assertFalse(u.removeRegEvent("nope"));
-        Assertions.assertEquals(List.of("E2"), u.getRegEvents());
+        Assertions.assertEquals(List.of("E2"), u.getRegEventIds());
     }
 
     @Test
@@ -221,7 +221,7 @@ public class UserUnitTests {
         User.class.getDeclaredMethod("setRegEvents", List.class).invoke(u, list);
 
         // Shouldn't sort it since pulling from firebase would assume it was sorted
-        Assertions.assertEquals(List.of("B", "A"), u.getRegEvents());
+        Assertions.assertEquals(List.of("B", "A"), u.getRegEventIds());
     }
 
 

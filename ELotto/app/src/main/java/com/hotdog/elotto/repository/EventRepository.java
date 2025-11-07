@@ -2,6 +2,9 @@ package com.hotdog.elotto.repository;
 
 import android.util.Log;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.hotdog.elotto.callback.FirestoreCallback;
@@ -9,7 +12,10 @@ import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.model.Event;
 
+import org.w3c.dom.Document;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -101,6 +107,40 @@ public class EventRepository {
     }
 
     /**
+     * Retrieves all events with the ids given.
+     *
+     * @param eventIds the unique identifier of the event to retrieve
+     * @param callback the callback to receive the event or error message
+     */
+    public void getEventsById(List<String> eventIds, FirestoreCallback<List<Event>> callback) {
+        if(eventIds.isEmpty()) {
+            Log.e("EventRepository", "No Event IDs provided.");
+            callback.onError("No Event IDs provided.");
+            return;
+        }
+
+        List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+        for (String id : eventIds) {
+            tasks.add(db.collection(COLLECTION_NAME).document(id).get());
+        }
+
+        Tasks.whenAllComplete(tasks).addOnSuccessListener( doneTasks -> {
+                List<Event> events = new ArrayList<>();
+                for(Task<DocumentSnapshot> task : tasks) {
+                    if(task.isSuccessful()) {
+                        DocumentSnapshot snap = task.getResult();
+                        events.add(snap.toObject(Event.class));
+                    }
+                }
+                callback.onSuccess(events);
+            }
+        ).addOnFailureListener(e -> {
+            Log.e("EventRepository", "Error fetching events: " + Arrays.toString(eventIds.toArray()), e);
+            callback.onError("Failed to fetch event: " + e.getMessage());
+        });
+    }
+
+    /**
      * Retrieves all events created by a specific organizer.
      *
      * @param organizerId the unique identifier of the organizer
@@ -166,6 +206,7 @@ public class EventRepository {
                 .add(event)
                 .addOnSuccessListener(documentReference -> {
                     event.setId(documentReference.getId());
+                    callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
                     Log.e("EventRepository", "Error creating event", e);

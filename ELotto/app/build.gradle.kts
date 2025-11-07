@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.storage)
     implementation(libs.core)
+    implementation(libs.recyclerview)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.mockito.junit)
     testImplementation(libs.mockito.inline)
