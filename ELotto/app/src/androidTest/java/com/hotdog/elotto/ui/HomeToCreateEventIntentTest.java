@@ -19,7 +19,7 @@ public class HomeToCreateEventIntentTest {
     public ActivityScenarioRule<MainActivity> rule = new ActivityScenarioRule<>( MainActivity.class );
     @Test
     public void navigateToCreateEvent(){
-        onView(withId(R.id.CreateEventButton)).perform(click());
+        onView(withId(R.id.CreateNewEventButton)).perform(click());
         onView(withText("Create Event")).check(matches(isDisplayed()));
     }
 }

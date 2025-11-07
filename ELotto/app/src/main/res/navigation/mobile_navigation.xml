@@ -62,7 +62,11 @@
         android:id="@+id/navigation_my_events"
         android:name="com.hotdog.elotto.ui.home.MyEventsView"
         android:label="My Events"
-        tools:layout="@layout/fragment_my_events">
+        tools:layout="@layout/fragment_my_events"/>
 
-    </fragment>
+    <fragment
+        android:id="@+id/navigation_entries"
+        android:name="com.hotdog.elotto.ui.entries.EntriesFragment"
+        android:label="Entries"
+        tools:layout="@layout/fragment_entries"/>
 </navigation>

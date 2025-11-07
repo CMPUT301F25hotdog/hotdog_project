@@ -14,7 +14,6 @@ import com.hotdog.elotto.helpers.Status;
 import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,10 +46,16 @@ public class User {
     /**
      * A class that represents one registered event for a user. Each object holds a different event and information for one registration of one user.
      */
-    private class RegisteredEvent implements Comparable<RegisteredEvent> {
-        Timestamp registeredDate;
-        Status status;
-        String eventId;
+    public static class RegisteredEvent implements Comparable<RegisteredEvent> {
+        private Timestamp registeredDate;
+        private Status status;
+        private String eventId;
+
+        public RegisteredEvent(){
+            this.registeredDate = Timestamp.now();
+            this.status = Status.Pending;
+            this.eventId = "";
+        }
 
         public RegisteredEvent(String eventId) {
             this.registeredDate = Timestamp.now();
@@ -61,6 +66,30 @@ public class User {
         @Override
         public int compareTo(RegisteredEvent o) {
             return eventId.compareTo(o.eventId);
+        }
+
+        public void setRegisteredDate(Timestamp registeredDate) {
+            this.registeredDate = registeredDate;
+        }
+
+        public void setEventId(String eventId) {
+            this.eventId = eventId;
+        }
+
+        public void setStatus(Status status) {
+            this.status = status;
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
+        public String getEventId() {
+            return eventId;
+        }
+
+        public Timestamp getRegisteredDate() {
+            return registeredDate;
         }
     }
 
@@ -363,14 +392,25 @@ public class User {
         if(this.findRegEvent(eventId)) return false;
         this.regEvents.add(new RegisteredEvent(eventId));
         this.sort();
+        this.controller.updateUser();
         return true;
+    }
+
+    /**
+     * Returns the list of Registered event objects, which contain, eventID, registered date timestamp, and status.
+     * Mainly for firestore implementation.
+     * @return List of RegisteredEvents.
+     */
+    public List<RegisteredEvent> getRegEvents() {
+        return this.regEvents;
     }
 
     /**
      * Returns all eventIDs of the events the User is registered for.
      * @return List of eventIDs.
      */
-    public List<String> getRegEvents() {
+    @Exclude
+    public List<String> getRegEventIds() {
         List<String> ret = new ArrayList<String>();
         for(RegisteredEvent event : this.regEvents) {
             ret.add(event.eventId);

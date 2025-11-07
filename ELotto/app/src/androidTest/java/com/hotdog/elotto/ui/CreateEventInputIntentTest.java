@@ -35,7 +35,7 @@ public class CreateEventInputIntentTest {
     @Test
     public void inputValuesToCreateEvent(){
         Intents.init();
-        onView(withId(R.id.CreateEventButton)).perform(click());
+        onView(withId(R.id.CreateNewEventButton)).perform(click());
         Uri fakeImageUri = Uri.parse("WalterPutItAway");
         Instrumentation.ActivityResult result =
                 new Instrumentation.ActivityResult(Activity.RESULT_OK,

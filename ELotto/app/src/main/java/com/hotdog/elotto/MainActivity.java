@@ -21,6 +21,8 @@ import com.hotdog.elotto.ui.home.EventCreationView;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.ui.home.MyEventsView;
 
+import java.util.Arrays;
+
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
 
