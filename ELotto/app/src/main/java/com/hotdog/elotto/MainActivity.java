@@ -15,6 +15,8 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
 import com.hotdog.elotto.databinding.ActivityMainBinding;
+import com.hotdog.elotto.helpers.UserType;
+import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.ui.home.EventCreationView;
 import com.hotdog.elotto.model.User;
 
@@ -64,6 +66,10 @@ public class MainActivity extends AppCompatActivity {
     private void initAfterLogin() {
         // Make sure user object is up to date with any new information
         curUser.reload(true);
+
+        if(curUser.getType()==UserType.Organizer){
+            Organizer org = new Organizer(getApplicationContext());
+        }
 
         Log.d("USER EXISTS", "" + curUser.exists());
 
