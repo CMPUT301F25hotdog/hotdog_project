@@ -20,9 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Instrumented JUnit 5 tests for User using a real device/emulator.
- * We avoid Firebase by pre-seeding the private static SuperUser
- * so the Context constructor takes the fast-path.
+ * Instrumented JUnit 5 tests for User using da emulator.
+ * We avoid Firebase by making a blank user
+ * So we just go fast zoom zoom way with blank constructor.
  */
 public class UserUnitTests {
 
