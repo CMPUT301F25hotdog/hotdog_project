@@ -29,8 +29,14 @@ import java.util.List;
  */
 public class Event {
 
+    // ⚠️ Important: Firestore cannot apply @DocumentId to a property that also exists
+    // as a field in the document. Your documents already have an "id" field.
+    // So we keep your existing "id" field as-is, and introduce a separate "documentId"
+    // to hold the Firestore document ID.
     @DocumentId
-    private String id;                      // Unique event ID (Firebase generated)
+    private String documentId;              // Firestore document ID (auto-mapped)
+
+    private String id;                      // Unique event ID stored in the document (kept as-is)
 
     // Basic Event Information
     private String name;
@@ -114,6 +120,16 @@ public class Event {
     }
 
     // Getters and Setters with Javadoc
+
+    /** Gets the Firestore document ID (not the same as the 'id' field in the document). */
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    /** Sets the Firestore document ID (set automatically by Firestore). */
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
 
     /**
      * Gets the unique identifier for this event.
@@ -445,7 +461,7 @@ public class Event {
     /**
      * Gets the list of entrant IDs who accepted their invitation.
      *
-     * @return list of accepted entrant IDs, or null if none accepted
+     * @return list of accepted entrant IDs, or null if none have accepted
      */
     public List<String> getAcceptedEntrantIds() {
         return acceptedEntrantIds;
@@ -587,7 +603,8 @@ public class Event {
     @Override
     public String toString() {
         return "Event{" +
-                "id='" + id + '\'' +
+                "documentId='" + documentId + '\'' +
+                ", id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", location='" + location + '\'' +
                 ", eventDateTime=" + eventDateTime +
