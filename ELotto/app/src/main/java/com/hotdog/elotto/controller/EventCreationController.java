@@ -51,13 +51,26 @@ public class EventCreationController {
     }
     /**
      * Encodes an image Uri into a string to be stored
+     *
+     *
+     * @param name          the name of the event.
+     * @param description   the description of the event.
+     * @param dateTime      the scheduled date and time of the event.
+     * @param openPeriod    the event’s opening registration period.
+     * @param closePeriod   the event’s closing registration period.
+     * @param entrantLimit  the maximum number of entrants allowed.
+     * @param waitListSize  the maximum size of the event waitlist.
+     * @param location      the location of the event.
+     * @param price         the ticket price for the event.
+     * @param requireGeo    whether geolocation is required for participation.
      * @param bannerUri     a URI pointing to the banner image selected by the user.
      *
      * https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database
      * used to figure out how to convert images into strings to store
      */
-    public String EncodeImage(Uri bannerUri) {
-        String base64String = "no_image";
+    public void EncodeImage(String name, String description, Date dateTime, Date openPeriod,
+                            Date closePeriod, int entrantLimit, int waitListSize,
+                            String location, double price, boolean requireGeo, Uri bannerUri, ArrayList<String> tags) {
         if (bannerUri != null) {
             try {
                 InputStream inputStream = context.getContentResolver().openInputStream(bannerUri);
@@ -67,18 +80,25 @@ public class EventCreationController {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
                     byte[] imageBytes = baos.toByteArray();
-                    base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+                    String base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
-
+                    SaveEvent(name, description, dateTime, openPeriod, closePeriod,
+                            entrantLimit, waitListSize, location, price, requireGeo, base64String,tags);
                 } else {
-                    base64String = "image_failed_null";
+                    SaveEvent(name, description, dateTime, openPeriod, closePeriod,
+                            entrantLimit, waitListSize, location, price, requireGeo,
+                            "image_failed_nullinput",tags);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                base64String = "image_failed_exception";
+                SaveEvent(name, description, dateTime, openPeriod, closePeriod,
+                        entrantLimit, waitListSize, location, price, requireGeo,
+                        "image_failed_exception",tags);
             }
+        } else {
+            SaveEvent(name, description, dateTime, openPeriod, closePeriod,
+                    entrantLimit, waitListSize, location, price, requireGeo, "no_image",tags);
         }
-        return base64String;
     }
 
     /**
