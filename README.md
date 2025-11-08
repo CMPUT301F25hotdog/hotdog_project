@@ -93,3 +93,7 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 - Contains weekly meeting logs, action items, decisions, assigned tasks, and progress tracking for each sprint.
 
+7. UML_Diagram  : https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/UML_Diagram
+
+- UML Diagram till part 3 
+
