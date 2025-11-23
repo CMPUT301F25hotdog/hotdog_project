@@ -206,9 +206,6 @@ public class EventCreationView extends AppCompatActivity {
         }
         controller.SaveEvent(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
                 entrantLimit, waitListSize, location, price, requireGeo,encodedString ,tagList);
-
-
-
         finish();
     }
 

@@ -21,6 +21,7 @@ mockito-inline = "5.2.0"
 core = "1.7.0"
 runner = "1.7.0"
 recyclerview = "1.4.0"
+playServicesLocation = "21.3.0"
 
 [libraries]
 android-test-runner = { module = "de.mannodermaus.junit5:android-test-runner", version.ref = "androidTestRunner" }
@@ -51,6 +52,7 @@ core = { group = "androidx.test", name = "core", version.ref = "core" }
 runner = { module = "androidx.test:runner", version.ref = "runner" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "googleCore" }
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
