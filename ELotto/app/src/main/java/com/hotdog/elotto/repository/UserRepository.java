@@ -2,12 +2,16 @@ package com.hotdog.elotto.repository;
 
 import android.util.Log;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.hotdog.elotto.callback.FirestoreCallback;
 import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.model.User;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -154,6 +158,47 @@ public class UserRepository {
                     Log.e("UserRepository", "Error fetching User: " + userId, e);
                     callback.onError("Failed to fetch User: " + e.getMessage());
                 });
+    }
+
+    /**
+     * Retrieves multiple users by their IDs from Firestore.
+     * Useful for fetching entrant information when you have a list of user IDs.
+     *
+     * @param userIds the list of user IDs to retrieve
+     * @param callback the callback to receive the list of Users or error message
+     */
+    public void getUsersByIds(List<String> userIds, FirestoreListCallback<User> callback) {
+        if (userIds == null || userIds.isEmpty()) {
+            Log.w("UserRepository", "No user IDs provided");
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        // Use Tasks.whenAllComplete to fetch multiple users in parallel
+        List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+        for (String userId : userIds) {
+            tasks.add(db.collection(COLLECTION_NAME).document(userId).get());
+        }
+
+        Tasks.whenAllComplete(tasks).addOnSuccessListener(doneTasks -> {
+            List<User> users = new ArrayList<>();
+            for (Task<DocumentSnapshot> task : tasks) {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    DocumentSnapshot snapshot = task.getResult();
+                    if (snapshot.exists()) {
+                        User user = snapshot.toObject(User.class);
+                        if (user != null) {
+                            users.add(user);
+                        }
+                    }
+                }
+            }
+            Log.d("UserRepository", "Successfully fetched " + users.size() + " users");
+            callback.onSuccess(users);
+        }).addOnFailureListener(e -> {
+            Log.e("UserRepository", "Error fetching users by IDs", e);
+            callback.onError("Failed to fetch users: " + e.getMessage());
+        });
     }
 
     /**

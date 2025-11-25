@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/border_grey"
+    app:strokeWidth="1dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- Event Image -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/eventImage"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/rounded_card_background"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@tools:sample/backgrounds/scenic" />
+
+        <!-- Event Name -->
+        <TextView
+            android:id="@+id/eventName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/eventImage"
+            app:layout_constraintTop_toTopOf="@id/eventImage"
+            tools:text="Skydiving" />
+
+        <!-- Date Icon and Text -->
+        <ImageView
+            android:id="@+id/dateIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="6dp"
+            android:src="@drawable/outline_calendar_today_24"
+            android:contentDescription="Date"
+            app:tint="@color/form_icon"
+            app:layout_constraintStart_toEndOf="@id/eventImage"
+            app:layout_constraintTop_toBottomOf="@id/eventName" />
+
+        <TextView
+            android:id="@+id/eventDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/form_icon"
+            android:textSize="13sp"
+            app:layout_constraintBottom_toBottomOf="@id/dateIcon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/dateIcon"
+            app:layout_constraintTop_toTopOf="@id/dateIcon"
+            tools:text="June 5, 15:00" />
+
+        <!-- Location Icon and Text -->
+        <ImageView
+            android:id="@+id/locationIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:src="@drawable/location_on_24px"
+            android:contentDescription="Location"
+            app:tint="@color/form_icon"
+            app:layout_constraintStart_toEndOf="@id/eventImage"
+            app:layout_constraintTop_toBottomOf="@id/dateIcon" />
+
+        <TextView
+            android:id="@+id/eventLocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/form_icon"
+            android:textSize="13sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintBottom_toBottomOf="@id/locationIcon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/locationIcon"
+            app:layout_constraintTop_toTopOf="@id/locationIcon"
+            tools:text="Medicine Hat, AB" />
+
+        <!-- Status Badge -->
+        <TextView
+            android:id="@+id/eventStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/status_badge_background"
+            android:paddingStart="10dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="4dp"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/eventImage"
+            app:layout_constraintTop_toBottomOf="@id/locationIcon"
+            tools:text="Selected" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

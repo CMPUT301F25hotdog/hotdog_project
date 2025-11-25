@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header with Back Button and Action Buttons -->
+
+        <!-- Event Card (smaller, compact) -->
+
+        <!-- Header with Back Button and Action Buttons -->
+        <!-- Header with Back Button and Action Buttons -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="0dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/back"
+                android:src="@drawable/arrow_back_24px"
+                app:tint="@color/black" />
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toEndOf="@id/btnBack"
+                android:text="Frame 49"
+                android:textColor="@color/form_icon"
+                android:textSize="18sp" />
+
+            <!-- Map button with icon (gray background) -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnMap"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/rounded_card_background"
+                android:drawableLeft="@drawable/ic_map_24"
+                android:drawablePadding="6dp"
+                android:drawableTint="@color/black"
+                android:minWidth="80dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="16dp"
+                android:text="Map"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <!-- Edit button (gray background) -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="8dp"
+                android:layout_toStartOf="@id/btnMap"
+                android:background="@drawable/rounded_card_background"
+                android:minWidth="80dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="Edit"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <ImageView
+                android:id="@+id/ivEventImage"
+                android:layout_width="124dp"
+                android:layout_height="101dp"
+                android:contentDescription="@string/event_image"
+                android:scaleType="centerCrop"
+                android:src="@drawable/baseline_image_24" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvEventName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hiking"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Time -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:contentDescription="@string/time"
+                        android:src="@drawable/baseline_access_time_24"
+                        app:tint="@color/main_icon_blue" />
+
+                    <TextView
+                        android:id="@+id/tvEventTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="July 10, 07:00"
+                        android:textColor="@color/main_icon_blue"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- Location -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:contentDescription="@string/location_icon"
+                        android:src="@drawable/location_on_24px"
+                        app:tint="@color/main_icon_blue" />
+
+                    <TextView
+                        android:id="@+id/tvEventLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="Edmonton, AB"
+                        android:textColor="@color/main_icon_blue"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- Spots -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:contentDescription="@string/entries_icon"
+                        android:src="@drawable/group_24px"
+                        app:tint="@color/main_icon_blue" />
+
+                    <TextView
+                        android:id="@+id/tvEventSpots"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="45 Spots"
+                        android:textColor="@color/main_icon_blue"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Tab Layout -->
+
+        <!-- Waiting List Header -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@color/white"
+            app:tabIndicatorColor="@color/main_icon_blue"
+            app:tabMode="fixed"
+            app:tabSelectedTextColor="@color/main_icon_blue"
+            app:tabTextColor="@color/gray">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Waiting (3)" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Selected (2)" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Accepted (1)" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancelled (1)" />
+
+        </com.google.android.material.tabs.TabLayout>
+
+        <TextView
+            android:id="@+id/tvWaitingHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/light_blue_background"
+            android:padding="12dp"
+            android:text="3 entrants on waiting list"
+            android:textColor="@color/main_icon_blue"
+            android:textSize="13sp" />
+
+        <!-- Entrants RecyclerView (dynamic list from Firestore) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvWaitingEntrants"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:nestedScrollingEnabled="false"
+            android:paddingBottom="8dp" />
+
+        <!-- Number to Select Input -->
+
+        <!-- Run Lottery Draw Button (Rectangular) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Number to select"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/etNumberToSelect"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_card_background"
+                android:gravity="start|center_vertical"
+                android:hint="0"
+                android:inputType="number"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- Run Lottery Draw Button (Rectangular) -->
+
+        <!-- Send Notification Button (WHITE background with border) -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnRunLottery"
+            android:layout_width="match_parent"
+            android:layout_height="49dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/button_primary_background"
+            android:text="Run Lottery Draw"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnSendNotification"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/button_white_background"
+            android:text="Send Notification"
+            android:textAllCaps="false"
+            android:textColor="@color/black"
+            android:textSize="15sp" />
+
+    </LinearLayout>
+
+</ScrollView>

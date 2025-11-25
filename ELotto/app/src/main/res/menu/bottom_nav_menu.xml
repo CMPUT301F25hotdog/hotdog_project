@@ -7,7 +7,7 @@
         android:title="@string/home" />
 
     <item
-        android:id="@+id/navigation_entries"
+        android:id="@+id/eventHistoryFragment"
         android:icon="@drawable/confirmation_number_24px"
         android:title="@string/entries" />
 
