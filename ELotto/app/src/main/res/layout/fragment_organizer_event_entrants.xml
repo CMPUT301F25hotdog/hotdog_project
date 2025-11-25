@@ -11,11 +11,6 @@
         android:orientation="vertical">
 
         <!-- Header with Back Button and Action Buttons -->
-
-        <!-- Event Card (smaller, compact) -->
-
-        <!-- Header with Back Button and Action Buttons -->
-        <!-- Header with Back Button and Action Buttons -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="64dp"
@@ -84,6 +79,7 @@
 
         </RelativeLayout>
 
+        <!-- Event Card (smaller, compact) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -196,8 +192,6 @@
         </LinearLayout>
 
         <!-- Tab Layout -->
-
-        <!-- Waiting List Header -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
@@ -231,6 +225,7 @@
 
         </com.google.android.material.tabs.TabLayout>
 
+        <!-- Waiting List Header -->
         <TextView
             android:id="@+id/tvWaitingHeader"
             android:layout_width="match_parent"
@@ -250,15 +245,15 @@
             android:nestedScrollingEnabled="false"
             android:paddingBottom="8dp" />
 
-        <!-- Number to Select Input -->
-
-        <!-- Run Lottery Draw Button (Rectangular) -->
+        <!-- Number to Select Input (only visible on Waiting tab) -->
         <LinearLayout
+            android:id="@+id/layoutNumberToSelect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="24dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -282,21 +277,35 @@
 
         </LinearLayout>
 
-        <!-- Run Lottery Draw Button (Rectangular) -->
-
-        <!-- Send Notification Button (WHITE background with border) -->
+        <!-- Run Lottery Draw Button (only visible on Waiting tab) -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnRunLottery"
             android:layout_width="match_parent"
-            android:layout_height="49dp"
+            android:layout_height="50dp"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="20dp"
             android:background="@drawable/button_primary_background"
             android:text="Run Lottery Draw"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:visibility="gone" />
 
+        <!-- Draw Replacements Button (only visible on Selected tab) -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnDrawReplacements"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/button_primary_background"
+            android:text="Draw Replacements"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+        <!-- Send Notification Button (always visible) -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnSendNotification"
             android:layout_width="match_parent"

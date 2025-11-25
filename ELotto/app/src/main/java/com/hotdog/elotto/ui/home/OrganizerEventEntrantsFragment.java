@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -70,6 +71,8 @@ public class OrganizerEventEntrantsFragment extends Fragment {
     private RecyclerView rvWaitingEntrants;
     private EditText etNumberToSelect;
     private Button btnRunLottery, btnSendNotification;
+    private LinearLayout layoutNumberToSelect;
+    private Button btnDrawReplacements;
 
     // Data
     private String eventId;
@@ -136,6 +139,9 @@ public class OrganizerEventEntrantsFragment extends Fragment {
         etNumberToSelect = view.findViewById(R.id.etNumberToSelect);
         btnRunLottery = view.findViewById(R.id.btnRunLottery);
         btnSendNotification = view.findViewById(R.id.btnSendNotification);
+        //new
+        layoutNumberToSelect = view.findViewById(R.id.layoutNumberToSelect);
+        btnDrawReplacements = view.findViewById(R.id.btnDrawReplacements);
     }
 
     /**
@@ -154,6 +160,11 @@ public class OrganizerEventEntrantsFragment extends Fragment {
         adapter = new EntrantAdapter(currentEntrants);
         rvWaitingEntrants.setLayoutManager(new LinearLayoutManager(getContext()));
         rvWaitingEntrants.setAdapter(adapter);
+
+        // Set cancel click listener
+        adapter.setCancelClickListener((entrantInfo, position) -> {
+            showCancelConfirmationDialog(entrantInfo, position);
+        });
     }
 
     /**
@@ -167,23 +178,29 @@ public class OrganizerEventEntrantsFragment extends Fragment {
                 switch (position) {
                     case 0: // Waiting
                         currentTab = "waiting";
+                        adapter.setCurrentTab(currentTab);  // ← ADD THIS LINE
                         loadWaitingList();
-                        showLotteryControls(true);
+                        showButtonsForTab(currentTab);
                         break;
                     case 1: // Selected
                         currentTab = "selected";
+                        adapter.setCurrentTab(currentTab);  // ← ADD THIS LINE
                         loadSelectedList();
-                        showLotteryControls(false);
+                        showButtonsForTab(currentTab);
                         break;
+
                     case 2: // Accepted
                         currentTab = "accepted";
+                        adapter.setCurrentTab(currentTab);  // ← ADD THIS LINE
                         loadAcceptedList();
-                        showLotteryControls(false);
+                        showButtonsForTab(currentTab);
                         break;
+
                     case 3: // Cancelled
                         currentTab = "cancelled";
+                        adapter.setCurrentTab(currentTab);  // ← ADD THIS LINE
                         loadCancelledList();
-                        showLotteryControls(false);
+                        showButtonsForTab(currentTab);
                         break;
                 }
             }
@@ -219,17 +236,30 @@ public class OrganizerEventEntrantsFragment extends Fragment {
         });
 
         btnRunLottery.setOnClickListener(v -> runLotteryDraw());
+        btnDrawReplacements.setOnClickListener(v -> drawReplacements()); // new
 
         btnSendNotification.setOnClickListener(v -> showSendNotificationDialog());
     }
 
-    /**
-     * Shows or hides lottery controls (only visible on Waiting tab).
-     */
-    private void showLotteryControls(boolean show) {
-        int visibility = show ? View.VISIBLE : View.GONE;
-        etNumberToSelect.setVisibility(visibility);
-        btnRunLottery.setVisibility(visibility);
+    private void showButtonsForTab(String tabType) {
+        switch (tabType) {
+            case "waiting":
+                layoutNumberToSelect.setVisibility(View.VISIBLE);
+                btnRunLottery.setVisibility(View.VISIBLE);
+                btnDrawReplacements.setVisibility(View.GONE);
+                break;
+            case "selected":
+                layoutNumberToSelect.setVisibility(View.GONE);
+                btnRunLottery.setVisibility(View.GONE);
+                btnDrawReplacements.setVisibility(View.VISIBLE);
+                break;
+            case "accepted":
+            case "cancelled":
+                layoutNumberToSelect.setVisibility(View.GONE);
+                btnRunLottery.setVisibility(View.GONE);
+                btnDrawReplacements.setVisibility(View.GONE);
+                break;
+        }
     }
 
     /**
@@ -473,6 +503,112 @@ public class OrganizerEventEntrantsFragment extends Fragment {
         });
     }
 
+    /**
+     * Draws replacement entrants from the waiting list.
+     */
+    private void drawReplacements() {
+        if (currentEvent == null) {
+            Toast.makeText(getContext(), "Event data not loaded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int maxEntrants = currentEvent.getMaxEntrants();
+        int currentAccepted = currentEvent.getAcceptedEntrantIds() != null ?
+                currentEvent.getAcceptedEntrantIds().size() : 0;
+        int spotsAvailable = maxEntrants - currentAccepted;
+
+        if (spotsAvailable <= 0) {
+            Toast.makeText(getContext(), "Event is full", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Draw Replacements");
+
+        final EditText input = new EditText(requireContext());
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setHint("Number of replacements (max " + spotsAvailable + ")");
+        builder.setView(input);
+
+        builder.setPositiveButton("Draw", (dialog, which) -> {
+            String numberText = input.getText().toString().trim();
+            if (!numberText.isEmpty()) {
+                try {
+                    int numberToSelect = Integer.parseInt(numberText);
+                    if (numberToSelect > spotsAvailable) {
+                        Toast.makeText(getContext(), "Cannot draw more than " + spotsAvailable, Toast.LENGTH_SHORT).show();
+                    } else {
+                        performReplacementDraw(numberToSelect);
+                    }
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getContext(), "Please enter a valid number", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void performReplacementDraw(int numberToSelect) {
+        btnDrawReplacements.setEnabled(false);
+
+        controller.runLotteryDraw(eventId, numberToSelect, new OperationCallback() {
+            @Override
+            public void onSuccess() {
+                btnDrawReplacements.setEnabled(true);
+                Toast.makeText(getContext(), "Replacement draw completed!", Toast.LENGTH_LONG).show();
+                loadWaitingList();
+                loadSelectedList();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                btnDrawReplacements.setEnabled(true);
+                Toast.makeText(getContext(), "Error: " + errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void showCancelConfirmationDialog(EntrantInfo entrantInfo, int position) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Cancel Entrant")
+                .setMessage("Are you sure you want to cancel " + entrantInfo.getName() + "?")
+                .setPositiveButton("Yes", (dialog, which) -> cancelEntrant(entrantInfo, position))
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void cancelEntrant(EntrantInfo entrantInfo, int position) {
+        List<String> userIds = new ArrayList<>();
+        userIds.add(entrantInfo.getUserId());
+
+        eventRepository.moveEntrantsToCancelled(eventId, userIds, new OperationCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(getContext(), entrantInfo.getName() + " cancelled", Toast.LENGTH_SHORT).show();
+                currentEntrants.remove(position);
+                adapter.notifyItemRemoved(position);
+                updateTabCount(getCurrentTabIndex(), currentEntrants.size());
+                updateHeader(currentTab, currentEntrants.size());
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(getContext(), "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private int getCurrentTabIndex() {
+        switch (currentTab) {
+            case "waiting": return 0;
+            case "selected": return 1;
+            case "accepted": return 2;
+            case "cancelled": return 3;
+            default: return 0;
+        }
+    }
     @Override
     public void onDestroyView() {
         super.onDestroyView();

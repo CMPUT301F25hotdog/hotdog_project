@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/white"
     android:gravity="center_vertical"
     android:orientation="horizontal"
@@ -12,19 +12,14 @@
     android:paddingEnd="16dp"
     android:paddingBottom="16dp">
 
-    <!-- Avatar Circle with Initials -->
-    <FrameLayout
+    <!-- Avatar Circle -->
+    <ImageView
         android:layout_width="44dp"
-        android:layout_height="44dp">
+        android:layout_height="44dp"
+        android:src="@drawable/account_circle_24px"
+        app:tint="@color/black" />
 
-        <ImageView
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:src="@drawable/account_circle_24px"
-            app:tint="@color/black" />
-    </FrameLayout>
-
-    <!-- Full Name + Join Date -->
+    <!-- Full Name + Status Text -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -42,7 +37,7 @@
             tools:text="[Entrant Name]" />
 
         <TextView
-            android:id="@+id/entrantJoinDate"
+            android:id="@+id/entrantStatusText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -50,5 +45,20 @@
             android:textSize="13sp"
             tools:text="Joined [Date]" />
     </LinearLayout>
+
+    <!-- Cancel Button (only visible on Selected/Accepted tabs) -->
+    <Button
+        android:id="@+id/btnCancelEntrant"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackground"
+        android:minWidth="0dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="Cancel"
+        android:textAllCaps="false"
+        android:textColor="#FF0000"
+        android:textSize="14sp"
+        android:visibility="gone" />
 
 </LinearLayout>
