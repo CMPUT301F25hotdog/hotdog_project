@@ -116,6 +116,7 @@ public class EventCreationView extends AppCompatActivity {
 
     /**
      * Validates all input fields, and gets all the strings then passes to the Controller
+     * @param tagList, a list of all tags for the event
      */
     private void confirmationPass(ArrayList<String> tagList) {
         String eventName = eventNameInput.getText().toString().trim();
@@ -195,8 +196,16 @@ public class EventCreationView extends AppCompatActivity {
             return;
         }
         EventCreationController controller = new EventCreationController(this);
-        controller.EncodeImage(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
-                entrantLimit, waitListSize, location, price, requireGeo, selectedBannerUri,tagList);
+        String encodedString = controller.EncodeImage(selectedBannerUri);
+        int maxFirestoreSize = 900000;
+        int encodedSize = encodedString.getBytes().length;
+        if (encodedSize > maxFirestoreSize) {
+            Toast.makeText(this, "Image too large! Please choose a smaller image.", Toast.LENGTH_LONG).show();
+            Log.e("EventCreationView", "Encoded image size: " + encodedSize + " bytes (too large for Firestore)");
+            return;
+        }
+        controller.SaveEvent(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
+                entrantLimit, waitListSize, location, price, requireGeo,encodedString ,tagList);
 
 
 
