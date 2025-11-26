@@ -16,8 +16,12 @@ import org.w3c.dom.Document;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Repository class responsible for managing Event data access with Firebase Firestore.
@@ -243,6 +247,22 @@ public class EventRepository {
                     callback.onError("Failed to update event: " + e.getMessage());
                 });
     }
+    /**
+     * Updates an existing event in the Firestore database using eventId and Event object.
+     */
+    public void updateEvent(String eventId, Event event, OperationCallback callback) {
+        db.collection(COLLECTION_NAME)
+                .document(eventId)
+                .set(event)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("EventRepository", "Event updated successfully: " + eventId);
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventRepository", "Error updating event: " + eventId, e);
+                    callback.onError("Failed to update event: " + e.getMessage());
+                });
+    }
 
     /**
      * Deletes an event from the Firestore database.
@@ -358,5 +378,220 @@ public class EventRepository {
                     callback.onError("Failed to remove entrant from waitlist: " + e.getMessage());
                 });
     }
+    /**
+     * Moves entrants from waiting list to selected list (lottery draw).
+     * Removes the specified user IDs from waitlistEntrantIds and adds them to selectedEntrantIds.
+     *
+     * @param eventId the unique identifier of the event
+     * @param selectedUserIds the list of user IDs that won the lottery
+     * @param callback the callback to receive success confirmation or error message
+     */
+    public void moveEntrantsToSelected(String eventId, List<String> selectedUserIds, OperationCallback callback) {
+        if (selectedUserIds == null || selectedUserIds.isEmpty()) {
+            callback.onError("No entrants selected");
+            return;
+        }
+
+        db.collection(COLLECTION_NAME)
+                .document(eventId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        callback.onError("Event not found");
+                        return;
+                    }
+
+                    Event event = documentSnapshot.toObject(Event.class);
+                    if (event == null) {
+                        callback.onError("Failed to parse event data");
+                        return;
+                    }
+
+                    event.setId(documentSnapshot.getId());
+
+                    // Get or initialize lists
+                    List<String> waitlist = event.getWaitlistEntrantIds();
+                    List<String> selected = event.getSelectedEntrantIds();
+
+                    if (waitlist == null) waitlist = new ArrayList<>();
+                    if (selected == null) selected = new ArrayList<>();
+
+                    // Remove from waitlist and add to selected
+                    for (String userId : selectedUserIds) {
+                        waitlist.remove(userId);
+                        if (!selected.contains(userId)) {
+                            selected.add(userId);
+                        }
+                    }
+
+                    event.setWaitlistEntrantIds(waitlist);
+                    event.setSelectedEntrantIds(selected);
+
+                    // Update the event
+                    updateEvent(event, callback);
+                    Log.d("EventRepository", "Moved " + selectedUserIds.size() + " entrants to selected");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventRepository", "Error moving entrants to selected", e);
+                    callback.onError("Failed to move entrants: " + e.getMessage());
+                });
+    }
+
+
+    /**
+     * Moves entrants from selected list to accepted list.
+     * This happens when entrants accept their invitation.
+     *
+     * @param eventId the unique identifier of the event
+     * @param userIds the list of user IDs that accepted
+     * @param callback the callback to receive success confirmation or error message
+     */
+    public void moveEntrantsToAccepted(String eventId, List<String> userIds, OperationCallback callback) {
+        if (userIds == null || userIds.isEmpty()) {
+            callback.onError("No entrants to move");
+            return;
+        }
+
+        db.collection(COLLECTION_NAME)
+                .document(eventId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        callback.onError("Event not found");
+                        return;
+                    }
+
+                    Event event = documentSnapshot.toObject(Event.class);
+                    if (event == null) {
+                        callback.onError("Failed to parse event data");
+                        return;
+                    }
+
+                    event.setId(documentSnapshot.getId());
+
+                    // Get or initialize lists
+                    List<String> selected = event.getSelectedEntrantIds();
+                    List<String> accepted = event.getAcceptedEntrantIds();
+
+                    if (selected == null) selected = new ArrayList<>();
+                    if (accepted == null) accepted = new ArrayList<>();
+
+                    // Remove from selected and add to accepted
+                    for (String userId : userIds) {
+                        selected.remove(userId);
+                        if (!accepted.contains(userId)) {
+                            accepted.add(userId);
+                        }
+                    }
+
+                    event.setSelectedEntrantIds(selected);
+                    event.setAcceptedEntrantIds(accepted);
+
+                    // Update the event
+                    updateEvent(event, callback);
+                    Log.d("EventRepository", "Moved " + userIds.size() + " entrants to accepted");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventRepository", "Error moving entrants to accepted", e);
+                    callback.onError("Failed to move entrants: " + e.getMessage());
+                });
+    }
+
+
+    /**
+     * Moves entrants to cancelled list.
+     * Can remove from either waitlist or selected list.
+     *
+     * @param eventId the unique identifier of the event
+     * @param userIds the list of user IDs to cancel
+     * @param callback the callback to receive success confirmation or error message
+     */
+    public void moveEntrantsToCancelled(String eventId, List<String> userIds, OperationCallback callback) {
+        if (userIds == null || userIds.isEmpty()) {
+            callback.onError("No entrants to cancel");
+            return;
+        }
+
+        db.collection(COLLECTION_NAME)
+                .document(eventId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        callback.onError("Event not found");
+                        return;
+                    }
+
+                    Event event = documentSnapshot.toObject(Event.class);
+                    if (event == null) {
+                        callback.onError("Failed to parse event data");
+                        return;
+                    }
+
+                    event.setId(documentSnapshot.getId());
+
+                    // Get or initialize lists
+                    List<String> waitlist = event.getWaitlistEntrantIds();
+                    List<String> selected = event.getSelectedEntrantIds();
+                    List<String> cancelled = event.getCancelledEntrantIds();
+
+                    if (waitlist == null) waitlist = new ArrayList<>();
+                    if (selected == null) selected = new ArrayList<>();
+                    if (cancelled == null) cancelled = new ArrayList<>();
+
+                    // Remove from waitlist/selected and add to cancelled
+                    for (String userId : userIds) {
+                        waitlist.remove(userId);
+                        selected.remove(userId);
+                        if (!cancelled.contains(userId)) {
+                            cancelled.add(userId);
+                        }
+                    }
+
+                    event.setWaitlistEntrantIds(waitlist);
+                    event.setSelectedEntrantIds(selected);
+                    event.setCancelledEntrantIds(cancelled);
+
+                    // Update the event
+                    updateEvent(event, callback);
+                    Log.d("EventRepository", "Moved " + userIds.size() + " entrants to cancelled");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventRepository", "Error moving entrants to cancelled", e);
+                    callback.onError("Failed to move entrants: " + e.getMessage());
+                });
+    }
+
+
+
+    /**
+     * Creates a notification document in Firestore for a user.
+     *
+     * @param userId the user who will receive the notification
+     * @param eventId the event this notification is about
+     * @param message the notification message
+     * @param callback the callback to receive success confirmation or error message
+     */
+    public void createNotification(String userId, String eventId, String message, OperationCallback callback) {
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("userId", userId);
+        notification.put("eventId", eventId);
+        notification.put("message", message);
+        notification.put("timestamp", new Date());
+        notification.put("read", false);
+
+        db.collection("notifications")
+                .add(notification)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d("EventRepository", "Notification created for user: " + userId);
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventRepository", "Error creating notification", e);
+                    callback.onError("Failed to create notification: " + e.getMessage());
+                });
+    }
+
+
+
 }
 

@@ -132,4 +132,55 @@ public class EventCreationController {
             }
         });
     }
+    /**
+     * Updates an existing event in the database
+     *
+     * @param eventId the ID of the event to update
+     * @param name the name of the event
+     * @param description a brief description of the event
+     * @param dateTime the scheduled event date and time
+     * @param openPeriod the registration open date
+     * @param closePeriod the registration close date
+     * @param entrantLimit the maximum number of attendees allowed
+     * @param waitListSize the number of users that can be on the waitlist
+     * @param location the physical or virtual location of the event
+     * @param price the cost to participate in the event
+     * @param requireGeo whether the event enforces geolocation verification
+     * @param bannerUrl the Base64-encoded image string or fallback identifier
+     * @param tagList the list of tags for the event
+     */
+    public void UpdateEvent(String eventId, String name, String description, Date dateTime,
+                            Date openPeriod, Date closePeriod, int entrantLimit, int waitListSize,
+                            String location, double price, boolean requireGeo, String bannerUrl,
+                            ArrayList<String> tagList) {
+
+        // Create event object with updated data
+        Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
+        event.setUpdatedAt(new Date());
+        event.setGeolocationRequired(requireGeo);
+        event.setPosterImageUrl(bannerUrl);
+        event.setPrice(price);
+        event.setTagList(tagList);
+
+        // Keep the organizer ID (don't change it)
+        Organizer org = new Organizer(context);
+        event.setOrganizerId(org.getId());
+
+        // Update the event in the database
+        repository.updateEvent(eventId, event, new OperationCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(context, "Event updated successfully!", Toast.LENGTH_SHORT).show();
+                if (context instanceof Activity) {
+                    ((Activity) context).finish();
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(context, "Failed to update event: " + errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
 }

@@ -420,6 +420,22 @@
                     android:text="@string/require_entrants_to_share_their_location" />
             </LinearLayout>
 
+            <!-- Delete Event Button (only visible in Edit mode) -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/Delete_Event_Button"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginBottom="15dp"
+                android:background="@drawable/rounded_rectangle"
+                android:backgroundTint="#FF0000"
+                android:text="Delete Event"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
         </LinearLayout>
     </ScrollView>
 

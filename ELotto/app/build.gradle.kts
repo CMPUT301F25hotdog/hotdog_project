@@ -74,6 +74,8 @@ dependencies {
     androidTestImplementation(libs.core.v161)
     androidTestImplementation(libs.runner)
 
+    //new
+    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
     implementation(libs.zxing.core)
 }
 tasks.withType<Test>{

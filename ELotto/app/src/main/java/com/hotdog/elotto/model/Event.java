@@ -543,10 +543,12 @@ public class Event implements Serializable {
      * @return true if registration is currently open, false otherwise
      */
     public boolean isRegistrationOpen() {
+        if (registrationStartDate == null || registrationEndDate == null) {
+            return false; // Can't be open if dates aren't set
+        }
         Date now = new Date();
         return now.after(registrationStartDate) && now.before(registrationEndDate);
     }
-
     /**
      * Checks if the waiting list has reached its capacity limit.
      *

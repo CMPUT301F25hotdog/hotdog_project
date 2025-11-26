@@ -20,6 +20,7 @@ import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.ui.home.EventCreationView;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.ui.home.MyEventsView;
+import com.hotdog.elotto.ui.home.OrganizerEventEntrantsFragment;
 
 import java.util.Arrays;
 
@@ -88,5 +89,7 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
 
+
+        // TEMPORARY: Auto-launch organizer screen for testing
     }
 }
