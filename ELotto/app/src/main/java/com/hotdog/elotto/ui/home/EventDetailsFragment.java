@@ -19,8 +19,10 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.firebase.firestore.GeoPoint;
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.callback.OperationCallback;
+import com.hotdog.elotto.controller.LocationController;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
@@ -266,44 +268,54 @@ public class EventDetailsFragment extends Fragment {
             String userId = currentUser.getId();
 
             List<String> waitlistIds = event.getWaitlistEntrantIds();
-            if (waitlistIds == null){
+            if (waitlistIds == null) {
                 waitlistIds = new ArrayList<>();
                 event.setWaitlistEntrantIds(waitlistIds);
             }
-            if (!waitlistIds.contains(userId)){
+            if (!waitlistIds.contains(userId)) {
                 waitlistIds.add(userId);
             }
-
-            EventRepository eventRepository = new EventRepository();
-            eventRepository.updateEvent(event, new OperationCallback() {
+            LocationController locationController = new LocationController(getContext());
+            locationController.getLatLon(new LocationController.LocationCallBack() {
                 @Override
-                public void onSuccess() {
-                    Toast.makeText(getContext(),
-                            "Successfully joined waitlist for " + event.getName(),
-                            Toast.LENGTH_SHORT).show();
-                    updateButtonState();
+                public void onLocationReady(double lat, double lon) {
+                    if (!Double.isNaN(lat) && !Double.isNaN(lon)) {
+                        event.setEntrantLocations(userId, new GeoPoint(lat, lon));
+                    }
+                    else{
+                        event.setEntrantLocations(userId, new GeoPoint(-1,-1));
+                    }
+                    EventRepository eventRepository = new EventRepository();
+                    eventRepository.updateEvent(event, new OperationCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(getContext(),
+                                    "Successfully joined waitlist for " + event.getName(),
+                                    Toast.LENGTH_SHORT).show();
+                            updateButtonState();
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            Toast.makeText(getContext(),
+                                    "Error joining waitlist: " + errorMessage,
+                                    Toast.LENGTH_SHORT).show();
+
+
+                            enterLotteryButton.setEnabled(true);
+                            enterLotteryButton.setText("Enter Lottery");
+                        }
+                    });
+
                 }
-
-                @Override
-                public void onError(String errorMessage) {
+            });
+        }catch (Exception e) {
                     Toast.makeText(getContext(),
-                            "Error joining waitlist: " + errorMessage,
+                            "Error joining waitlist: " + e.getMessage(),
                             Toast.LENGTH_SHORT).show();
-
 
                     enterLotteryButton.setEnabled(true);
                     enterLotteryButton.setText("Enter Lottery");
-                }
-            });
-
-            } catch (Exception e) {
-            Toast.makeText(getContext(),
-                    "Error joining waitlist: " + e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
-
-
-            enterLotteryButton.setEnabled(true);
-            enterLotteryButton.setText("Enter Lottery");
         }
     }
 
@@ -343,6 +355,10 @@ public class EventDetailsFragment extends Fragment {
             List<String> waitlistIds = event.getWaitlistEntrantIds();
             if (waitlistIds != null) {
                 waitlistIds.remove(userId);
+            }
+
+            if (event.getEntrantLocations() != null) {
+                event.getEntrantLocations().remove(userId);
             }
 
             EventRepository eventRepository = new EventRepository();

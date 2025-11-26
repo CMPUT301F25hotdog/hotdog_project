@@ -1,11 +1,14 @@
 package com.hotdog.elotto.model;
 
 import com.google.firebase.firestore.DocumentId;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents an event in the lottery registration system.
@@ -70,7 +73,8 @@ public class Event implements Serializable {
     private List<String> selectedEntrantIds;    // List of entrant IDs selected in lottery
     private List<String> acceptedEntrantIds;    // List of entrant IDs who accepted
     private List<String> cancelledEntrantIds;   // List of entrant IDs who cancelled/declined
-
+    //HashMap of the entrants locations
+    private Map<String, GeoPoint> entrantLocations;
     // Timestamps
     private Date createdAt;
     private Date updatedAt;
@@ -606,5 +610,33 @@ public class Event implements Serializable {
                 ", eventDateTime=" + eventDateTime +
                 ", status='" + status + '\'' +
                 '}';
+    }
+    public Map<String,GeoPoint> getEntrantLocations(){
+        return entrantLocations;
+    }
+    public void setEntrantLocations(String id, GeoPoint location){
+        if(entrantLocations == null){
+            entrantLocations = new HashMap<>();
+        }
+        entrantLocations.put(id,location);
+    }
+    public void removeEntrantLocation(String id){
+        if(entrantLocations != null){
+            entrantLocations.remove(id);
+        }
+    }
+    public GeoPoint getLocation(String id){
+        if(entrantLocations != null) {
+            return entrantLocations.get(id);
+        }
+        else{
+            return null;
+        }
+    }
+    public Map<String,GeoPoint> getLocations(){
+        if(entrantLocations == null){
+            entrantLocations = new HashMap<>();
+        }
+        return entrantLocations;
     }
 }
