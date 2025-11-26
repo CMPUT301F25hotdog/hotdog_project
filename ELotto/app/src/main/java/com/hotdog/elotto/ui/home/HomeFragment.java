@@ -30,7 +30,9 @@ import android.view.MenuInflater;
 import android.widget.PopupMenu;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * HomeFragment displays a list of all available events that users can browse and join.
@@ -56,6 +58,9 @@ public class HomeFragment extends Fragment {
     private EventRepository eventRepository;
     private List<Event> allEvents;
     private String currentUserId;
+
+    private Set<String> currentSelectedTags = new HashSet<>();
+    private DateFilter currentDateFilter = DateFilter.ALL_DATES;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -153,9 +158,10 @@ public class HomeFragment extends Fragment {
         });
 
         // Filter button
-        filterButton.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Filter clicked", Toast.LENGTH_SHORT).show()
-        );
+        filterButton.setOnClickListener(v -> openFilterDialog());
+
+
+
 
         // Search bar functionality
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -171,6 +177,65 @@ public class HomeFragment extends Fragment {
                 return true;
             }
         });
+    }
+
+    private void openFilterDialog(){
+        FilterDialogFragment dialog = FilterDialogFragment.newInstance();
+
+        dialog.setCurrentFilters(currentSelectedTags, currentDateFilter);
+        dialog.setOnFilterAppliedListener((selectedTags, dateFilter) -> {
+            applyFilters(selectedTags, dateFilter);
+        });
+        dialog.show(getParentFragmentManager(), "filter_dialog");
+    }
+
+    private void applyFilters(Set<String> selectedTags, DateFilter dateFilter) {
+        this.currentSelectedTags = new HashSet<>(selectedTags);
+        this.currentDateFilter = dateFilter;
+
+        if (allEvents == null || allEvents.isEmpty()) {
+            return;
+        }
+
+        List<Event> filteredEvents = new ArrayList<>();
+        for (Event event : allEvents) {
+            boolean matchesTags = selectedTags.isEmpty() || matchesAnyTag(event, selectedTags);
+            boolean matchesDate = dateFilter.matchesFilter(event.getEventDateTime());
+
+            if (matchesTags && matchesDate) {
+                filteredEvents.add(event);
+            }
+        }
+        // Update the RecyclerView with filtered events
+        eventAdapter.updateEvents(filteredEvents);
+        // Show empty state if no results
+        showEmptyState(filteredEvents.isEmpty());
+
+        String message = filteredEvents.size() + " event(s) found";
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean matchesAnyTag(Event event, Set<String> selectedTags) {
+        ArrayList<String> eventTags = event.getTagList();
+
+        if (eventTags == null || eventTags.isEmpty()) {
+            return false;
+        }
+
+        //loop and check if the selected tags are in the arrayList of eventTags
+        for (String tag : selectedTags) {
+            if (eventTags.contains(tag)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void clearFilters() {
+        eventAdapter.updateEvents(allEvents);
+        showEmptyState(allEvents.isEmpty());
+        Toast.makeText(getContext(), "Filters cleared", Toast.LENGTH_SHORT).show();
     }
 
     private void loadEvents() {
