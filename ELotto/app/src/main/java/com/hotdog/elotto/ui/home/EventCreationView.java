@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,13 +14,23 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
 import com.hotdog.elotto.R;
+import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.controller.EventCreationController;
+import com.hotdog.elotto.repository.EventRepository;
+
+
+import com.hotdog.elotto.callback.FirestoreCallback;
+import com.hotdog.elotto.model.Event;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,11 +57,16 @@ public class EventCreationView extends AppCompatActivity {
     private EditText locationInput;
     private Button cancelButton;
     private Button confirmButton;
+    private Button deleteButton;  // ← ADD THIS LINE
     private ImageButton backButton;
     private ImageView bannerInput;
     private Uri selectedBannerUri;
     private EditText tags;
     private ArrayList<String> tagList = new ArrayList<>();
+
+    private String currentMode;  // ← ADD THIS
+    private String currentEventId;  // ← ADD THIS
+
     /**
      * Initializes the activity and sets up UI event listeners.
      *
@@ -76,9 +92,30 @@ public class EventCreationView extends AppCompatActivity {
         geolocation = findViewById(R.id.Geolocation_Toggle);
         cancelButton = findViewById(R.id.Cancel_Creation_Button);
         confirmButton = findViewById(R.id.Confirm_Creation_Button);
+        deleteButton = findViewById(R.id.Delete_Event_Button);  // ← ADD THIS LINE
         locationInput = findViewById(R.id.Event_Location_Input);
         priceInput = findViewById(R.id.Event_Price_Input);
         tags = findViewById(R.id.Tag_Input);
+
+
+        // ← ADD THIS ENTIRE BLOCK HERE ↓
+
+        currentMode = getIntent().getStringExtra("MODE");
+        currentEventId = getIntent().getStringExtra("EVENT_ID");
+
+        if ("EDIT".equals(currentMode) && currentEventId != null) {
+            // Edit mode
+            TextView headerText = findViewById(R.id.Create_Event_Header);
+            headerText.setText("Edit Event");
+            confirmButton.setText("Save Changes");
+            deleteButton.setVisibility(View.VISIBLE);
+
+            // TODO: Load event data (we'll implement this next)
+            loadEventData(currentEventId);
+        } else {
+            // Create mode (default)
+            deleteButton.setVisibility(View.GONE);
+        }
 
 
         EditText[] fields = {
@@ -90,6 +127,16 @@ public class EventCreationView extends AppCompatActivity {
 
         cancelButton.setOnClickListener(v -> finish());
         backButton.setOnClickListener(v -> finish());
+
+        // ← ADD THIS ENTIRE BLOCK HERE ↓
+        deleteButton.setOnClickListener(v -> {
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Delete Event")
+                    .setMessage("Are you sure you want to delete this event? This action cannot be undone.")
+                    .setPositiveButton("Delete", (dialog, which) -> deleteEvent())
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
         tags.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -204,10 +251,15 @@ public class EventCreationView extends AppCompatActivity {
             Log.e("EventCreationView", "Encoded image size: " + encodedSize + " bytes (too large for Firestore)");
             return;
         }
-        controller.SaveEvent(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
-                entrantLimit, waitListSize, location, price, requireGeo,encodedString ,tagList);
-
-
+        if ("EDIT".equals(currentMode) && currentEventId != null) {
+            // Update existing event
+            controller.UpdateEvent(currentEventId, eventName, eventDescription, dateTime, openPeriodDate,
+                    closePeriodDate, entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList);
+        } else {
+            // Create new event
+            controller.SaveEvent(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
+                    entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList);
+        }
 
         finish();
     }
@@ -254,5 +306,105 @@ public class EventCreationView extends AppCompatActivity {
             Toast.makeText(this, "Please fill in all required fields", Toast.LENGTH_SHORT).show();
         }
         return allFilled;
+    }
+
+    /**
+     * Loads event data and pre-fills all fields for editing
+     */
+    private void loadEventData(String eventId) {
+        EventRepository eventRepository = new EventRepository();
+        eventRepository.getEventById(eventId, new FirestoreCallback<Event>() {
+            @Override
+            public void onSuccess(Event event) {
+                // Set event name
+                eventNameInput.setText(event.getName());
+
+                // Set event description
+                eventDescriptionInput.setText(event.getDescription());
+
+                // Set event location
+                if (event.getLocation() != null) {
+                    locationInput.setText(event.getLocation());
+                }
+
+                // Set event price
+                priceInput.setText(String.valueOf(event.getPrice()));
+
+                // Set event date and time
+                if (event.getEventDateTime() != null) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                    dateInput.setText(dateFormat.format(event.getEventDateTime()));
+                    timeInput.setText(timeFormat.format(event.getEventDateTime()));
+                }
+
+                // Set registration period
+                if (event.getRegistrationStartDate() != null) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                    openPeriodInput.setText(dateFormat.format(event.getRegistrationStartDate()));
+                }
+
+                if (event.getRegistrationEndDate() != null) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                    closePeriodInput.setText(dateFormat.format(event.getRegistrationEndDate()));
+                }
+
+                // Set max entrants
+                entrantLimitInput.setText(String.valueOf(event.getMaxEntrants()));
+
+                if (event.getWaitlistLimit() != null && event.getWaitlistLimit() > 0) {
+                    waitListSizeInput.setText(String.valueOf(event.getWaitlistLimit()));
+                }
+
+                // Set geolocation
+                geolocation.setChecked(event.isGeolocationRequired());
+
+                // Set event poster image
+                // Set event poster image
+                if (event.getPosterImageUrl() != null && !event.getPosterImageUrl().isEmpty()) {
+                    try {
+                        String encodedImage = event.getPosterImageUrl();
+                        byte[] decodedBytes = android.util.Base64.decode(encodedImage, android.util.Base64.DEFAULT);
+                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                        bannerInput.setImageBitmap(bitmap);
+                        // Don't set selectedBannerUri - we loaded from existing data
+                    } catch (Exception e) {
+                        Log.e("EventCreationView", "Error decoding poster image: " + e.getMessage());
+                    }
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(EventCreationView.this, "Error loading event: " + errorMessage, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
+
+        });
+    }
+
+    /**
+     * Deletes the current event
+     */
+    private void deleteEvent() {
+        if (currentEventId == null) {
+            Toast.makeText(this, "Error: Event ID not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        EventRepository eventRepository = new EventRepository();
+        eventRepository.deleteEvent(currentEventId, new OperationCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(EventCreationView.this, "Event deleted successfully", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(EventCreationView.this, "Error deleting event: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

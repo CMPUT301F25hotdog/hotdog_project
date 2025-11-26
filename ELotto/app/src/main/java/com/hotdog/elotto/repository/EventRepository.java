@@ -247,6 +247,22 @@ public class EventRepository {
                     callback.onError("Failed to update event: " + e.getMessage());
                 });
     }
+    /**
+     * Updates an existing event in the Firestore database using eventId and Event object.
+     */
+    public void updateEvent(String eventId, Event event, OperationCallback callback) {
+        db.collection(COLLECTION_NAME)
+                .document(eventId)
+                .set(event)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("EventRepository", "Event updated successfully: " + eventId);
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventRepository", "Error updating event: " + eventId, e);
+                    callback.onError("Failed to update event: " + e.getMessage());
+                });
+    }
 
     /**
      * Deletes an event from the Firestore database.
