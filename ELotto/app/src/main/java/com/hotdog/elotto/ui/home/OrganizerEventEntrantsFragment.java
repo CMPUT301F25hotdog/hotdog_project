@@ -13,6 +13,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import androidx.core.content.FileProvider;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -70,10 +78,8 @@ public class OrganizerEventEntrantsFragment extends Fragment {
     private TextView tvWaitingHeader;
     private RecyclerView rvWaitingEntrants;
     private EditText etNumberToSelect;
-    private Button btnRunLottery, btnSendNotification;
+    private Button btnRunLottery, btnDrawReplacements, btnSendNotification, btnExportCSV;
     private LinearLayout layoutNumberToSelect;
-    private Button btnDrawReplacements;
-
     // Data
     private String eventId;
     private Event currentEvent;
@@ -142,6 +148,7 @@ public class OrganizerEventEntrantsFragment extends Fragment {
         //new
         layoutNumberToSelect = view.findViewById(R.id.layoutNumberToSelect);
         btnDrawReplacements = view.findViewById(R.id.btnDrawReplacements);
+        btnExportCSV = view.findViewById(R.id.btnExportCSV);
     }
 
     /**
@@ -239,6 +246,7 @@ public class OrganizerEventEntrantsFragment extends Fragment {
         btnDrawReplacements.setOnClickListener(v -> drawReplacements()); // new
 
         btnSendNotification.setOnClickListener(v -> showSendNotificationDialog());
+        btnExportCSV.setOnClickListener(v -> exportToCSV());
     }
 
     private void showButtonsForTab(String tabType) {
@@ -247,17 +255,25 @@ public class OrganizerEventEntrantsFragment extends Fragment {
                 layoutNumberToSelect.setVisibility(View.VISIBLE);
                 btnRunLottery.setVisibility(View.VISIBLE);
                 btnDrawReplacements.setVisibility(View.GONE);
+                btnExportCSV.setVisibility(View.GONE);
                 break;
             case "selected":
                 layoutNumberToSelect.setVisibility(View.GONE);
                 btnRunLottery.setVisibility(View.GONE);
                 btnDrawReplacements.setVisibility(View.VISIBLE);
+                btnExportCSV.setVisibility(View.GONE);
                 break;
             case "accepted":
+                layoutNumberToSelect.setVisibility(View.GONE);
+                btnRunLottery.setVisibility(View.GONE);
+                btnDrawReplacements.setVisibility(View.GONE);
+                btnExportCSV.setVisibility(View.VISIBLE);
+                break;
             case "cancelled":
                 layoutNumberToSelect.setVisibility(View.GONE);
                 btnRunLottery.setVisibility(View.GONE);
                 btnDrawReplacements.setVisibility(View.GONE);
+                btnExportCSV.setVisibility(View.GONE);
                 break;
         }
     }
@@ -501,6 +517,71 @@ public class OrganizerEventEntrantsFragment extends Fragment {
                 Toast.makeText(getContext(), "Error sending notifications: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    /**
+     * Exports accepted entrants list to CSV format.
+     * US 02.06.05 implementation.
+     */
+    private void exportToCSV() {
+        if (currentEntrants == null || currentEntrants.isEmpty()) {
+            Toast.makeText(getContext(), "No entrants to export", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentEvent == null) {
+            Toast.makeText(getContext(), "Event data not loaded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Build CSV content
+        StringBuilder csvContent = new StringBuilder();
+        csvContent.append("Name,Email,Status\n");  // CSV header
+
+        for (EntrantInfo entrant : currentEntrants) {
+            csvContent.append(entrant.getName()).append(",");
+            csvContent.append(entrant.getEmail() != null ? entrant.getEmail() : "N/A").append(",");
+            csvContent.append("Accepted\n");
+        }
+
+        // Create filename
+        String fileName = currentEvent.getName().replaceAll("[^a-zA-Z0-9]", "_") + "_accepted_entrants.csv";
+
+        // Save file
+        try {
+            File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            File csvFile = new File(downloadsDir, fileName);
+
+            FileWriter writer = new FileWriter(csvFile);
+            writer.write(csvContent.toString());
+            writer.close();
+
+            Toast.makeText(getContext(), "CSV saved to Downloads: " + fileName, Toast.LENGTH_LONG).show();
+
+            // Optional: Open share dialog
+            shareCSVFile(csvFile);
+
+        } catch (IOException e) {
+            Toast.makeText(getContext(), "Error saving CSV: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Opens share dialog for CSV file.
+     */
+    private void shareCSVFile(File file) {
+        Uri fileUri = FileProvider.getUriForFile(
+                requireContext(),
+                requireContext().getPackageName() + ".fileprovider",
+                file
+        );
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/csv");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        startActivity(Intent.createChooser(shareIntent, "Share CSV"));
     }
 
     /**
