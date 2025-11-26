@@ -9,10 +9,13 @@ import android.os.Bundle;
 import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,6 +24,8 @@ import androidx.fragment.app.Fragment;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -33,6 +38,7 @@ import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.OrganizerRepository;
+import com.hotdog.elotto.ui.entries.EntriesFragment;
 
 
 import java.util.ArrayList;
@@ -95,6 +101,45 @@ public class MyEventsView extends Fragment {
 
         loadingProgressBar = view.findViewById(R.id.myEventsLoadingProgressBar);
 
+        view.findViewById(R.id.profileButtonMyEvents).setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(requireContext(), v);
+            MenuInflater menuInflater = popupMenu.getMenuInflater();
+            menuInflater.inflate(R.menu.profile_menu, popupMenu.getMenu());
+
+            popupMenu.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+
+                if (id == R.id.action_profile) {
+                    NavController navController = NavHostFragment.findNavController(this);
+                    navController.navigate(R.id.action_navigation_my_events_to_profileFragment);
+                    return true;
+                }
+                else if (id == R.id.action_inbox) {
+                    Toast.makeText(requireContext(), "Inbox clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else if (id == R.id.action_settings) {
+                    NavHostFragment.findNavController(this)
+                            .navigate(R.id.action_navigation_my_events_to_settingsFragment);
+                    return true;
+
+                } else if (id == R.id.action_faq) {
+                    NavHostFragment.findNavController(MyEventsView.this)
+                            .navigate(R.id.action_navigation_my_events_to_faqFragment);
+                    return true;
+
+                } else if (id == R.id.action_qr) {
+                    Toast.makeText(requireContext(), "Scan QR clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+
+                } else {
+                    return false;
+                }
+            });
+
+            popupMenu.show();
+        });
+
         return view;
     }
     /**
@@ -113,6 +158,17 @@ public class MyEventsView extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.OrganizerEvents);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(eventAdapter);
+
+        // Set click listener for event cards
+        eventAdapter.setOnEventClickListener(new EventAdapter.OnEventClickListener() {
+            @Override
+            public void onEventClick(Event event) {
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("event", event);
+                NavController navController = NavHostFragment.findNavController(MyEventsView.this);
+                navController.navigate(R.id.action_navigation_my_events_to_eventDetailsFragment, bundle);
+            }
+        });
 
         createEventButton = view.findViewById(R.id.CreateNewEventButton);
         createEventButton.setOnClickListener(v -> {

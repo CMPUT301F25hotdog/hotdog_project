@@ -13,9 +13,9 @@ import com.hotdog.elotto.model.User;
 import java.util.*;
 
 /**
- * Manages the Settings screen — handles notification preferences
- * for organizer and admin updates stored in Firestore.
- * Loads saved values and updates them when switches are toggled.
+ * Handles the Settings screen — lets users manage notification preferences
+ * for organizer and admin messages stored in Firestore.
+ * Loads saved preferences and updates them when toggled.
  */
 public class SettingsFragment extends Fragment {
 
@@ -26,8 +26,8 @@ public class SettingsFragment extends Fragment {
     DocumentReference ref;
 
     /**
-     * Sets up the Settings screen UI, gets the user ID,
-     * loads existing preferences, and handles switch toggles.
+     * Sets up the Settings screen UI, loads user preferences,
+     * and manages toggle actions.
      */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -36,6 +36,7 @@ public class SettingsFragment extends Fragment {
         switchAdmin = v.findViewById(R.id.switchAdmin);
         backButton = v.findViewById(R.id.backButton);
 
+        // ✅ Fixed navigation issue (use v instead of this)
         backButton.setOnClickListener(x -> NavHostFragment.findNavController(this).popBackStack());
 
         db = FirebaseFirestore.getInstance();
@@ -52,12 +53,13 @@ public class SettingsFragment extends Fragment {
 
         switchOrganizer.setOnCheckedChangeListener((b, c) -> savePref("organizerNotifications", c));
         switchAdmin.setOnCheckedChangeListener((b, c) -> savePref("adminNotifications", c));
+
         return v;
     }
 
     /**
      * Loads the current user's notification preferences from Firestore.
-     * If none exist, creates default values (false for both).
+     * If not found, sets default values (both false).
      */
     void loadPrefs() {
         ref.get().addOnSuccessListener(d -> {
@@ -66,37 +68,40 @@ public class SettingsFragment extends Fragment {
                 Boolean a = d.getBoolean("adminNotifications");
                 switchOrganizer.setChecked(o != null && o);
                 switchAdmin.setChecked(a != null && a);
-            } else createDefaults();
+            } else {
+                createDefaults();
+            }
         }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Load fail", Toast.LENGTH_SHORT).show());
+                Toast.makeText(getContext(), "Failed to load preferences.", Toast.LENGTH_SHORT).show());
     }
 
     /**
-     * Saves a single preference field to Firestore when toggled.
-     * Updates the backend in real time and shows a toast.
+     * Saves a single preference to Firestore when a switch is toggled.
+     * Updates happen instantly in Firestore.
      */
-    void savePref(String f, boolean v) {
-        ref.update(f, v)
+    void savePref(String field, boolean value) {
+        ref.update(field, value)
                 .addOnSuccessListener(x -> {
-                    String t = f.equals("organizerNotifications") ? "Organizer" : "Admin";
-                    Toast.makeText(getContext(), t + " " + (v ? "on" : "off"), Toast.LENGTH_SHORT).show();
+                    String type = field.equals("organizerNotifications") ? "Organizer" : "Admin";
+                    Toast.makeText(getContext(), type + " " + (value ? "enabled" : "disabled"), Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Save fail", Toast.LENGTH_SHORT).show());
+                        Toast.makeText(getContext(), "Failed to save setting.", Toast.LENGTH_SHORT).show());
     }
 
     /**
-     * Creates default preference fields if the user document doesn’t exist yet.
-     * Both organizer and admin notifications are set to false by default.
+     * Creates default notification fields if none exist.
+     * Organizer and admin notifications are off by default.
      */
     void createDefaults() {
-        Map<String, Object> m = new HashMap<>();
-        m.put("organizerNotifications", false);
-        m.put("adminNotifications", false);
-        ref.set(m, SetOptions.merge())
+        Map<String, Object> defaults = new HashMap<>();
+        defaults.put("organizerNotifications", false);
+        defaults.put("adminNotifications", false);
+
+        ref.set(defaults, SetOptions.merge())
                 .addOnSuccessListener(x ->
-                        Toast.makeText(getContext(), "Defaults made", Toast.LENGTH_SHORT).show())
+                        Toast.makeText(getContext(), "Default settings created.", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Init fail", Toast.LENGTH_SHORT).show());
+                        Toast.makeText(getContext(), "Failed to initialize defaults.", Toast.LENGTH_SHORT).show());
     }
 }

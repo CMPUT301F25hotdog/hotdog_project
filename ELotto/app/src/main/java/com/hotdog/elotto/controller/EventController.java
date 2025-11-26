@@ -11,12 +11,9 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Controller class for managing Event related logic
- * This is the middle man between the View (UI) and the Model (Repository)
- * Handles business logic such as filtering events, validating data, and processing user actions
- * this is the Controller layer
+ * Forgot I could use this in HomeFragment -Ethan
  *
- * Outstanding Issues: None
+ *
  *
  */
 public class EventController {

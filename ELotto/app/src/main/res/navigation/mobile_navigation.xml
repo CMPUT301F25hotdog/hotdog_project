@@ -26,6 +26,22 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_navigation_home_to_eventDetails"
+            app:destination="@id/eventDetailsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_navigation_home_to_faqFragment"
+            app:destination="@id/faqFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -62,11 +78,61 @@
         android:id="@+id/navigation_my_events"
         android:name="com.hotdog.elotto.ui.home.MyEventsView"
         android:label="My Events"
-        tools:layout="@layout/fragment_my_events"/>
+        tools:layout="@layout/fragment_my_events">
+        <action
+            android:id="@+id/action_navigation_my_events_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_navigation_my_events_to_profileFragment"
+            app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_navigation_my_events_to_eventDetailsFragment"
+            app:destination="@id/eventDetailsFragment" />
+        <action
+            android:id="@+id/action_navigation_my_events_to_faqFragment"
+            app:destination="@id/faqFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_entries"
         android:name="com.hotdog.elotto.ui.entries.EntriesFragment"
         android:label="Entries"
-        tools:layout="@layout/fragment_entries"/>
+        tools:layout="@layout/fragment_entries">
+        <action
+            android:id="@+id/action_navigation_entries_to_profileFragment"
+            app:destination="@id/profileFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"  />
+        <action
+            android:id="@+id/action_navigation_entries_to_settingsFragment"
+            app:destination="@id/settingsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"  />
+        <action
+            android:id="@+id/action_navigation_entries_to_eventDetailsFragment"
+            app:destination="@id/eventDetailsFragment" />
+        <action
+            android:id="@+id/action_navigation_entries_to_faqFragment"
+            app:destination="@id/faqFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/eventDetailsFragment"
+        android:name="com.hotdog.elotto.ui.home.EventDetailsFragment"
+        android:label="Event Details"
+        tools:layout="@layout/fragment_event_details">
+
+        <argument
+            android:name="event"
+            app:argType="com.hotdog.elotto.model.Event" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/faqFragment"
+        android:name="com.hotdog.elotto.ui.faq.FaqFragment"
+        android:label="FAQ"
+        tools:layout="@layout/fragment_faq" />
 </navigation>
