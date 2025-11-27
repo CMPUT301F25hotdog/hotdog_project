@@ -60,7 +60,7 @@ public class EventDetailsFragment extends Fragment {
     private TextView lotteryDrawnDateTextView;
     private TextView eventDescriptionTextView;
     private Button enterLotteryButton;
-
+    private Button mapButton;
     public static EventDetailsFragment newInstance(Event event) {
         EventDetailsFragment fragment = new EventDetailsFragment();
         Bundle args = new Bundle();
@@ -107,6 +107,7 @@ public class EventDetailsFragment extends Fragment {
         lotteryDrawnDateTextView = view.findViewById(R.id.lotteryDrawnDateTextView);
         eventDescriptionTextView = view.findViewById(R.id.eventDescriptionTextView);
         enterLotteryButton = view.findViewById(R.id.enterLotteryButton);
+        mapButton = view.findViewById(R.id.MapButton);
     }
 
     private void populateEventData() {
@@ -239,7 +240,14 @@ public class EventDetailsFragment extends Fragment {
                 joinWaitlist();
             }
         });
+        mapButton.setOnClickListener(v -> {
+            NavController navController = NavHostFragment.findNavController(EventDetailsFragment.this);
 
+            Bundle args = new Bundle();
+            args.putString("eventId", event.getId());
+
+            navController.navigate(R.id.eventMapFragment, args);
+        });
     }
 
     private void joinWaitlist() {

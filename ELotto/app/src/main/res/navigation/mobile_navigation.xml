@@ -149,4 +149,14 @@
         android:name="com.hotdog.elotto.ui.faq.FaqFragment"
         android:label="FAQ"
         tools:layout="@layout/fragment_faq" />
+    <fragment
+        android:id="@+id/eventMapFragment"
+        android:name="com.hotdog.elotto.ui.home.EventMapFragment"
+        android:label="Event Map"
+        tools:layout="@layout/fragment_event_map">
+
+        <argument
+            android:name="eventId"
+            app:argType="string" />
+    </fragment>
 </navigation>

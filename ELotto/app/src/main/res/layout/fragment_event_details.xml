@@ -197,6 +197,12 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
+                <Button
+                    android:id="@+id/MapButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Map" />
+
             </LinearLayout>
 
             <!-- Registration and Lottery Dates Card -->

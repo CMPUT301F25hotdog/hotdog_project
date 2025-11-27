@@ -28,7 +28,7 @@ import java.util.Date;
  * Controller class responsible for managing event creation logic, including
  * data processing, image encoding, and interaction with Firestore and Storage.
  */
-public class EventCreationController {
+public class    EventCreationController {
     private FirebaseFirestore db;
     private CollectionReference eventsRef;
     private FirebaseStorage storage;
@@ -68,7 +68,6 @@ public class EventCreationController {
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
                     byte[] imageBytes = baos.toByteArray();
                     base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
-
 
                 } else {
                     base64String = "image_failed_null";

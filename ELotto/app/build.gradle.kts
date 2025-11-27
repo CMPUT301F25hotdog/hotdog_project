@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.core)
     implementation(libs.recyclerview)
     implementation(libs.play.services.location)
+    implementation(libs.play.services.maps)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.mockito.junit)
     testImplementation(libs.mockito.inline)
