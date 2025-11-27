@@ -81,6 +81,9 @@ public class FilterInterestsFragment extends Fragment {
     public Set<String> getSelectedTags() {
         Set<String> selectedTags = new HashSet<>();
 
+        if (tagCheckboxes == null || tagCheckboxes.isEmpty()){
+            return initialSelectedTags;
+        }
         for (Map.Entry<String, CheckBox> entry : tagCheckboxes.entrySet()) {
             if (entry.getValue().isChecked()) {
                 selectedTags.add(entry.getKey());

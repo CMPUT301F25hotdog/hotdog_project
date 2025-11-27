@@ -79,6 +79,9 @@ public class FilterDateFragment extends Fragment {
      * @return DateFilter enum value
      */
     public DateFilter getSelectedDateFilter() {
+        if (dateFilterRadioGroup == null){
+            return initialDateFilter;
+        }
         int selectedId = dateFilterRadioGroup.getCheckedRadioButtonId();
 
         if (selectedId == R.id.radioToday) {
