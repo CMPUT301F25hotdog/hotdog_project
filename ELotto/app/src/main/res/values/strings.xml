@@ -64,4 +64,5 @@
     <string name="lottery_drawn">Lottery Drawn</string>
     <string name="about">About</string>
     <string name="enter_lottery">Enter Lottery</string>
+    <string name="inboxTitle">Inbox</string>
 </resources>

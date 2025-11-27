@@ -33,8 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * HomeFragment displays a list of all available events that users can browse and join.
- * Implements US 01.01.03 - As an entrant, I want to be able to see a list of events
+ * HomeFragment displays a list of all available events that users can browse
+ * and join.
+ * Implements US 01.01.03 - As an entrant, I want to be able to see a list of
+ * events
  * that I can join the waiting list for.
  *
  * Serves as the View layer of MVC design.
@@ -71,7 +73,7 @@ public class HomeFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+            @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         initializeViews(view);
@@ -125,11 +127,10 @@ public class HomeFragment extends Fragment {
                     NavController navController = NavHostFragment.findNavController(HomeFragment.this);
                     navController.navigate(R.id.action_navigation_home_to_profileFragment);
                     return true;
-                }
-                else if (id == R.id.action_inbox) {
-                    Toast.makeText(requireContext(), "Inbox clicked", Toast.LENGTH_SHORT).show();
+                } else if (id == R.id.action_inbox) {
+                    NavHostFragment.findNavController(HomeFragment.this)
+                            .navigate(R.id.action_navigation_home_to_notificationsFragment);
                     return true;
-
                 } else if (id == R.id.action_settings) {
                     NavHostFragment.findNavController(HomeFragment.this)
                             .navigate(R.id.action_navigation_home_to_settingsFragment);
@@ -153,9 +154,7 @@ public class HomeFragment extends Fragment {
         });
 
         // Filter button
-        filterButton.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Filter clicked", Toast.LENGTH_SHORT).show()
-        );
+        filterButton.setOnClickListener(v -> Toast.makeText(getContext(), "Filter clicked", Toast.LENGTH_SHORT).show());
 
         // Search bar functionality
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {

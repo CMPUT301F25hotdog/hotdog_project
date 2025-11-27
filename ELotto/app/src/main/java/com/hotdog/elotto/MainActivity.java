@@ -89,6 +89,14 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
 
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            OrganizerEventEntrantsFragment fragment = OrganizerEventEntrantsFragment.newInstance("testEvent001");
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.nav_host_fragment_activity_main, fragment)
+                    .addToBackStack(null)
+                    .commit();
+        }, 2000); // Wait 2 seconds then launch
+
 
         // TEMPORARY: Auto-launch organizer screen for testing
     }

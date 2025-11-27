@@ -42,6 +42,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_navigation_home_to_notificationsFragment"
+            app:destination="@id/navigation_notifications"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -54,7 +61,11 @@
         android:id="@+id/navigation_notifications"
         android:name="com.hotdog.elotto.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        tools:layout="@layout/fragment_notifications">
+        <action
+            android:id="@+id/action_notificationsFragment_to_eventDetailsFragment"
+            app:destination="@id/eventDetailsFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/profileFragment"
@@ -105,6 +116,9 @@
         <action
             android:id="@+id/action_navigation_my_events_to_faqFragment"
             app:destination="@id/faqFragment" />
+        <action
+            android:id="@+id/action_navigation_my_events_to_notificationsFragment"
+            app:destination="@id/navigation_notifications" />
     </fragment>
 
     <fragment
@@ -132,6 +146,9 @@
         <action
             android:id="@+id/action_navigation_entries_to_faqFragment"
             app:destination="@id/faqFragment" />
+        <action
+            android:id="@+id/action_navigation_entries_to_notificationsFragment"
+            app:destination="@id/navigation_notifications" />
     </fragment>
     <fragment
         android:id="@+id/eventDetailsFragment"
