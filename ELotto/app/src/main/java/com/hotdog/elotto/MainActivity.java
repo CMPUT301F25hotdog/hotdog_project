@@ -17,6 +17,7 @@ import androidx.navigation.ui.NavigationUI;
 import com.hotdog.elotto.databinding.ActivityMainBinding;
 import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.model.Organizer;
+import com.hotdog.elotto.AdminDashboardActivity;
 import com.hotdog.elotto.ui.home.EventCreationView;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.ui.home.MyEventsView;
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("CUR USER", ""+curUser);
 
         if (!curUser.exists()) {
-            // Either simple finish() or clear the task so back won’t escape login
+            // Either simple finish() or clear the task so back won't escape login
             loginLauncher.launch(new Intent(this, LoginActivity.class));
         } else {
             initAfterLogin();
@@ -88,5 +89,29 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
 
+        // ADD ADMIN TEST BUTTON
+        addTestAdminButton();
+    }
+
+    /**
+     * Adds a test button to access admin dashboard
+     * TEMPORARY - Remove this in production
+     */
+    private void addTestAdminButton() {
+        android.widget.Button testBtn = new android.widget.Button(this);
+        testBtn.setText("ADMIN");
+        testBtn.setBackgroundColor(0xFFFF0000); // Red
+        testBtn.setTextColor(0xFFFFFFFF); // White
+        testBtn.setOnClickListener(v -> {
+            startActivity(new Intent(this, AdminDashboardActivity.class));
+        });
+
+        // Position at top-right corner
+        android.widget.FrameLayout.LayoutParams params =
+                new android.widget.FrameLayout.LayoutParams(200, 150);
+        params.gravity = android.view.Gravity.TOP | android.view.Gravity.END;
+        params.setMargins(0, 100, 32, 0);
+
+        addContentView(testBtn, params);
     }
 }

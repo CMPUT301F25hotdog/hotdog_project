@@ -7,6 +7,7 @@ plugins {
 android {
     namespace = "com.hotdog.elotto"
     compileSdk = 36
+
     defaultConfig {
         vectorDrawables.useSupportLibrary = true
     }
@@ -32,25 +33,62 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     buildFeatures {
         viewBinding = true
     }
+
     tasks.withType<Test>{
         useJUnitPlatform()
     }
 }
 
 dependencies {
+    // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.storage)
+
+    // Core Android
     implementation(libs.core)
     implementation(libs.recyclerview)
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.constraintlayout)
+
+
+
+    // Lifecycle
+    implementation(libs.lifecycle.livedata.ktx)
+    implementation(libs.lifecycle.viewmodel.ktx)
+
+    // Navigation
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
+
+    // ========================================
+    // ADMIN SCREENS DEPENDENCIES - ADD THESE
+    // ========================================
+
+    // Glide for image loading (REQUIRED for admin screens)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+
+    // CardView (for admin UI cards)
+    implementation("androidx.cardview:cardview:1.0.0")
+
+    // ========================================
+
+    // ZXing for QR codes
+    implementation(libs.zxing.core)
+
+    // Testing
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.mockito.junit)
     testImplementation(libs.mockito.inline)
@@ -58,13 +96,7 @@ dependencies {
     testRuntimeOnly(libs.android.test.runner)
     testRuntimeOnly(libs.junit.engine)
 
-    implementation(libs.appcompat)
-    implementation(libs.material)
-    implementation(libs.constraintlayout)
-    implementation(libs.lifecycle.livedata.ktx)
-    implementation(libs.lifecycle.viewmodel.ktx)
-    implementation(libs.navigation.fragment)
-    implementation(libs.navigation.ui)
+    // Android Testing
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.intents)
@@ -72,9 +104,8 @@ dependencies {
     androidTestRuntimeOnly(libs.android.test.runner)
     androidTestImplementation(libs.core.v161)
     androidTestImplementation(libs.runner)
-
-    implementation(libs.zxing.core)
 }
+
 tasks.withType<Test>{
     useJUnitPlatform()
 }

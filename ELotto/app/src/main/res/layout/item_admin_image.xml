@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Image Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Image -->
+            <ImageView
+                android:id="@+id/admin_image"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:background="@color/background_light_grey"
+                android:contentDescription="Event Image"
+                android:scaleType="centerCrop"
+                android:src="@drawable/baseline_image_24" />
+
+            <!-- Image Details -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <!-- Event Name -->
+                <TextView
+                    android:id="@+id/image_event_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="[Event Name]"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <!-- Owner Name -->
+                <TextView
+                    android:id="@+id/image_owner_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="By [Name]"
+                    android:textColor="@color/form_icon"
+                    android:textSize="10sp" />
+
+                <!-- Image Type -->
+                <TextView
+                    android:id="@+id/image_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="[Event]"
+                    android:textColor="@color/form_icon"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Delete Button (Top Right Corner) -->
+        <ImageView
+            android:id="@+id/btn_delete_image"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"
+            android:background="@drawable/circle_outline_background"
+            android:contentDescription="Delete Image"
+            android:padding="6dp"
+            android:src="@drawable/cancel_button"
+            app:tint="@color/error_red" />
+    </FrameLayout>
+
+</androidx.cardview.widget.CardView>

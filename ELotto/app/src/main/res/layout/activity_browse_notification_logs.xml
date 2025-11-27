@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light_grey">
+
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/header_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="4dp"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back"
+            android:padding="4dp"
+            android:src="@drawable/ic_arrow_back_24"
+            app:tint="@color/main_icon_blue" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:text="Notification Logs"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Search Bar -->
+    <LinearLayout
+        android:id="@+id/search_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="2dp"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header_layout">
+
+        <EditText
+            android:id="@+id/search_notifications"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/search_bar_background"
+            android:drawableStart="@drawable/filter_alt_24px"
+            android:drawablePadding="8dp"
+            android:hint="Search"
+            android:padding="12dp"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Total Notifications Count -->
+    <TextView
+        android:id="@+id/text_total_notifications_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="8 total notifications"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/search_layout" />
+
+    <!-- Notifications RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_notifications"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_total_notifications_count" />
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/empty_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:alpha="0.3"
+            android:src="@drawable/ic_notifications_black_24dp"
+            app:tint="@color/form_icon" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="No notifications found"
+            android:textColor="@color/form_icon"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
