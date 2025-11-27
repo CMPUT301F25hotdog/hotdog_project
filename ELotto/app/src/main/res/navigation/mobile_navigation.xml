@@ -119,6 +119,9 @@
         <action
             android:id="@+id/action_navigation_my_events_to_notificationsFragment"
             app:destination="@id/navigation_notifications" />
+        <action
+            android:id="@+id/action_navigation_my_events_to_organizerEventEntrantsFragment"
+            app:destination="@id/organizerEventEntrantsFragment" />
     </fragment>
 
     <fragment
@@ -166,4 +169,13 @@
         android:name="com.hotdog.elotto.ui.faq.FaqFragment"
         android:label="FAQ"
         tools:layout="@layout/fragment_faq" />
+    <fragment
+        android:id="@+id/organizerEventEntrantsFragment"
+        android:name="com.hotdog.elotto.ui.home.OrganizerEventEntrantsFragment"
+        android:label="Event Entrants"
+        tools:layout="@layout/fragment_organizer_event_entrants">
+        <argument
+            android:name="eventId"
+            app:argType="string" />
+    </fragment>
 </navigation>

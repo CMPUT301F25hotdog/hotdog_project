@@ -138,9 +138,18 @@ public class MyEventsView extends Fragment {
             @Override
             public void onEventClick(Event event) {
                 Bundle bundle = new Bundle();
-                bundle.putSerializable("event", event);
                 NavController navController = NavHostFragment.findNavController(MyEventsView.this);
-                navController.navigate(R.id.action_navigation_my_events_to_eventDetailsFragment, bundle);
+
+                // Check if current user is the organizer of this event
+                if (event.getOrganizerId() != null && event.getOrganizerId().equals(organizer.getId())) {
+                    // Navigate to Organizer View
+                    bundle.putString("eventId", event.getId());
+                    navController.navigate(R.id.action_navigation_my_events_to_organizerEventEntrantsFragment, bundle);
+                } else {
+                    // Navigate to Entrant View (Event Details)
+                    bundle.putSerializable("event", event);
+                    navController.navigate(R.id.action_navigation_my_events_to_eventDetailsFragment, bundle);
+                }
             }
         });
 

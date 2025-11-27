@@ -220,6 +220,8 @@ public class OrganizerEventEntrantsFragment extends Fragment {
             public void onTabReselected(TabLayout.Tab tab) {
             }
         });
+        // Start with first tab by default
+        showButtonsForTab("waiting");
     }
 
     /**
