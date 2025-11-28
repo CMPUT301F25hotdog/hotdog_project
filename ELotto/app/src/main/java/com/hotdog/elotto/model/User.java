@@ -48,6 +48,7 @@ public class User {
      */
     public static class RegisteredEvent implements Comparable<RegisteredEvent> {
         private Timestamp registeredDate;
+        private Timestamp selectedDate;
         private Status status;
         private String eventId;
 
@@ -90,6 +91,13 @@ public class User {
 
         public Timestamp getRegisteredDate() {
             return registeredDate;
+        }
+
+        public Timestamp getSelectedDate(){
+            return selectedDate;
+        }
+        public void setSelectedDate(Timestamp selectedDate){
+            this.selectedDate = selectedDate;
         }
     }
 
