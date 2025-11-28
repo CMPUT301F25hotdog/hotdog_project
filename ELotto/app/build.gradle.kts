@@ -78,6 +78,11 @@ dependencies {
     //new
     androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
     implementation(libs.zxing.core)
+
+    //for qr scanning
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.0")
+
 }
 tasks.withType<Test>{
     useJUnitPlatform()

@@ -146,8 +146,9 @@ public class HomeFragment extends Fragment {
                             .navigate(R.id.action_navigation_home_to_faqFragment);
                     return true;
 
-                } else if (id == R.id.action_qr) {
-                    Toast.makeText(requireContext(), "Scan QR clicked", Toast.LENGTH_SHORT).show();
+                }else if (id == R.id.action_qr) {
+                    NavHostFragment.findNavController(HomeFragment.this)
+                            .navigate(R.id.action_navigation_home_to_qrScannerFragment);
                     return true;
 
                 } else {

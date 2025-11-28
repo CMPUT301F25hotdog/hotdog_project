@@ -28,6 +28,14 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
         <action
+            android:id="@+id/action_navigation_home_to_qrScannerFragment"
+            app:destination="@id/qrScannerFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
             android:id="@+id/action_navigation_home_to_eventDetails"
             app:destination="@id/eventDetailsFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
@@ -178,4 +186,15 @@
             android:name="eventId"
             app:argType="string" />
     </fragment>
+
+    <fragment
+        android:id="@+id/qrScannerFragment"
+        android:name="com.hotdog.elotto.ui.qr.QRScannerFragment"
+        android:label="Scan Event QR"
+        tools:layout="@layout/fragment_qr_scanner">
+        <action
+            android:id="@+id/action_qrScannerFragment_to_eventDetailsFragment"
+            app:destination="@id/eventDetailsFragment" />
+    </fragment>
+
 </navigation>

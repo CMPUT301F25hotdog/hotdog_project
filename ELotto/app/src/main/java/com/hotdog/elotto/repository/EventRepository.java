@@ -122,6 +122,7 @@ public class EventRepository {
                 });
     }
 
+
     /**
      * Retrieves all events with the ids given.
      *
@@ -210,6 +211,46 @@ public class EventRepository {
                 .addOnFailureListener(e -> {
                     Log.e("EventRepository", "Error fetching events by status: " + status, e);
                     callback.onError("Failed to fetch events by status: " + e.getMessage());
+                });
+    }
+
+    /**
+     * Retrieves a single event by its QR code data.
+     *
+     * This is used when an entrant scans a QR code, and the scanned string
+     * is matched against the `qrCodeData` field of events in Firestore.
+     *
+     * @param qrCodeData the QR code data string stored on the event
+     * @param callback   the callback to receive the event or an error message
+     */
+    public void getEventByQrCodeData(String qrCodeData, FirestoreCallback<Event> callback) {
+        if (qrCodeData == null || qrCodeData.isEmpty()) {
+            callback.onError("QR code data is empty");
+            return;
+        }
+
+        db.collection(COLLECTION_NAME)
+                .whereEqualTo("qrCodeData", qrCodeData)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
+                        Event event = document.toObject(Event.class);
+                        if (event != null) {
+                            // Ensure the ID is set (even though @DocumentId should handle it)
+                            event.setId(document.getId());
+                        }
+                        Log.d("EventRepository", "Successfully fetched event by QR code");
+                        callback.onSuccess(event);
+                    } else {
+                        Log.w("EventRepository", "No event found for QR code: " + qrCodeData);
+                        callback.onError("No event found for this QR code");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("EventRepository", "Error fetching event by QR code: " + qrCodeData, e);
+                    callback.onError("Failed to fetch event by QR code: " + e.getMessage());
                 });
     }
 
