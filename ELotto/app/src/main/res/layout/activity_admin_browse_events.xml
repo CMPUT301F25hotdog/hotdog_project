@@ -6,14 +6,13 @@
     android:orientation="vertical"
     android:background="@color/background_light_grey">
 
-    <!-- Header -->
+    <!-- Header (blue background and elevation removed) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp"
-        android:background="@color/white"
-        android:elevation="4dp">
+        android:paddingBottom="20dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -21,7 +20,8 @@
             android:text="Browse Events"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp" />
 
         <TextView
             android:id="@+id/tv_total_events"
@@ -30,14 +30,13 @@
             android:text="Total Events: 0"
             android:textSize="14sp"
             android:textColor="@color/form_icon"
-            android:layout_marginTop="4dp" />
+            android:layout_marginBottom="16dp" />
 
         <!-- Search Bar -->
         <EditText
             android:id="@+id/et_search_events"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginTop="12dp"
             android:background="@drawable/search_bar_background"
             android:hint="@string/search_hint"
             android:paddingStart="16dp"

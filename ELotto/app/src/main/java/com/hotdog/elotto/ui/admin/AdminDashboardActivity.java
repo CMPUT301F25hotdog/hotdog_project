@@ -51,6 +51,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_admin_dashboard);
 
+        // HIDE ACTION BAR to prevent duplicate title
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+
         initializeViews();
         initializeRepositories();
         loadOverviewData();
