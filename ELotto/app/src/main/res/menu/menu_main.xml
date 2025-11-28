@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ELotto">
 
-        <!-- ADMIN DASHBOARD LAUNCHES FIRST (for testing) -->
+        <!-- CHANGED: AdminDashboardActivity is now the LAUNCHER (for testing) -->
         <activity
             android:name=".ui.admin.AdminDashboardActivity"
             android:exported="true"
@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity (not launcher anymore) -->
+        <!-- MainActivity is now regular activity (not launcher) -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
