@@ -42,6 +42,15 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <!-- NEW: Home -> Inbox (Notifications) -->
+        <action
+            android:id="@+id/action_navigation_home_to_navigation_notifications"
+            app:destination="@id/navigation_notifications"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -50,11 +59,12 @@
         android:label="@string/title_dashboard"
         tools:layout="@layout/fragment_dashboard" />
 
+    <!-- This is your Inbox screen -->
     <fragment
         android:id="@+id/navigation_notifications"
         android:name="com.hotdog.elotto.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        tools:layout="@layout/fragment_inbox" />
 
     <fragment
         android:id="@+id/profileFragment"
@@ -79,18 +89,31 @@
         android:name="com.hotdog.elotto.ui.home.MyEventsView"
         android:label="My Events"
         tools:layout="@layout/fragment_my_events">
+
         <action
             android:id="@+id/action_navigation_my_events_to_settingsFragment"
             app:destination="@id/settingsFragment" />
+
         <action
             android:id="@+id/action_navigation_my_events_to_profileFragment"
             app:destination="@id/profileFragment" />
+
         <action
             android:id="@+id/action_navigation_my_events_to_eventDetailsFragment"
             app:destination="@id/eventDetailsFragment" />
+
         <action
             android:id="@+id/action_navigation_my_events_to_faqFragment"
             app:destination="@id/faqFragment" />
+
+        <!-- NEW: My Events -> Inbox -->
+        <action
+            android:id="@+id/action_navigation_my_events_to_navigation_notifications"
+            app:destination="@id/navigation_notifications"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -98,6 +121,7 @@
         android:name="com.hotdog.elotto.ui.entries.EntriesFragment"
         android:label="Entries"
         tools:layout="@layout/fragment_entries">
+
         <action
             android:id="@+id/action_navigation_entries_to_profileFragment"
             app:destination="@id/profileFragment"
@@ -105,6 +129,7 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"  />
+
         <action
             android:id="@+id/action_navigation_entries_to_settingsFragment"
             app:destination="@id/settingsFragment"
@@ -112,13 +137,25 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"  />
+
         <action
             android:id="@+id/action_navigation_entries_to_eventDetailsFragment"
             app:destination="@id/eventDetailsFragment" />
+
         <action
             android:id="@+id/action_navigation_entries_to_faqFragment"
             app:destination="@id/faqFragment" />
+
+        <!-- NEW: Entries -> Inbox -->
+        <action
+            android:id="@+id/action_navigation_entries_to_navigation_notifications"
+            app:destination="@id/navigation_notifications"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
+
     <fragment
         android:id="@+id/eventDetailsFragment"
         android:name="com.hotdog.elotto.ui.home.EventDetailsFragment"
@@ -135,4 +172,5 @@
         android:name="com.hotdog.elotto.ui.faq.FaqFragment"
         android:label="FAQ"
         tools:layout="@layout/fragment_faq" />
+
 </navigation>
