@@ -1,5 +1,7 @@
 package com.hotdog.elotto.ui.home;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -13,8 +15,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.PackageManagerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -78,6 +84,14 @@ public class EventDetailsFragment extends Fragment {
 
 
         currentUser = new User(requireContext(), true);
+        if(event.isGeolocationRequired()){
+            new android.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Location Required")
+                    .setMessage("This event requires location sharing to be enabled to join the waitlist.")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                    .show();
+        }
     }
 
     @Nullable
@@ -237,7 +251,7 @@ public class EventDetailsFragment extends Fragment {
             if (isRegistered){
                 leaveWaitlist();
             } else{
-                joinWaitlist();
+                joinWaitlistBack();
             }
         });
         mapButton.setOnClickListener(v -> {
@@ -249,7 +263,28 @@ public class EventDetailsFragment extends Fragment {
             navController.navigate(R.id.eventMapFragment, args);
         });
     }
+    private boolean locationPermission(){
+        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
 
+    private final ActivityResultLauncher<String> locationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    joinWaitlist();
+                } else {
+                    Toast.makeText(requireContext(), "Location permission denied", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    private void joinWaitlistBack(){
+        if (event.isGeolocationRequired()) {
+            if (!locationPermission()) {
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+                return;
+            }
+        }
+        joinWaitlist();
+    }
     private void joinWaitlist() {
         if (event == null || currentUser == null) {
             Toast.makeText(getContext(), "Error: Unable to join waitlist", Toast.LENGTH_SHORT).show();
@@ -268,62 +303,117 @@ public class EventDetailsFragment extends Fragment {
 
         enterLotteryButton.setEnabled(false);
         enterLotteryButton.setText("Joining...");
+        String userId = currentUser.getId();
+        if(event.isGeolocationRequired()) {
 
-        try {
-            // Add event to user's registered events
-            currentUser.addRegEvent(event.getId());
+            try {
+                // Add event to user's registered events
 
-            String userId = currentUser.getId();
-
-            List<String> waitlistIds = event.getWaitlistEntrantIds();
-            if (waitlistIds == null) {
-                waitlistIds = new ArrayList<>();
-                event.setWaitlistEntrantIds(waitlistIds);
-            }
-            if (!waitlistIds.contains(userId)) {
-                waitlistIds.add(userId);
-            }
-            LocationController locationController = new LocationController(getContext());
-            locationController.getLatLon(new LocationController.LocationCallBack() {
-                @Override
-                public void onLocationReady(double lat, double lon) {
-                    if (!Double.isNaN(lat) && !Double.isNaN(lon)) {
-                        event.setEntrantLocations(userId, new GeoPoint(lat, lon));
-                    }
-                    else{
-                        event.setEntrantLocations(userId, new GeoPoint(-1,-1));
-                    }
-                    EventRepository eventRepository = new EventRepository();
-                    eventRepository.updateEvent(event, new OperationCallback() {
-                        @Override
-                        public void onSuccess() {
-                            Toast.makeText(getContext(),
-                                    "Successfully joined waitlist for " + event.getName(),
-                                    Toast.LENGTH_SHORT).show();
-                            updateButtonState();
-                        }
-
-                        @Override
-                        public void onError(String errorMessage) {
-                            Toast.makeText(getContext(),
-                                    "Error joining waitlist: " + errorMessage,
-                                    Toast.LENGTH_SHORT).show();
-
-
+                LocationController locationController = new LocationController(getContext());
+                locationController.getLatLon(new LocationController.LocationCallBack() {
+                    @Override
+                    public void onLocationReady(double lat, double lon) {
+                        if (Double.isNaN(lat) || Double.isNaN(lon)) {
                             enterLotteryButton.setEnabled(true);
                             enterLotteryButton.setText("Enter Lottery");
+                            Toast.makeText(getContext(), "Location required to join waitlist", Toast.LENGTH_SHORT).show();
+                            return;
                         }
-                    });
+                        event.setEntrantLocations(userId, new GeoPoint(lat, lon));
 
-                }
-            });
-        }catch (Exception e) {
-                    Toast.makeText(getContext(),
-                            "Error joining waitlist: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
 
-                    enterLotteryButton.setEnabled(true);
-                    enterLotteryButton.setText("Enter Lottery");
+
+
+                        EventRepository eventRepository = new EventRepository();
+                        eventRepository.updateEvent(event, new OperationCallback() {
+                            @Override
+                            public void onSuccess() {
+                                currentUser.addRegEvent(event.getId());
+                                List<String> waitlistIds = event.getWaitlistEntrantIds();
+                                if (waitlistIds == null) {
+                                    waitlistIds = new ArrayList<>();
+                                    event.setWaitlistEntrantIds(waitlistIds);
+                                }
+                                if (!waitlistIds.contains(userId)) {
+                                    waitlistIds.add(userId);
+                                }
+                                Toast.makeText(getContext(),
+                                        "Successfully joined waitlist for " + event.getName(),
+                                        Toast.LENGTH_SHORT).show();
+                                updateButtonState();
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                Toast.makeText(getContext(),
+                                        "Error joining waitlist: " + errorMessage,
+                                        Toast.LENGTH_SHORT).show();
+
+
+                                enterLotteryButton.setEnabled(true);
+                                enterLotteryButton.setText("Enter Lottery");
+                            }
+                        });
+
+                    }
+                });
+            } catch (Exception e) {
+                Toast.makeText(getContext(),
+                        "Error joining waitlist: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+
+                enterLotteryButton.setEnabled(true);
+                enterLotteryButton.setText("Enter Lottery");
+            }
+        }
+        else{
+            try {
+                // Add event to user's registered events
+
+
+
+
+
+                EventRepository eventRepository = new EventRepository();
+                eventRepository.updateEvent(event, new OperationCallback() {
+                    @Override
+                    public void onSuccess() {
+                        currentUser.addRegEvent(event.getId());
+                        List<String> waitlistIds = event.getWaitlistEntrantIds();
+                        if (waitlistIds == null){
+                            waitlistIds = new ArrayList<>();
+                            event.setWaitlistEntrantIds(waitlistIds);
+                        }
+                        if (!waitlistIds.contains(userId)){
+                            waitlistIds.add(userId);
+                        }
+                        Toast.makeText(getContext(),
+                                "Successfully joined waitlist for " + event.getName(),
+                                Toast.LENGTH_SHORT).show();
+                        updateButtonState();
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        Toast.makeText(getContext(),
+                                "Error joining waitlist: " + errorMessage,
+                                Toast.LENGTH_SHORT).show();
+
+
+                        enterLotteryButton.setEnabled(true);
+                        enterLotteryButton.setText("Enter Lottery");
+                    }
+                });
+
+            } catch (Exception e) {
+                Toast.makeText(getContext(),
+                        "Error joining waitlist: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+
+
+                enterLotteryButton.setEnabled(true);
+                enterLotteryButton.setText("Enter Lottery");
+            }
         }
     }
 

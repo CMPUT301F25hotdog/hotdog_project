@@ -429,6 +429,7 @@ public class User {
             return false;
         }
         this.regEvents.remove(index);
+        this.controller.updateUser();
         return true;
     }
 
