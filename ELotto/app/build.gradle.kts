@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.intents)
@@ -73,6 +75,8 @@ dependencies {
     androidTestImplementation(libs.core.v161)
     androidTestImplementation(libs.runner)
 
+    //new
+    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
     implementation(libs.zxing.core)
 }
 tasks.withType<Test>{
