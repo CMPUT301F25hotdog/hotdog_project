@@ -70,24 +70,26 @@
             android:orientation="horizontal"
             android:layout_marginStart="12dp">
 
+            <!-- Info Button - Material 3 style with simple black background -->
             <ImageView
                 android:id="@+id/iv_view_details"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_help_24"
-                android:padding="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                app:tint="@color/main_icon_blue"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_info_outline_24"
+                android:padding="10dp"
+                android:background="@android:color/black"
+                app:tint="@color/white"
                 android:contentDescription="View Details" />
 
+            <!-- Delete Button - Material 3 style with simple black background -->
             <ImageView
                 android:id="@+id/iv_delete"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/cancel_button"
-                android:padding="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                app:tint="@color/error_red"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_delete_outline_24"
+                android:padding="10dp"
+                android:background="@android:color/black"
+                app:tint="@color/white"
                 android:contentDescription="Delete Event"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
