@@ -64,4 +64,15 @@
     <string name="lottery_drawn">Lottery Drawn</string>
     <string name="about">About</string>
     <string name="enter_lottery">Enter Lottery</string>
+    <string name="inboxTitle">Inbox</string>
+    <string-array name="tag_options">
+        <item>Music</item>
+        <item>Sports</item>
+        <item>Technology</item>
+        <item>Art</item>
+        <item>Food</item>
+        <item>Business</item>
+        <item>Health &amp; Wellness</item>
+        <item>Networking</item>
+    </string-array>
 </resources>

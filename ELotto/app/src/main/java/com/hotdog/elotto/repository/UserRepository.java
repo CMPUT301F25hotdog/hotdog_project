@@ -258,7 +258,7 @@ public class UserRepository {
         db.collection(COLLECTION_NAME)
                 .document(User.getId())
                 .set(User)
-                .addOnSuccessListener(aVoid -> {
+                .addOnSuccessListener(e -> {
                     Log.d("UserRepository", "User updated successfully: " + User.getId());
                     callback.onSuccess();
                 })

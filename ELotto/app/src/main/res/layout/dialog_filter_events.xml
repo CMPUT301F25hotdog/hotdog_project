@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+    <!-- https://www.geeksforgeeks.org/android/viewpager2-in-android-with-example/-->
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Filter Events"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginBottom="16dp" />
+
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/filterTabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabMode="fixed"
+        app:tabGravity="fill"
+        android:background="@color/white">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Interests" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date" />
+    </com.google.android.material.tabs.TabLayout>
+
+    <!-- ViewPager for tab content -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/filterViewPager"
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:layout_marginTop="8dp" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/clearFiltersButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear"
+            android:textColor="@color/main_icon_blue"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/applyFiltersButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Apply"
+            android:backgroundTint="@color/main_icon_blue" />
+    </LinearLayout>
+
+</LinearLayout>

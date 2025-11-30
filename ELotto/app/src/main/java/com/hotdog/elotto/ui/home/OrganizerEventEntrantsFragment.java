@@ -3,6 +3,7 @@ package com.hotdog.elotto.ui.home;
 
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +12,15 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
+
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.FileProvider;
 import java.io.File;
 import java.io.FileWriter;
@@ -40,10 +44,15 @@ import com.hotdog.elotto.model.EntrantInfo;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.repository.EventRepository;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Fragment for organizers to manage event entrants.
@@ -61,7 +70,7 @@ import java.util.Locale;
  *
  * <p><b>Outstanding Issues:</b> None currently</p>
  *
- * @author [Your Name]
+ * @author Bhuvnesh Batta
  * @version 1.0
  * @since 2025-11-24
  */
@@ -69,6 +78,9 @@ public class OrganizerEventEntrantsFragment extends Fragment {
 
     private static final String TAG = "OrganizerEventEntrants";
     private static final String ARG_EVENT_ID = "eventId";
+
+    private Executor loadingViewThread;
+    private WeakReference<CountDownLatch> loadingViewCount;
 
     // UI Components
     private ImageButton btnBack;
@@ -116,6 +128,28 @@ public class OrganizerEventEntrantsFragment extends Fragment {
         if (getArguments() != null) {
             eventId = getArguments().getString(ARG_EVENT_ID);
         }
+
+        this.loadingViewThread = Executors.newSingleThreadExecutor();
+        this.loadingViewCount = new WeakReference<>(new CountDownLatch(2));
+
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                CountDownLatch temp = loadingViewCount.get();
+                if(temp != null) {
+                    try {
+                        temp.await();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                setLoading(view, false);
+            }
+        };
+
+        this.loadingViewThread.execute(task);
+
+        setLoading(view, true);
 
         initializeViews(view);
         initializeControllers();
@@ -221,6 +255,8 @@ public class OrganizerEventEntrantsFragment extends Fragment {
             public void onTabReselected(TabLayout.Tab tab) {
             }
         });
+        // Start with first tab by default
+        showButtonsForTab("waiting");
     }
 
     /**
@@ -291,11 +327,15 @@ public class OrganizerEventEntrantsFragment extends Fragment {
             public void onSuccess(Event event) {
                 currentEvent = event;
                 updateEventHeader(event);
+                CountDownLatch temp = loadingViewCount.get();
+                if(temp != null) temp.countDown();
             }
 
             @Override
             public void onError(String errorMessage) {
                 Toast.makeText(getContext(), "Error loading event: " + errorMessage, Toast.LENGTH_SHORT).show();
+                CountDownLatch temp = loadingViewCount.get();
+                if(temp != null) temp.countDown();
             }
         });
     }
@@ -329,6 +369,8 @@ public class OrganizerEventEntrantsFragment extends Fragment {
                 adapter.updateList(currentEntrants);
                 updateHeader("waiting", entrants.size());
                 updateTabCount(0, entrants.size());
+                CountDownLatch temp = loadingViewCount.get();
+                if(temp != null) temp.countDown();
             }
 
             @Override
@@ -336,6 +378,8 @@ public class OrganizerEventEntrantsFragment extends Fragment {
                 Toast.makeText(getContext(), "Error loading waiting list: " + errorMessage, Toast.LENGTH_SHORT).show();
                 currentEntrants = new ArrayList<>();
                 adapter.updateList(currentEntrants);
+                CountDownLatch temp = loadingViewCount.get();
+                if(temp != null) temp.countDown();
             }
         });
     }
@@ -700,5 +744,25 @@ public class OrganizerEventEntrantsFragment extends Fragment {
         // Clean up references
         adapter = null;
         currentEntrants = null;
+    }
+
+    /**
+     * Sets whether we are loading and waiting for the data or not to show the loading progress bar
+     * @param loading Whether we are still loading the information or not.
+     */
+    private void setLoading(View view, Boolean loading) {
+        ConstraintLayout wheel = view.findViewById(R.id.OrganizerEventDetailsLoading);
+        LinearLayout buttons = view.findViewById(R.id.OrganizerEventDetailsButtons);
+        if (wheel == null || buttons == null) {
+            Log.e("ORG_EVENT_LOAD", "Buttons or progress bar on the organizer event details screen produced a null pointer!");
+            return;
+        }
+        if(loading) {
+            wheel.setVisibility(View.VISIBLE);
+            buttons.setVisibility(View.GONE);
+        } else {
+            wheel.setVisibility(View.GONE);
+            buttons.setVisibility(View.VISIBLE);
+        }
     }
 }

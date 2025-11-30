@@ -24,17 +24,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Repository class responsible for managing Event data access with Firebase Firestore.
+ * Repository class responsible for managing Event data access with Firebase
+ * Firestore.
  *
- * <p>This class handles all CRUD (Create, Read, Update, Delete) operations for Event objects
+ * <p>
+ * This class handles all CRUD (Create, Read, Update, Delete) operations for
+ * Event objects
  * in the Firebase Firestore database.
  *
- * <p>All database operations are asynchronous and use callback interfaces to return results
+ * <p>
+ * All database operations are asynchronous and use callback interfaces to
+ * return results
  * to the calling code.
  *
- * <p>the data access layer in the Model.
+ * <p>
+ * the data access layer in the Model.
  *
- * <p><b>Design Pattern:</b> Repository pattern which centralizes data access logic and provides
+ * <p>
+ * <b>Design Pattern:</b> Repository pattern which centralizes data access logic
+ * and provides
  * a clean API for data operations.
  *
  *
@@ -56,10 +64,12 @@ public class EventRepository {
     }
 
     /**
-     * Retrieves all events from the Firestore database and turns them into Event objects.
+     * Retrieves all events from the Firestore database and turns them into Event
+     * objects.
      * Utilizes the callback interfaces.
      *
-     * <p>Events are returned in the order they are stored in Firestore
+     * <p>
+     * Events are returned in the order they are stored in Firestore
      * The Controller will deal with sorting.
      *
      * @param callback the callback to receive the list of events or error message
@@ -88,7 +98,7 @@ public class EventRepository {
     /**
      * Retrieves a single event by its unique ID from Firestore.
      *
-     * @param eventId the unique identifier of the event to retrieve
+     * @param eventId  the unique identifier of the event to retrieve
      * @param callback the callback to receive the event or error message
      */
     public void getEventById(String eventId, FirestoreCallback<Event> callback) {
@@ -119,7 +129,7 @@ public class EventRepository {
      * @param callback the callback to receive the event or error message
      */
     public void getEventsById(List<String> eventIds, FirestoreCallback<List<Event>> callback) {
-        if(eventIds.isEmpty()) {
+        if (eventIds.isEmpty()) {
             Log.e("EventRepository", "No Event IDs provided.");
             callback.onError("No Event IDs provided.");
             return;
@@ -130,17 +140,16 @@ public class EventRepository {
             tasks.add(db.collection(COLLECTION_NAME).document(id).get());
         }
 
-        Tasks.whenAllComplete(tasks).addOnSuccessListener( doneTasks -> {
-                List<Event> events = new ArrayList<>();
-                for(Task<DocumentSnapshot> task : tasks) {
-                    if(task.isSuccessful()) {
-                        DocumentSnapshot snap = task.getResult();
-                        events.add(snap.toObject(Event.class));
-                    }
+        Tasks.whenAllComplete(tasks).addOnSuccessListener(doneTasks -> {
+            List<Event> events = new ArrayList<>();
+            for (Task<DocumentSnapshot> task : tasks) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot snap = task.getResult();
+                    events.add(snap.toObject(Event.class));
                 }
-                callback.onSuccess(events);
             }
-        ).addOnFailureListener(e -> {
+            callback.onSuccess(events);
+        }).addOnFailureListener(e -> {
             Log.e("EventRepository", "Error fetching events: " + Arrays.toString(eventIds.toArray()), e);
             callback.onError("Failed to fetch event: " + e.getMessage());
         });
@@ -150,7 +159,7 @@ public class EventRepository {
      * Retrieves all events created by a specific organizer.
      *
      * @param organizerId the unique identifier of the organizer
-     * @param callback the callback to receive the list of events or error message
+     * @param callback    the callback to receive the list of events or error message
      */
     public void getEventsByOrganizer(String organizerId, FirestoreListCallback<Event> callback) {
         db.collection(COLLECTION_NAME)
@@ -165,7 +174,8 @@ public class EventRepository {
                         events.add(event);
                     }
 
-                    Log.d("EventRepository", "Successfully fetched " + events.size() + " events for organizer: " + organizerId);
+                    Log.d("EventRepository",
+                            "Successfully fetched " + events.size() + " events for organizer: " + organizerId);
                     callback.onSuccess(events);
                 })
                 .addOnFailureListener(e -> {
@@ -177,7 +187,7 @@ public class EventRepository {
     /**
      * Retrieves all events with a specific status (e.g., "OPEN", "CLOSED", "FULL").
      *
-     * @param status the status to filter by
+     * @param status   the status to filter by
      * @param callback the callback to receive the list of events or error message
      */
     public void getEventsByStatus(String status, FirestoreListCallback<Event> callback) {
@@ -193,7 +203,8 @@ public class EventRepository {
                         events.add(event);
                     }
 
-                    Log.d("EventRepository", "Successfully fetched " + events.size() + " events with status: " + status);
+                    Log.d("EventRepository",
+                            "Successfully fetched " + events.size() + " events with status: " + status);
                     callback.onSuccess(events);
                 })
                 .addOnFailureListener(e -> {
@@ -206,7 +217,7 @@ public class EventRepository {
      * Creates a new event in the Firestore database.
      * Firestore will automatically generate a unique document ID for the event.
      *
-     * @param event the Event object to create in the database
+     * @param event    the Event object to create in the database
      * @param callback the callback to receive success confirmation or error message
      */
     public void createEvent(Event event, OperationCallback callback) {
@@ -226,7 +237,7 @@ public class EventRepository {
      * Updates an existing event in the Firestore database.
      * The event must have a valid ID set.
      *
-     * @param event the Event object with updated data
+     * @param event    the Event object with updated data
      * @param callback the callback to receive success confirmation or error message
      */
     public void updateEvent(Event event, OperationCallback callback) {
@@ -267,7 +278,7 @@ public class EventRepository {
     /**
      * Deletes an event from the Firestore database.
      *
-     * @param eventId the unique identifier of the event to delete
+     * @param eventId  the unique identifier of the event to delete
      * @param callback the callback to receive success confirmation or error message
      */
     public void deleteEvent(String eventId, OperationCallback callback) {
@@ -285,9 +296,10 @@ public class EventRepository {
     }
 
     /**
-     * Deletes an event from the Firestore database atomically, blocking the main thread until finished execution.
+     * Deletes an event from the Firestore database atomically, blocking the main
+     * thread until finished execution.
      *
-     * @param eventId the unique identifier of the event to delete
+     * @param eventId  the unique identifier of the event to delete
      * @param callback the callback to receive success confirmation or error message
      */
     public void deleteEvent(String eventId, OperationCallback callback, Executor bgThread) {
@@ -307,9 +319,10 @@ public class EventRepository {
     /**
      * Adds an entrant to an event's waiting list.
      *
-     * @param eventId the unique identifier of the event
+     * @param eventId   the unique identifier of the event
      * @param entrantId the unique identifier of the entrant to add
-     * @param callback the callback to receive success confirmation or error message
+     * @param callback  the callback to receive success confirmation or error
+     *                  message
      */
     public void addEntrantToWaitlist(String eventId, String entrantId, OperationCallback callback) {
         db.collection(COLLECTION_NAME)
@@ -325,7 +338,8 @@ public class EventRepository {
                         if (waitlist == null) {
                             waitlist = new ArrayList<>();
                         }
-                        // check that the entrant isn't already in the waitlist to prevent duplicate joining
+                        // check that the entrant isn't already in the waitlist to prevent duplicate
+                        // joining
                         if (!waitlist.contains(entrantId)) {
                             waitlist.add(entrantId);
                             event.setWaitlistEntrantIds(waitlist); // set the waitlist with the updated list of ids
@@ -347,9 +361,10 @@ public class EventRepository {
     /**
      * Removes an entrant from an event's waiting list.
      *
-     * @param eventId the unique identifier of the event
+     * @param eventId   the unique identifier of the event
      * @param entrantId the unique identifier of the entrant to remove
-     * @param callback the callback to receive success confirmation or error message
+     * @param callback  the callback to receive success confirmation or error
+     *                  message
      */
     public void removeEntrantFromWaitlist(String eventId, String entrantId, OperationCallback callback) {
         db.collection(COLLECTION_NAME)
@@ -378,13 +393,16 @@ public class EventRepository {
                     callback.onError("Failed to remove entrant from waitlist: " + e.getMessage());
                 });
     }
+
     /**
      * Moves entrants from waiting list to selected list (lottery draw).
-     * Removes the specified user IDs from waitlistEntrantIds and adds them to selectedEntrantIds.
+     * Removes the specified user IDs from waitlistEntrantIds and adds them to
+     * selectedEntrantIds.
      *
-     * @param eventId the unique identifier of the event
+     * @param eventId         the unique identifier of the event
      * @param selectedUserIds the list of user IDs that won the lottery
-     * @param callback the callback to receive success confirmation or error message
+     * @param callback        the callback to receive success confirmation or error
+     *                        message
      */
     public void moveEntrantsToSelected(String eventId, List<String> selectedUserIds, OperationCallback callback) {
         if (selectedUserIds == null || selectedUserIds.isEmpty()) {
@@ -413,8 +431,10 @@ public class EventRepository {
                     List<String> waitlist = event.getWaitlistEntrantIds();
                     List<String> selected = event.getSelectedEntrantIds();
 
-                    if (waitlist == null) waitlist = new ArrayList<>();
-                    if (selected == null) selected = new ArrayList<>();
+                    if (waitlist == null)
+                        waitlist = new ArrayList<>();
+                    if (selected == null)
+                        selected = new ArrayList<>();
 
                     // Remove from waitlist and add to selected
                     for (String userId : selectedUserIds) {
@@ -437,13 +457,12 @@ public class EventRepository {
                 });
     }
 
-
     /**
      * Moves entrants from selected list to accepted list.
      * This happens when entrants accept their invitation.
      *
-     * @param eventId the unique identifier of the event
-     * @param userIds the list of user IDs that accepted
+     * @param eventId  the unique identifier of the event
+     * @param userIds  the list of user IDs that accepted
      * @param callback the callback to receive success confirmation or error message
      */
     public void moveEntrantsToAccepted(String eventId, List<String> userIds, OperationCallback callback) {
@@ -473,8 +492,10 @@ public class EventRepository {
                     List<String> selected = event.getSelectedEntrantIds();
                     List<String> accepted = event.getAcceptedEntrantIds();
 
-                    if (selected == null) selected = new ArrayList<>();
-                    if (accepted == null) accepted = new ArrayList<>();
+                    if (selected == null)
+                        selected = new ArrayList<>();
+                    if (accepted == null)
+                        accepted = new ArrayList<>();
 
                     // Remove from selected and add to accepted
                     for (String userId : userIds) {
@@ -497,13 +518,12 @@ public class EventRepository {
                 });
     }
 
-
     /**
      * Moves entrants to cancelled list.
      * Can remove from either waitlist or selected list.
      *
-     * @param eventId the unique identifier of the event
-     * @param userIds the list of user IDs to cancel
+     * @param eventId  the unique identifier of the event
+     * @param userIds  the list of user IDs to cancel
      * @param callback the callback to receive success confirmation or error message
      */
     public void moveEntrantsToCancelled(String eventId, List<String> userIds, OperationCallback callback) {
@@ -534,9 +554,12 @@ public class EventRepository {
                     List<String> selected = event.getSelectedEntrantIds();
                     List<String> cancelled = event.getCancelledEntrantIds();
 
-                    if (waitlist == null) waitlist = new ArrayList<>();
-                    if (selected == null) selected = new ArrayList<>();
-                    if (cancelled == null) cancelled = new ArrayList<>();
+                    if (waitlist == null)
+                        waitlist = new ArrayList<>();
+                    if (selected == null)
+                        selected = new ArrayList<>();
+                    if (cancelled == null)
+                        cancelled = new ArrayList<>();
 
                     // Remove from waitlist/selected and add to cancelled
                     for (String userId : userIds) {
@@ -561,37 +584,4 @@ public class EventRepository {
                 });
     }
 
-
-
-    /**
-     * Creates a notification document in Firestore for a user.
-     *
-     * @param userId the user who will receive the notification
-     * @param eventId the event this notification is about
-     * @param message the notification message
-     * @param callback the callback to receive success confirmation or error message
-     */
-    public void createNotification(String userId, String eventId, String message, OperationCallback callback) {
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("userId", userId);
-        notification.put("eventId", eventId);
-        notification.put("message", message);
-        notification.put("timestamp", new Date());
-        notification.put("read", false);
-
-        db.collection("notifications")
-                .add(notification)
-                .addOnSuccessListener(documentReference -> {
-                    Log.d("EventRepository", "Notification created for user: " + userId);
-                    callback.onSuccess();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("EventRepository", "Error creating notification", e);
-                    callback.onError("Failed to create notification: " + e.getMessage());
-                });
-    }
-
-
-
 }
-

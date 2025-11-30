@@ -49,7 +49,6 @@ import java.util.Locale;
  */
 public class EventDetailsFragment extends Fragment {
 
-
     private Event event;
     private User currentUser;
 
@@ -97,7 +96,7 @@ public class EventDetailsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+            @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_event_details, container, false);
 
         initializeViews(view);
@@ -125,7 +124,8 @@ public class EventDetailsFragment extends Fragment {
     }
 
     private void populateEventData() {
-        if (event == null) return;
+        if (event == null)
+            return;
 
         // Set title
         eventTitleTextView.setText(event.getName());
@@ -168,7 +168,6 @@ public class EventDetailsFragment extends Fragment {
             eventDescriptionTextView.setText("No description available.");
         }
 
-
         loadEventImage();
 
         // Update button state based on user's registration status
@@ -177,7 +176,6 @@ public class EventDetailsFragment extends Fragment {
 
     private void loadEventImage() {
         String posterImageUrl = event.getPosterImageUrl();
-
 
         if (posterImageUrl == null || posterImageUrl.isEmpty() ||
                 posterImageUrl.equals("no_image") ||
@@ -209,8 +207,10 @@ public class EventDetailsFragment extends Fragment {
             eventImageView.setImageResource(R.drawable.image_24px);
         }
     }
+
     private void updateButtonState() {
-        if (event == null || currentUser == null) return;
+        if (event == null || currentUser == null)
+            return;
 
         // Check if user is already registered for this event
         List<String> registeredEvents = currentUser.getRegEventIds();
@@ -244,11 +244,11 @@ public class EventDetailsFragment extends Fragment {
             NavController navController = NavHostFragment.findNavController(EventDetailsFragment.this);
             navController.navigateUp();
         });
-        enterLotteryButton.setOnClickListener(v ->{
+        enterLotteryButton.setOnClickListener(v -> {
             List<String> registeredEvents = currentUser.getRegEventIds();
             boolean isRegistered = registeredEvents.contains(event.getId());
 
-            if (isRegistered){
+            if (isRegistered) {
                 leaveWaitlist();
             } else{
                 joinWaitlistBack();
@@ -285,12 +285,12 @@ public class EventDetailsFragment extends Fragment {
         }
         joinWaitlist();
     }
+
     private void joinWaitlist() {
         if (event == null || currentUser == null) {
             Toast.makeText(getContext(), "Error: Unable to join waitlist", Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         // Checks if already registered
         if (currentUser.getRegEvents().contains(event.getId())) {
@@ -299,7 +299,6 @@ public class EventDetailsFragment extends Fragment {
                     Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         enterLotteryButton.setEnabled(false);
         enterLotteryButton.setText("Joining...");
@@ -423,7 +422,6 @@ public class EventDetailsFragment extends Fragment {
             return;
         }
 
-
         new android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Leave Waitlist")
                 .setMessage("Are you sure you want to leave the waitlist for " + event.getName() + "?")
@@ -463,7 +461,8 @@ public class EventDetailsFragment extends Fragment {
             eventRepository.updateEvent(event, new OperationCallback() {
                 @Override
                 public void onSuccess() {
-                    Toast.makeText(getContext(), "Successfully left waitlist for " + event.getName(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Successfully left waitlist for " + event.getName(),
+                            Toast.LENGTH_SHORT).show();
 
                     updateButtonState();
                 }
@@ -487,4 +486,5 @@ public class EventDetailsFragment extends Fragment {
             enterLotteryButton.setEnabled(true);
             enterLotteryButton.setText("Leave Waitlist");
         }
-    }}
+    }
+}
