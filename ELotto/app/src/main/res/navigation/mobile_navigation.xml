@@ -178,4 +178,14 @@
             android:name="eventId"
             app:argType="string" />
     </fragment>
+    <fragment
+        android:id="@+id/map"
+        android:name="com.hotdog.elotto.ui.home.EventMapFragment"
+        android:label="Event Map"
+        tools:layout="@layout/fragment_event_map">
+        <argument
+            android:name="eventId"
+            app:argType="string" />
+    </fragment>
+
 </navigation>

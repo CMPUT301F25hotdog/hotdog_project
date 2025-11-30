@@ -549,8 +549,9 @@ public class EventCreationView extends AppCompatActivity {
                     closePeriodDate, entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList);
         } else {
             // Create new event
+            String organizerName = getIntent().getStringExtra("ORGANIZER_NAME");
             controller.SaveEvent(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
-                    entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList);
+                    entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList, organizerName);
         }
 
         finish();

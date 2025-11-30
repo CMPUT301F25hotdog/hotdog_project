@@ -98,7 +98,7 @@ public class    EventCreationController {
      */
     public void SaveEvent(String name, String description, Date dateTime, Date openPeriod,
                           Date closePeriod, int entrantLimit, int waitListSize,
-                          String location, double price, boolean requireGeo, String bannerUrl,ArrayList<String> tagList) {
+                          String location, double price, boolean requireGeo, String bannerUrl,ArrayList<String> tagList,String organizerName) {
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
         event.setCreatedAt(new Date());
         event.setUpdatedAt(new Date());
@@ -108,6 +108,7 @@ public class    EventCreationController {
         event.setTagList(tagList);
         Organizer org = new Organizer(context);
         event.setOrganizerId(org.getId());
+        event.setOrganizerName(organizerName);
         repository.createEvent(event, new OperationCallback() {
             @Override
             public void onSuccess() {

@@ -4,6 +4,7 @@
     import android.view.LayoutInflater;
     import android.view.View;
     import android.view.ViewGroup;
+    import android.widget.Button;
     import android.widget.Toast;
 
     import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@
     import com.google.android.gms.maps.model.LatLng;
     import com.google.android.gms.maps.model.LatLngBounds;
     import com.google.android.gms.maps.model.MarkerOptions;
+    import com.google.android.material.floatingactionbutton.FloatingActionButton;
     import com.google.firebase.firestore.FirebaseFirestore;
     import com.google.firebase.firestore.GeoPoint;
     import com.hotdog.elotto.R;
@@ -28,12 +30,16 @@
 
         private GoogleMap gMap;
         private String eventId;
-
+        private FloatingActionButton backButtonMap;
         @Nullable
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             View view = inflater.inflate(R.layout.fragment_event_map, container, false);
+            backButtonMap = view.findViewById(R.id.backButtonMap);
+            backButtonMap.setOnClickListener(v -> {
+                requireActivity().getOnBackPressedDispatcher().onBackPressed();
+            });
             if (getArguments() != null) {
                 eventId = getArguments().getString("eventId");
             }
@@ -51,10 +57,14 @@
             loadEntrantGeoPoints();
         }
         private void loadEntrantGeoPoints() {
+            if (eventId == null) {
+                Toast.makeText(getContext(), "No event ID provided", Toast.LENGTH_SHORT).show();
+                return;
+            }
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             db.collection("events")
-                    .document("testingformap")
+                    .document(eventId)
                     .get()
                     .addOnSuccessListener(doc -> {
                         if (!doc.exists()) {

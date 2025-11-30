@@ -102,10 +102,9 @@
                     android:id="@+id/EventNameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
                     android:hint="Event Name"
                     android:padding="16dp"
-                    android:textSize="16sp"/>
+                    android:textSize="16sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
