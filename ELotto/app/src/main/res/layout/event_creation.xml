@@ -74,6 +74,7 @@
                 android:layout_height="214dp"
                 android:layout_marginLeft="15sp"
                 android:layout_marginRight="15sp"
+                android:padding="4dp"
                 android:background="@drawable/rounded_rectangle"
                 android:clickable="true"
                 android:focusable="true"
