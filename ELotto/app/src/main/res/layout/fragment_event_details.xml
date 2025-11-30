@@ -151,6 +151,93 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Waitlisted Status Badge -->
+            <LinearLayout
+                android:id="@+id/waitlistedBadgeLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:padding="12dp"
+                android:background="@drawable/rounded_card_background"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_waitlist_x_24"
+                    android:contentDescription="Waitlist icon" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Waitlisted"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/holo_red_light"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Waitlisted Info Box -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/waitlistedInfoCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/light_blue_background"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Info Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_info_24"
+                            app:tint="@color/main_icon_blue"
+                            android:contentDescription="Info icon" />
+
+                        <TextView
+                            android:id="@+id/infoCardHeaderTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="What does 'Waitlisted' mean?"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/main_icon_blue" />
+                    </LinearLayout>
+
+                    <!-- Info Text -->
+                    <TextView
+                        android:id="@+id/infoCardMessageTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="You weren't selected in the initial lottery draw, but you're still on the waiting list. Organizers might select you if they decide to draw more entrants or if someone they selected doesn't respond. If you get selected, you will still receive a notification."
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="4dp"
+                        android:textColor="@color/black" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- Entries Count Card - Centered -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -201,6 +288,7 @@
 
             <!-- Registration and Lottery Dates Card -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/registrationDatesCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -274,6 +362,7 @@
 
             <!-- About Section Card -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/aboutCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -326,5 +415,21 @@
         android:background="@drawable/button_primary_background"
         android:paddingTop="16dp"
         android:paddingBottom="16dp" />
+
+    <!-- Leave Waiting List Button -->
+    <Button
+        android:id="@+id/leaveWaitlistButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_gravity="bottom"
+        android:text="Leave Waiting List"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:background="@drawable/button_primary_background"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

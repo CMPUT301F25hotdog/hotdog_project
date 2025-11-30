@@ -10,11 +10,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -57,6 +59,16 @@ public class EventDetailsFragment extends Fragment {
     private TextView lotteryDrawnDateTextView;
     private TextView eventDescriptionTextView;
     private Button enterLotteryButton;
+    private LinearLayout waitlistedBadgeLayout;
+    private androidx.cardview.widget.CardView waitlistedInfoCard;
+    private Button leaveWaitlistButton;
+    private TextView infoCardMessageTextView;  // ADD THIS LINE
+
+    private TextView infoCardHeaderTextView;  // ADD THIS (optional, for header)
+
+    private androidx.cardview.widget.CardView registrationDatesCard;  // ADD THIS
+
+    private androidx.cardview.widget.CardView aboutCard;  // ADD THIS
 
     public static EventDetailsFragment newInstance(Event event) {
         EventDetailsFragment fragment = new EventDetailsFragment();
@@ -79,7 +91,7 @@ public class EventDetailsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_event_details, container, false);
 
         initializeViews(view);
@@ -103,6 +115,13 @@ public class EventDetailsFragment extends Fragment {
         lotteryDrawnDateTextView = view.findViewById(R.id.lotteryDrawnDateTextView);
         eventDescriptionTextView = view.findViewById(R.id.eventDescriptionTextView);
         enterLotteryButton = view.findViewById(R.id.enterLotteryButton);
+        waitlistedBadgeLayout = view.findViewById(R.id.waitlistedBadgeLayout);
+        waitlistedInfoCard = view.findViewById(R.id.waitlistedInfoCard);
+        leaveWaitlistButton = view.findViewById(R.id.leaveWaitlistButton);
+        infoCardMessageTextView = view.findViewById(R.id.infoCardMessageTextView);
+        infoCardHeaderTextView = view.findViewById(R.id.infoCardHeaderTextView);  // ADD THIS (optional)
+        registrationDatesCard = view.findViewById(R.id.registrationDatesCard);  // ADD THIS
+        aboutCard = view.findViewById(R.id.aboutCard);  // ADD THIS
     }
 
     private void populateEventData() {
@@ -153,7 +172,7 @@ public class EventDetailsFragment extends Fragment {
         loadEventImage();
 
         // Update button state based on user's registration status
-        updateButtonState();
+        updateUIBasedOnStatus();  // ADD THIS LINE
     }
 
     private void loadEventImage() {
@@ -190,34 +209,114 @@ public class EventDetailsFragment extends Fragment {
         }
     }
 
-    private void updateButtonState() {
-        if (event == null || currentUser == null)
-            return;
+    /**
+     * Updates the UI based on the user's registration status
+     * This method combines logic from updateButtonState() and handles all states
+     *
+     * States handled:
+     * 1. Not registered + registration open → "Enter Lottery" (enabled)
+     * 2. Not registered + registration closed → "Registration Closed" (disabled)
+     * 3. Not registered + waitlist full → "Lottery Full" (disabled)
+     * 4. Pending (before lottery drawn) → "Leave Waitlist" (blue/gray, enabled)
+     * 5. Waitlisted (after lottery, not selected) → Red badge + info + red button (US 01.05.01)
+     * 6. Selected → Hide all buttons (friend's screen handles this)
+     * 7. Accepted → Hide all buttons
+     * 8. Cancelled → Allow rejoin if possible
+     */
+    private void updateUIBasedOnStatus() {
+        if (event == null || currentUser == null) return;
 
-        // Check if user is already registered for this event
-        List<String> registeredEvents = currentUser.getRegEventIds();
-        boolean isRegistered = registeredEvents.contains(event.getId());
+        String status = getUserStatus();
+        boolean lotteryDrawn = hasLotteryBeenDrawn();
 
-        if (isRegistered) {
-            // User already registered - show leave waitlist button
-            enterLotteryButton.setText("Leave Waitlist");
-            enterLotteryButton.setEnabled(true);
-            enterLotteryButton.setBackgroundResource(R.drawable.button_leave_background);
-        } else if (!event.isRegistrationOpen()) {
-            // Registration closed
-            enterLotteryButton.setText("Registration Closed");
+        // Hide all status-specific UI by default
+        waitlistedBadgeLayout.setVisibility(View.GONE);
+        waitlistedInfoCard.setVisibility(View.GONE);
+        leaveWaitlistButton.setVisibility(View.GONE);
+        enterLotteryButton.setVisibility(View.VISIBLE);
+
+        // Show cards by default (will be hidden in waitlisted state)
+        registrationDatesCard.setVisibility(View.VISIBLE);  // ADD THIS
+        aboutCard.setVisibility(View.VISIBLE);  // ADD THIS
+
+        if (status == null) {
+            // ========== NOT REGISTERED ==========
+
+            if (!event.isRegistrationOpen()) {
+                // Registration closed
+                enterLotteryButton.setEnabled(false);
+                enterLotteryButton.setText("Registration Closed");
+                enterLotteryButton.setBackgroundResource(R.drawable.button_disabled_background);
+
+            } else if (event.isFull()) {
+                // Waitlist is full
+                enterLotteryButton.setEnabled(false);
+                enterLotteryButton.setText("Lottery Full");
+                enterLotteryButton.setBackgroundResource(R.drawable.button_disabled_background);
+
+            } else {
+                // Available to join
+                enterLotteryButton.setEnabled(true);
+                enterLotteryButton.setText("Enter Lottery");
+                enterLotteryButton.setBackgroundResource(R.drawable.button_primary_background);
+            }
+
+        } else if ("PENDING".equals(status)) {
+            // ========== USER IS ON WAITLIST ==========
+
+            if (lotteryDrawn) {
+                // ========== WAITLISTED STATE (US 01.05.01) ==========
+                // Lottery was drawn, user not selected = WAITLISTED
+                // Show red badge, info card, and red "Leave Waiting List" button
+                waitlistedBadgeLayout.setVisibility(View.VISIBLE);
+                waitlistedInfoCard.setVisibility(View.VISIBLE);
+                infoCardMessageTextView.setText("You weren't selected in the initial lottery draw, but you're still on the waiting list. Good news! You could still be selected if any chosen participants decline their invitation. If a spot opens up, you will be notified immediately if you get selected");  // ADD THIS
+                enterLotteryButton.setVisibility(View.GONE);
+                leaveWaitlistButton.setVisibility(View.VISIBLE);
+                leaveWaitlistButton.setEnabled(true);
+                leaveWaitlistButton.setVisibility(View.VISIBLE);
+                leaveWaitlistButton.setEnabled(true);
+                leaveWaitlistButton.setBackgroundResource(R.drawable.button_leave_background);
+                leaveWaitlistButton.setBackgroundTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(requireContext(), android.R.color.holo_red_light)));
+
+                // Hide registration dates and about section
+                registrationDatesCard.setVisibility(View.GONE);  // ADD THIS
+                aboutCard.setVisibility(View.GONE);  // ADD THIS
+
+            } else {
+                // ========== PENDING (before lottery drawn) ==========
+                // Show RED "Leave Lottery" button
+                enterLotteryButton.setEnabled(true);
+                enterLotteryButton.setText("Leave Lottery");
+                enterLotteryButton.setEnabled(true);
+                enterLotteryButton.setText("Leave Lottery");
+                enterLotteryButton.setBackgroundResource(R.drawable.button_leave_background);
+                enterLotteryButton.setBackgroundTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(requireContext(), android.R.color.holo_red_light)));
+            }
+
+        } else if ("SELECTED".equals(status)) {
+            // ========== SELECTED ==========
+            // User was selected - hide all buttons
+            // Friend's screen will handle the Accept/Decline UI
+            enterLotteryButton.setVisibility(View.GONE);
+            leaveWaitlistButton.setVisibility(View.GONE);
+
+        } else if ("ACCEPTED".equals(status)) {
+            // ========== ACCEPTED ==========
+            // User accepted - hide all buttons
+            // TODO: Show confirmation message or badge in future
+            enterLotteryButton.setVisibility(View.GONE);
+            leaveWaitlistButton.setVisibility(View.GONE);
+
+        } else if ("CANCELLED".equals(status)) {
+            // ========== CANCELLED ==========
+            // User was cancelled - show info card and disabled button
+            waitlistedInfoCard.setVisibility(View.VISIBLE);
+            infoCardHeaderTextView.setText("Event Status");  // ADD THIS (if you added the header ID)
+            infoCardMessageTextView.setText("You were cancelled for this event and cannot rejoin.");  // ADD THIS
             enterLotteryButton.setEnabled(false);
-            enterLotteryButton.setBackgroundResource(R.drawable.button_disabled_background);
-        } else if (event.isFull()) {
-            // Waitlist is full
-            enterLotteryButton.setText("Lottery Full");
-            enterLotteryButton.setEnabled(false);
-            enterLotteryButton.setBackgroundResource(R.drawable.button_disabled_background);
-        } else {
-            // Available to join
             enterLotteryButton.setText("Enter Lottery");
-            enterLotteryButton.setEnabled(true);
-            enterLotteryButton.setBackgroundResource(R.drawable.button_primary_background);
+            enterLotteryButton.setBackgroundResource(R.drawable.button_disabled_background);
         }
     }
 
@@ -235,6 +334,10 @@ public class EventDetailsFragment extends Fragment {
             } else {
                 joinWaitlist();
             }
+        });
+
+        leaveWaitlistButton.setOnClickListener(v -> {
+            leaveWaitlist();
         });
 
     }
@@ -278,11 +381,14 @@ public class EventDetailsFragment extends Fragment {
                     Toast.makeText(getContext(),
                             "Successfully joined waitlist for " + event.getName(),
                             Toast.LENGTH_SHORT).show();
-                    updateButtonState();
+                    updateUIBasedOnStatus();  // ADD THIS LINE
                 }
 
                 @Override
                 public void onError(String errorMessage) {
+                    // Rollback: Remove event from user's registered events
+                    currentUser.removeRegEvent(event.getId());
+
                     Toast.makeText(getContext(),
                             "Error joining waitlist: " + errorMessage,
                             Toast.LENGTH_SHORT).show();
@@ -293,6 +399,9 @@ public class EventDetailsFragment extends Fragment {
             });
 
         } catch (Exception e) {
+            // Rollback
+            currentUser.removeRegEvent(event.getId());
+
             Toast.makeText(getContext(),
                     "Error joining waitlist: " + e.getMessage(),
                     Toast.LENGTH_SHORT).show();
@@ -319,7 +428,9 @@ public class EventDetailsFragment extends Fragment {
     }
 
     private void performLeaveWaitlist() {
+        // Disable all buttons to prevent double-clicks
         enterLotteryButton.setEnabled(false);
+        leaveWaitlistButton.setEnabled(false);
         enterLotteryButton.setText("Leaving...");
 
         try {
@@ -330,6 +441,7 @@ public class EventDetailsFragment extends Fragment {
             if (!removed) {
                 Toast.makeText(getContext(), "Event not found in your registered events", Toast.LENGTH_SHORT).show();
                 enterLotteryButton.setEnabled(true);
+                leaveWaitlistButton.setEnabled(true);
                 enterLotteryButton.setText("Leave Waitlist");
                 return;
             }
@@ -345,8 +457,7 @@ public class EventDetailsFragment extends Fragment {
                 public void onSuccess() {
                     Toast.makeText(getContext(), "Successfully left waitlist for " + event.getName(),
                             Toast.LENGTH_SHORT).show();
-
-                    updateButtonState();
+                    updateUIBasedOnStatus();
                 }
 
                 @Override
@@ -358,15 +469,69 @@ public class EventDetailsFragment extends Fragment {
                             "Error leaving waitlist: " + errorMessage,
                             Toast.LENGTH_SHORT).show();
 
-                    // Re-enable button
+                    // Re-enable buttons
                     enterLotteryButton.setEnabled(true);
+                    leaveWaitlistButton.setEnabled(true);
                     enterLotteryButton.setText("Leave Waitlist");
                 }
             });
         } catch (Exception e) {
-            Toast.makeText(getContext(), "Error leaving waitlist: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            enterLotteryButton.setEnabled(true);
-            enterLotteryButton.setText("Leave Waitlist");
+        // Rollback
+        currentUser.addRegEvent(event.getId());
+
+        Toast.makeText(getContext(), "Error leaving waitlist: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        enterLotteryButton.setEnabled(true);
+        leaveWaitlistButton.setEnabled(true);
+        enterLotteryButton.setText("Leave Waitlist");
         }
+    }
+
+
+    /**
+     * Checks if the lottery has been drawn for this event
+     * @return true if lottery was drawn, false otherwise
+     */
+    private boolean hasLotteryBeenDrawn() {
+        if (event == null) return false;
+
+        List<String> selectedIds = event.getSelectedEntrantIds();
+
+        // If there are selected entrants, lottery has been drawn
+        return selectedIds != null && !selectedIds.isEmpty();
+    }
+
+    /**
+     * Gets the user's registration status for this event
+     * @return "PENDING", "SELECTED", "ACCEPTED", "CANCELLED", or null if not registered
+     */
+    private String getUserStatus() {
+        if (event == null || currentUser == null) return null;
+
+        String userId = currentUser.getId();
+
+        // Check if user is in any of the event's lists
+        List<String> waitlistIds = event.getWaitlistEntrantIds();
+        List<String> selectedIds = event.getSelectedEntrantIds();
+        List<String> acceptedIds = event.getAcceptedEntrantIds();
+        List<String> cancelledIds = event.getCancelledEntrantIds();
+
+        // Check in priority order (most specific to least specific)
+        if (acceptedIds != null && acceptedIds.contains(userId)) {
+            return "ACCEPTED";
+        }
+
+        if (selectedIds != null && selectedIds.contains(userId)) {
+            return "SELECTED";
+        }
+
+        if (cancelledIds != null && cancelledIds.contains(userId)) {
+            return "CANCELLED";
+        }
+
+        if (waitlistIds != null && waitlistIds.contains(userId)) {
+            return "PENDING";
+        }
+
+        return null; // Not registered
     }
 }
