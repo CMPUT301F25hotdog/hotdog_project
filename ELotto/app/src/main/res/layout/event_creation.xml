@@ -87,7 +87,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="15dp"
-                app:prefixText="$"
                 app:boxBackgroundMode="outline"
                 app:boxBackgroundColor="@android:color/white"
                 app:boxStrokeColor="@color/track_blue"
@@ -102,9 +101,10 @@
                     android:id="@+id/EventNameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:inputType="text"
                     android:hint="Event Name"
                     android:padding="16dp"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -202,7 +202,7 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="wrap_content"
                 android:layout_marginLeft="15sp"
                 android:layout_marginRight="15sp"
                 android:orientation="horizontal">
@@ -210,7 +210,7 @@
                     android:id="@+id/EventDateLayout"
                     style="@style/Widget.Elotto.TextInputLayout"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
+                    android:layout_height="match_parent"
                     android:layout_marginEnd="10dp"
                     app:endIconMode="custom"
                     app:endIconDrawable="@drawable/outline_calendar_today_24"
@@ -244,7 +244,7 @@
                     android:id="@+id/EventTimeLayout"
                     style="@style/Widget.Elotto.TextInputLayout"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     app:endIconMode="custom"
                     app:endIconDrawable="@drawable/baseline_access_time_24"
