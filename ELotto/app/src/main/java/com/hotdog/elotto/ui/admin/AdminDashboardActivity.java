@@ -4,11 +4,14 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import com.hotdog.elotto.R;
+import com.hotdog.elotto.helpers.UserType;
+import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.UserRepository;
 
@@ -29,7 +32,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     // private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
 
     private TextView tvTotalEvents, tvTotalUsers, tvTotalImages;
-    private CardView cardBrowseEvents, cardBrowseProfiles, cardBrowseImages;
+    private CardView cardBrowseEvents, cardBrowseProfiles, cardBrowseImages, cardBrowseNotifications;
 
     private EventRepository eventRepository;
     private UserRepository userRepository;
@@ -39,13 +42,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // DEVICE ID CHECK REMOVED FOR TESTING
-        // String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        // if (!ADMIN_DEVICE_ID.equals(deviceId)) {
-        //     Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
-        //     finish();
-        //     return;
-        // }
+        // Check for Admin Access
+        User currentUser = new User(this, true);
+        if (currentUser.getType() != UserType.Administrator) {
+            Toast.makeText(this, "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         setContentView(R.layout.activity_admin_dashboard);
 
@@ -68,6 +71,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         cardBrowseEvents = findViewById(R.id.card_browse_events);
         cardBrowseProfiles = findViewById(R.id.card_browse_profiles);
         cardBrowseImages = findViewById(R.id.card_browse_images);
+        cardBrowseNotifications = findViewById(R.id.card_browse_notifications);
     }
 
     private void initializeRepositories() {
@@ -77,38 +81,40 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
     private void loadOverviewData() {
         // Load total events count
-        eventRepository.getAllEvents(new com.hotdog.elotto.callback.FirestoreListCallback<com.hotdog.elotto.model.Event>() {
-            @Override
-            public void onSuccess(java.util.List<com.hotdog.elotto.model.Event> events) {
-                int totalImages = 0;
-                for (com.hotdog.elotto.model.Event event : events) {
-                    if (event.getPosterImageUrl() != null && !event.getPosterImageUrl().isEmpty()) {
-                        totalImages++;
+        eventRepository
+                .getAllEvents(new com.hotdog.elotto.callback.FirestoreListCallback<com.hotdog.elotto.model.Event>() {
+                    @Override
+                    public void onSuccess(java.util.List<com.hotdog.elotto.model.Event> events) {
+                        int totalImages = 0;
+                        for (com.hotdog.elotto.model.Event event : events) {
+                            if (event.getPosterImageUrl() != null && !event.getPosterImageUrl().isEmpty()) {
+                                totalImages++;
+                            }
+                        }
+                        tvTotalEvents.setText(String.valueOf(events.size()));
+                        tvTotalImages.setText(String.valueOf(totalImages));
                     }
-                }
-                tvTotalEvents.setText(String.valueOf(events.size()));
-                tvTotalImages.setText(String.valueOf(totalImages));
-            }
 
-            @Override
-            public void onError(String errorMessage) {
-                tvTotalEvents.setText("0");
-                tvTotalImages.setText("0");
-            }
-        });
+                    @Override
+                    public void onError(String errorMessage) {
+                        tvTotalEvents.setText("0");
+                        tvTotalImages.setText("0");
+                    }
+                });
 
         // Load total users count
-        userRepository.getAllUsers(new com.hotdog.elotto.callback.FirestoreListCallback<com.hotdog.elotto.model.User>() {
-            @Override
-            public void onSuccess(java.util.List<com.hotdog.elotto.model.User> users) {
-                tvTotalUsers.setText(String.valueOf(users.size()));
-            }
+        userRepository
+                .getAllUsers(new com.hotdog.elotto.callback.FirestoreListCallback<com.hotdog.elotto.model.User>() {
+                    @Override
+                    public void onSuccess(java.util.List<com.hotdog.elotto.model.User> users) {
+                        tvTotalUsers.setText(String.valueOf(users.size()));
+                    }
 
-            @Override
-            public void onError(String errorMessage) {
-                tvTotalUsers.setText("0");
-            }
-        });
+                    @Override
+                    public void onError(String errorMessage) {
+                        tvTotalUsers.setText("0");
+                    }
+                });
     }
 
     private void setupClickListeners() {
@@ -124,6 +130,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         cardBrowseImages.setOnClickListener(v -> {
             Intent intent = new Intent(AdminDashboardActivity.this, AdminBrowseImagesActivity.class);
+            startActivity(intent);
+        });
+
+        cardBrowseNotifications.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminDashboardActivity.this, AdminBrowseNotificationsActivity.class);
             startActivity(intent);
         });
     }

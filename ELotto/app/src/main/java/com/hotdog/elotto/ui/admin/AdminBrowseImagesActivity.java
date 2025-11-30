@@ -25,6 +25,8 @@ import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.AdminImageAdapter;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.repository.EventRepository;
+import com.hotdog.elotto.model.User;
+import com.hotdog.elotto.helpers.UserType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,12 +64,21 @@ public class AdminBrowseImagesActivity extends AppCompatActivity implements Admi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Check for Admin Access
+        User currentUser = new User(this, true);
+        if (currentUser.getType() != UserType.Administrator) {
+            Toast.makeText(this, "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         // DEVICE ID CHECK REMOVED FOR TESTING
-        // String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        // String deviceId = Settings.Secure.getString(getContentResolver(),
+        // Settings.Secure.ANDROID_ID);
         // if (!ADMIN_DEVICE_ID.equals(deviceId)) {
-        //     Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
-        //     finish();
-        //     return;
+        // Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+        // finish();
+        // return;
         // }
 
         setContentView(R.layout.activity_admin_browse_images);

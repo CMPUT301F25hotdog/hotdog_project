@@ -17,14 +17,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.AdminNotificationAdapter;
 import com.hotdog.elotto.model.Notification;
+import com.hotdog.elotto.model.User;
+import com.hotdog.elotto.helpers.UserType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Admin Browse Notifications Activity.
@@ -33,7 +38,8 @@ import java.util.List;
  * @author Admin Module
  * @version 1.0
  */
-public class AdminBrowseNotificationsActivity extends AppCompatActivity implements AdminNotificationAdapter.OnNotificationActionListener {
+public class AdminBrowseNotificationsActivity extends AppCompatActivity
+        implements AdminNotificationAdapter.OnNotificationActionListener {
 
     private static final String TAG = "AdminBrowseNotifications";
 
@@ -52,6 +58,15 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity implemen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check for Admin Access
+        User currentUser = new User(this, true);
+        if (currentUser.getType() != UserType.Administrator) {
+            Toast.makeText(this, "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_admin_browse_notifications);
 
         // Hide action bar
@@ -90,7 +105,8 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity implemen
     private void setupSearch() {
         etSearchNotifications.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -98,7 +114,8 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity implemen
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
@@ -107,24 +124,55 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity implemen
         tvNoNotifications.setVisibility(View.GONE);
 
         db.collection("notifications")
-                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     progressBar.setVisibility(View.GONE);
                     allNotifications.clear();
                     filteredNotifications.clear();
 
-                    Log.d(TAG, "Total notifications retrieved: " + queryDocumentSnapshots.size());
+                    Log.d(TAG, "Total user documents retrieved: " + queryDocumentSnapshots.size());
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        String userId = doc.getId();
                         try {
-                            Notification notification = doc.toObject(Notification.class);
-                            allNotifications.add(notification);
-                            Log.d(TAG, "Notification loaded - ID: " + notification.getId() + ", Message: " + notification.getMessage());
+                            // The field "notifications" is an array of maps
+                            List<Map<String, Object>> notificationsList = (List<Map<String, Object>>) doc
+                                    .get("notifications");
+
+                            if (notificationsList != null) {
+                                for (Map<String, Object> notifMap : notificationsList) {
+                                    try {
+                                        Notification notification = new Notification();
+                                        notification.setUuid((String) notifMap.get("uuid"));
+                                        notification.setEventId((String) notifMap.get("eventId"));
+                                        notification.setMessage((String) notifMap.get("message"));
+                                        notification.setTitle((String) notifMap.get("title"));
+
+                                        // Handle read field safely (default to false if missing or null)
+                                        Boolean isRead = (Boolean) notifMap.get("read");
+                                        notification.setRead(isRead != null ? isRead : false);
+
+                                        notification.setTimestamp(
+                                                (com.google.firebase.Timestamp) notifMap.get("timestamp"));
+                                        notification.setUserId(userId); // Store the document ID (userId) for context
+
+                                        allNotifications.add(notification);
+                                    } catch (Exception e) {
+                                        Log.e(TAG, "Error parsing individual notification map for user: " + userId, e);
+                                    }
+                                }
+                            }
                         } catch (Exception e) {
-                            Log.e(TAG, "Error parsing notification: " + doc.getId(), e);
+                            Log.e(TAG, "Error parsing notifications array for user: " + userId, e);
                         }
                     }
+
+                    // Sort by timestamp descending (since we can't do it in the query anymore)
+                    allNotifications.sort((n1, n2) -> {
+                        if (n1.getTimestamp() == null || n2.getTimestamp() == null)
+                            return 0;
+                        return n2.getTimestamp().compareTo(n1.getTimestamp());
+                    });
 
                     filteredNotifications.addAll(allNotifications);
                     updateUI();
@@ -147,9 +195,11 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity implemen
             String lowerCaseQuery = query.toLowerCase();
             for (Notification notification : allNotifications) {
                 String message = notification.getMessage() != null ? notification.getMessage().toLowerCase() : "";
+                String title = notification.getTitle() != null ? notification.getTitle().toLowerCase() : "";
                 String eventId = notification.getEventId() != null ? notification.getEventId().toLowerCase() : "";
 
-                if (message.contains(lowerCaseQuery) || eventId.contains(lowerCaseQuery)) {
+                if (message.contains(lowerCaseQuery) || title.contains(lowerCaseQuery)
+                        || eventId.contains(lowerCaseQuery)) {
                     filteredNotifications.add(notification);
                 }
             }
@@ -163,7 +213,8 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity implemen
 
         if (filteredNotifications.isEmpty()) {
             tvNoNotifications.setVisibility(View.VISIBLE);
-            tvNoNotifications.setText(allNotifications.isEmpty() ? "No notifications found" : "No matching notifications");
+            tvNoNotifications
+                    .setText(allNotifications.isEmpty() ? "No notifications found" : "No matching notifications");
         } else {
             tvNoNotifications.setVisibility(View.GONE);
         }
@@ -175,12 +226,15 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity implemen
     public void onNotificationClick(Notification notification) {
         // Show notification details dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Notification Details");
+        builder.setTitle(notification.getTitle() != null ? notification.getTitle() : "Notification Details");
 
         StringBuilder details = new StringBuilder();
-        details.append("Event ID: ").append(notification.getEventId() != null ? notification.getEventId() : "N/A").append("\n\n");
-        details.append("Message: ").append(notification.getMessage() != null ? notification.getMessage() : "N/A").append("\n\n");
-        details.append("User ID: ").append(notification.getUserId() != null ? notification.getUserId() : "N/A").append("\n\n");
+        details.append("Event ID: ").append(notification.getEventId() != null ? notification.getEventId() : "N/A")
+                .append("\n\n");
+        details.append("Message: ").append(notification.getMessage() != null ? notification.getMessage() : "N/A")
+                .append("\n\n");
+        details.append("User ID: ").append(notification.getUserId() != null ? notification.getUserId() : "N/A")
+                .append("\n\n");
         details.append("Status: ").append(notification.isRead() ? "Read" : "Unread").append("\n\n");
         details.append("Timestamp: ").append(notification.getFormattedTimestamp());
 
@@ -201,23 +255,37 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity implemen
     }
 
     private void deleteNotification(Notification notification) {
-        if (notification.getId() == null || notification.getId().isEmpty()) {
-            Toast.makeText(this, "Error: Notification ID is missing", Toast.LENGTH_SHORT).show();
+        if (notification.getUserId() == null || notification.getUuid() == null) {
+            Toast.makeText(this, "Error: Missing User ID or Notification UUID", Toast.LENGTH_SHORT).show();
             return;
         }
 
         progressBar.setVisibility(View.VISIBLE);
 
+        // Reconstruct the map to remove it from the array
+        // Note: FieldValue.arrayRemove requires an exact match of the element.
+        // We need to be careful here. If the map has other fields we don't know about,
+        // this might fail.
+        // However, based on the user's description, we have all the fields.
+
+        Map<String, Object> notificationMap = new HashMap<>();
+        notificationMap.put("uuid", notification.getUuid());
+        notificationMap.put("eventId", notification.getEventId());
+        notificationMap.put("message", notification.getMessage());
+        notificationMap.put("title", notification.getTitle());
+        notificationMap.put("read", notification.isRead());
+        notificationMap.put("timestamp", notification.getTimestamp());
+
         db.collection("notifications")
-                .document(notification.getId())
-                .delete()
+                .document(notification.getUserId())
+                .update("notifications", FieldValue.arrayRemove(notificationMap))
                 .addOnSuccessListener(aVoid -> {
                     progressBar.setVisibility(View.GONE);
                     allNotifications.remove(notification);
                     filteredNotifications.remove(notification);
                     updateUI();
                     Toast.makeText(this, "Notification deleted", Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "Notification deleted successfully: " + notification.getId());
+                    Log.d(TAG, "Notification deleted successfully: " + notification.getUuid());
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);

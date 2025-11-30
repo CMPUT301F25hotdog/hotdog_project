@@ -33,7 +33,8 @@ import java.util.List;
  * @author Admin Module
  * @version 1.0
  */
-public class AdminBrowseProfilesActivity extends AppCompatActivity implements AdminProfileAdapter.OnProfileActionListener {
+public class AdminBrowseProfilesActivity extends AppCompatActivity
+        implements AdminProfileAdapter.OnProfileActionListener {
 
     // Device ID check disabled for testing
     // private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
@@ -54,12 +55,21 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity implements Ad
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Check for Admin Access
+        User currentUser = new User(this, true);
+        if (currentUser.getType() != UserType.Administrator) {
+            Toast.makeText(this, "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         // DEVICE ID CHECK REMOVED FOR TESTING
-        // String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        // String deviceId = Settings.Secure.getString(getContentResolver(),
+        // Settings.Secure.ANDROID_ID);
         // if (!ADMIN_DEVICE_ID.equals(deviceId)) {
-        //     Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
-        //     finish();
-        //     return;
+        // Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+        // finish();
+        // return;
         // }
 
         setContentView(R.layout.activity_admin_browse_profiles);
@@ -90,7 +100,8 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity implements Ad
     private void setupSearch() {
         etSearchProfiles.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -98,7 +109,8 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity implements Ad
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
@@ -186,7 +198,8 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity implements Ad
         // Show confirmation dialog
         new AlertDialog.Builder(this)
                 .setTitle("Delete " + userTypeText)
-                .setMessage("Are you sure you want to delete this " + userTypeText.toLowerCase() + "? This action cannot be undone.")
+                .setMessage("Are you sure you want to delete this " + userTypeText.toLowerCase()
+                        + "? This action cannot be undone.")
                 .setPositiveButton("Delete", (dialog, which) -> deleteProfile(user))
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -234,13 +247,15 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity implements Ad
                 allUsers.remove(user);
                 filteredUsers.remove(user);
                 updateUI();
-                Toast.makeText(AdminBrowseProfilesActivity.this, "Profile deleted successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminBrowseProfilesActivity.this, "Profile deleted successfully", Toast.LENGTH_SHORT)
+                        .show();
             }
 
             @Override
             public void onError(String errorMessage) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(AdminBrowseProfilesActivity.this, "Failed to delete profile: " + errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminBrowseProfilesActivity.this, "Failed to delete profile: " + errorMessage,
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -259,13 +274,15 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity implements Ad
                     public void onSuccess() {
                         progressBar.setVisibility(View.GONE);
                         updateUI();
-                        Toast.makeText(AdminBrowseProfilesActivity.this, "Organizer status revoked successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AdminBrowseProfilesActivity.this, "Organizer status revoked successfully",
+                                Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(String errorMessage) {
                         progressBar.setVisibility(View.GONE);
-                        Toast.makeText(AdminBrowseProfilesActivity.this, "Failed to update user type", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AdminBrowseProfilesActivity.this, "Failed to update user type",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -273,7 +290,8 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity implements Ad
             @Override
             public void onError(String errorMessage) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(AdminBrowseProfilesActivity.this, "Failed to revoke organizer status: " + errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminBrowseProfilesActivity.this, "Failed to revoke organizer status: " + errorMessage,
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -1,7 +1,6 @@
 package com.hotdog.elotto.model;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentId;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,33 +10,46 @@ import java.util.Locale;
  * Notification model for admin notification logs
  */
 public class Notification {
-    @DocumentId
-    private String id;
+    private String uuid; // Unique ID for the notification within the array
     private String eventId;
     private String message;
+    private String title;
     private boolean read;
     private Timestamp timestamp;
-    private String userId;
+    private String userId; // Helper field to store which user this belongs to
 
     // Empty constructor for Firestore
     public Notification() {
     }
 
-    public Notification(String eventId, String message, boolean read, Timestamp timestamp, String userId) {
+    public Notification(String uuid, String eventId, String message, String title, boolean read, Timestamp timestamp,
+            String userId) {
+        this.uuid = uuid;
         this.eventId = eventId;
         this.message = message;
+        this.title = title;
         this.read = read;
         this.timestamp = timestamp;
         this.userId = userId;
     }
 
     // Getters and Setters
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    // Alias for getUuid to maintain compatibility with existing code that uses
+    // getId()
     public String getId() {
-        return id;
+        return uuid;
     }
 
     public void setId(String id) {
-        this.id = id;
+        this.uuid = id;
     }
 
     public String getEventId() {
@@ -54,6 +66,14 @@ public class Notification {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public boolean isRead() {

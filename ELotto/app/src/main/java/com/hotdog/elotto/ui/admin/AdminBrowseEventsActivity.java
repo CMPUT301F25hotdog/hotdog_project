@@ -19,6 +19,8 @@ import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.AdminEventAdapter;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.repository.EventRepository;
+import com.hotdog.elotto.model.User;
+import com.hotdog.elotto.helpers.UserType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,12 +52,21 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Check for Admin Access
+        User currentUser = new User(this, true);
+        if (currentUser.getType() != UserType.Administrator) {
+            Toast.makeText(this, "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         // DEVICE ID CHECK REMOVED FOR TESTING
-        // String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        // String deviceId = Settings.Secure.getString(getContentResolver(),
+        // Settings.Secure.ANDROID_ID);
         // if (!ADMIN_DEVICE_ID.equals(deviceId)) {
-        //     Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
-        //     finish();
-        //     return;
+        // Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+        // finish();
+        // return;
         // }
 
         setContentView(R.layout.activity_admin_browse_events);
@@ -85,7 +96,8 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
     private void setupSearch() {
         etSearchEvents.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -93,7 +105,8 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
@@ -167,7 +180,8 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         builder.setTitle(event.getName());
 
         StringBuilder details = new StringBuilder();
-        details.append("Description: ").append(event.getDescription() != null ? event.getDescription() : "N/A").append("\n\n");
+        details.append("Description: ").append(event.getDescription() != null ? event.getDescription() : "N/A")
+                .append("\n\n");
         details.append("Location: ").append(event.getLocation() != null ? event.getLocation() : "N/A").append("\n\n");
         details.append("Organizer ID: ").append(event.getOrganizerId()).append("\n\n");
         details.append("Max Entrants: ").append(event.getMaxEntrants()).append("\n\n");
@@ -185,7 +199,8 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         // Show confirmation dialog
         new AlertDialog.Builder(this)
                 .setTitle("Delete Event")
-                .setMessage("Are you sure you want to delete \"" + event.getName() + "\"? This action cannot be undone.")
+                .setMessage(
+                        "Are you sure you want to delete \"" + event.getName() + "\"? This action cannot be undone.")
                 .setPositiveButton("Delete", (dialog, which) -> deleteEvent(event))
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -207,7 +222,8 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
             @Override
             public void onError(String errorMessage) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(AdminBrowseEventsActivity.this, "Failed to delete event: " + errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminBrowseEventsActivity.this, "Failed to delete event: " + errorMessage,
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
