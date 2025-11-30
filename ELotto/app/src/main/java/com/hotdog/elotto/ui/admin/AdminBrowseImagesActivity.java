@@ -4,12 +4,12 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,7 +34,6 @@ import java.util.Map;
 /**
  * Admin Browse Images Activity.
  * Implements US 03.06.01 (Browse images) and US 03.03.01 (Remove images).
- * Only accessible on device with ID: ded8763e1984cbfc
  *
  * @author Admin Module
  * @version 1.0
@@ -42,12 +41,14 @@ import java.util.Map;
 public class AdminBrowseImagesActivity extends AppCompatActivity implements AdminImageAdapter.OnImageActionListener {
 
     private static final String TAG = "AdminBrowseImages";
-    private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
+    // Device ID check disabled for testing
+    // private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
 
     private RecyclerView recyclerViewImages;
     private TextView tvTotalImages, tvNoImages;
     private ProgressBar progressBar;
     private EditText etSearchImages;
+    private ImageView btnBack;
 
     private AdminImageAdapter adapter;
     private EventRepository eventRepository;
@@ -61,13 +62,13 @@ public class AdminBrowseImagesActivity extends AppCompatActivity implements Admi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // CRITICAL: Device ID check
-        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        if (!ADMIN_DEVICE_ID.equals(deviceId)) {
-            Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        // DEVICE ID CHECK REMOVED FOR TESTING
+        // String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        // if (!ADMIN_DEVICE_ID.equals(deviceId)) {
+        //     Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+        //     finish();
+        //     return;
+        // }
 
         setContentView(R.layout.activity_admin_browse_images);
 
@@ -79,6 +80,7 @@ public class AdminBrowseImagesActivity extends AppCompatActivity implements Admi
         initializeViews();
         setupRecyclerView();
         setupSearchBox();
+        setupBackButton();
         loadImages();
     }
 
@@ -88,12 +90,17 @@ public class AdminBrowseImagesActivity extends AppCompatActivity implements Admi
         tvNoImages = findViewById(R.id.tv_no_images);
         progressBar = findViewById(R.id.progress_bar);
         etSearchImages = findViewById(R.id.et_search_images);
+        btnBack = findViewById(R.id.btn_back);
 
         eventRepository = new EventRepository();
         db = FirebaseFirestore.getInstance();
         mainHandler = new Handler(Looper.getMainLooper());
 
         Log.d(TAG, "FirebaseFirestore instance: " + (db != null ? "initialized" : "NULL"));
+    }
+
+    private void setupBackButton() {
+        btnBack.setOnClickListener(v -> finish());
     }
 
     private void setupRecyclerView() {

@@ -32,7 +32,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Browse Images"
+            android:text="Notification Logs"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/white"
@@ -49,21 +49,21 @@
         android:paddingBottom="20dp">
 
         <TextView
-            android:id="@+id/tv_total_images"
+            android:id="@+id/tv_total_notifications"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Total Images: 0"
+            android:text="Total Notifications: 0"
             android:textSize="14sp"
             android:textColor="@color/form_icon"
             android:layout_marginBottom="16dp" />
 
         <!-- Search Bar -->
         <EditText
-            android:id="@+id/et_search_images"
+            android:id="@+id/et_search_notifications"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="@drawable/search_bar_background"
-            android:hint="Search images..."
+            android:hint="Search notifications..."
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:textSize="16sp"
@@ -80,25 +80,25 @@
         android:layout_marginTop="24dp"
         android:visibility="gone" />
 
-    <!-- No Images Message -->
+    <!-- No Notifications Message -->
     <TextView
-        android:id="@+id/tv_no_images"
+        android:id="@+id/tv_no_notifications"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="48dp"
-        android:text="No images found"
+        android:text="No notifications found"
         android:textSize="16sp"
         android:textColor="@color/form_icon"
         android:visibility="gone" />
 
-    <!-- Images Grid -->
+    <!-- Notifications List -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_admin_images"
+        android:id="@+id/rv_admin_notifications"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"
+        android:padding="16dp"
         android:clipToPadding="false" />
 
 </LinearLayout>

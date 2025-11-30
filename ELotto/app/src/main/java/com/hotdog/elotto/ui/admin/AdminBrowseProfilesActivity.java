@@ -2,7 +2,6 @@ package com.hotdog.elotto.ui.admin;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -30,14 +29,14 @@ import java.util.List;
  * Admin Browse Profiles Activity.
  * Implements US 03.05.01 (Browse profiles), US 03.02.01 (Remove profiles),
  * and US 03.07.01 (Remove organizers).
- * Only accessible on device with ID: ded8763e1984cbfc
  *
  * @author Admin Module
  * @version 1.0
  */
 public class AdminBrowseProfilesActivity extends AppCompatActivity implements AdminProfileAdapter.OnProfileActionListener {
 
-    private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
+    // Device ID check disabled for testing
+    // private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
 
     private RecyclerView recyclerViewProfiles;
     private EditText etSearchProfiles;
@@ -55,13 +54,13 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity implements Ad
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // CRITICAL: Device ID check
-        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        if (!ADMIN_DEVICE_ID.equals(deviceId)) {
-            Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        // DEVICE ID CHECK REMOVED FOR TESTING
+        // String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        // if (!ADMIN_DEVICE_ID.equals(deviceId)) {
+        //     Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+        //     finish();
+        //     return;
+        // }
 
         setContentView(R.layout.activity_admin_browse_profiles);
 

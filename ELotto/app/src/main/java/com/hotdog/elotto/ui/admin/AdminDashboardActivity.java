@@ -3,9 +3,7 @@ package com.hotdog.elotto.ui.admin;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -16,7 +14,6 @@ import com.hotdog.elotto.repository.UserRepository;
 
 /**
  * Admin Dashboard Activity - Main screen for admin functionality.
- * Only accessible on device with ID: ded8763e1984cbfc
  *
  * Provides navigation to:
  * - Browse Events (US 03.04.01)
@@ -28,7 +25,8 @@ import com.hotdog.elotto.repository.UserRepository;
  */
 public class AdminDashboardActivity extends AppCompatActivity {
 
-    private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
+    // Device ID check temporarily disabled for testing
+    // private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
 
     private TextView tvTotalEvents, tvTotalUsers, tvTotalImages;
     private CardView cardBrowseEvents, cardBrowseProfiles, cardBrowseImages;
@@ -41,13 +39,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // CRITICAL: Device ID check
-        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        if (!ADMIN_DEVICE_ID.equals(deviceId)) {
-            Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        // DEVICE ID CHECK REMOVED FOR TESTING
+        // String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        // if (!ADMIN_DEVICE_ID.equals(deviceId)) {
+        //     Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+        //     finish();
+        //     return;
+        // }
 
         setContentView(R.layout.activity_admin_dashboard);
 

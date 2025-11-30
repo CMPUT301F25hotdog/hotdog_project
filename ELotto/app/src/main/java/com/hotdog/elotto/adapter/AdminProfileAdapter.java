@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hotdog.elotto.R;
@@ -74,25 +75,42 @@ public class AdminProfileAdapter extends RecyclerView.Adapter<AdminProfileAdapte
         }
 
         public void bind(User user, OnProfileActionListener listener) {
+            // Set name
             String name = user.getName() != null ? user.getName() : "[No Name]";
             tvUserName.setText(name);
 
+            // Set email
             String email = user.getEmail() != null ? user.getEmail() : "[No Email]";
             tvUserEmail.setText(email);
 
-            String userType = user.getType() != null ? user.getType().toString() : "Entrant";
-            tvUserType.setText(userType);
+            // Set user type with color coding
+            if (user.getType() != null) {
+                tvUserType.setText(user.getType().toString());
 
-            // Show revoke organizer button only for organizers
-            if (user.getType() == UserType.Organizer) {
-                ivRevokeOrganizer.setVisibility(View.VISIBLE);
-                ivRevokeOrganizer.setOnClickListener(v -> listener.onRevokeOrganizer(user));
+                // Color code based on user type
+                if (user.getType() == UserType.Organizer) {
+                    // Orange for organizers
+                    tvUserType.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.waitlist_orange));
+                    ivRevokeOrganizer.setVisibility(View.VISIBLE);
+                } else {
+                    // Green for entrants
+                    tvUserType.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.success_green));
+                    ivRevokeOrganizer.setVisibility(View.GONE);
+                }
             } else {
+                // Default to "User" with gray color
+                tvUserType.setText("User");
+                tvUserType.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.form_icon));
                 ivRevokeOrganizer.setVisibility(View.GONE);
             }
 
+            // Set click listeners
             ivViewDetails.setOnClickListener(v -> listener.onViewDetails(user));
             ivDelete.setOnClickListener(v -> listener.onDeleteProfile(user));
+
+            if (user.getType() == UserType.Organizer) {
+                ivRevokeOrganizer.setOnClickListener(v -> listener.onRevokeOrganizer(user));
+            }
         }
     }
 }
