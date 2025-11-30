@@ -1,5 +1,6 @@
 package com.hotdog.elotto.ui.home;
 
+
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -268,9 +269,12 @@ public class OrganizerEventEntrantsFragment extends Fragment {
             }
         });
 
+        //added just now to edit event
         btnEdit.setOnClickListener(v -> {
-            // TODO: Navigate to edit event screen
-            Toast.makeText(getContext(), "Edit event - Coming soon", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getContext(), EventCreationView.class);
+            intent.putExtra("MODE", "EDIT");
+            intent.putExtra("EVENT_ID", eventId);
+            startActivity(intent);
         });
 
         btnMap.setOnClickListener(v -> {

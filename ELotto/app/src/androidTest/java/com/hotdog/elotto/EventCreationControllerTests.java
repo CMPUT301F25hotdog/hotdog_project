@@ -70,9 +70,8 @@ public class EventCreationControllerTests {
     @Test
     void testEncodeImageNoImage() {
         ArrayList<String> empty = new ArrayList<>();
-        controller.EncodeImage("Test Event", "Desc", new Date(), new Date(), new Date(), 10, 5, "Location", 20.0, true, null,empty);
+        String encoded = controller.EncodeImage( null);
 
-        assertTrue(fakeRepo.called);
-        assertEquals("no_image", fakeRepo.lastSavedEvent.getPosterImageUrl());
+        assertEquals("no_image",encoded);
     }
 }
