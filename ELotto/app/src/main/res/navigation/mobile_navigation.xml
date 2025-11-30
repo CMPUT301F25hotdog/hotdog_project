@@ -61,7 +61,7 @@
         android:id="@+id/navigation_notifications"
         android:name="com.hotdog.elotto.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications">
+        tools:layout="@layout/fragment_inbox">
         <action
             android:id="@+id/action_notificationsFragment_to_eventDetailsFragment"
             app:destination="@id/eventDetailsFragment" />

@@ -93,7 +93,7 @@ public class ProfileFragment extends Fragment {
      * If no record found, shows a short error message.
      */
     void loadUserData() {
-        currentUser = new User(requireContext(), true);
+        currentUser = new User(requireContext());
         currentUserId = currentUser.getId();
         if (currentUserId == null || currentUserId.isEmpty()) {
             Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();

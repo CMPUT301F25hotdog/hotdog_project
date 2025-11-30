@@ -132,7 +132,7 @@ public class EntriesFragment extends Fragment {
         emptyStateLayout = view.findViewById(R.id.entriesEmptyLayout);
         eventRepository = new EventRepository();
         profileButton = view.findViewById(R.id.entriesProfileButton);
-        curUser = new User(context, true);
+        curUser = new User(context);
         eventAdapter = new EventAdapter(new ArrayList<>(), curUser.getId());
         entriesView.setAdapter(eventAdapter);
 

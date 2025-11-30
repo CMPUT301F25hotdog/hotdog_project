@@ -73,7 +73,7 @@ public class EventDetailsFragment extends Fragment {
             event = (Event) getArguments().getSerializable("event");
         }
 
-        currentUser = new User(requireContext(), true);
+        currentUser = new User(requireContext());
     }
 
     @Nullable

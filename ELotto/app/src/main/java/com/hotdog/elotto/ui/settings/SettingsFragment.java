@@ -36,11 +36,10 @@ public class SettingsFragment extends Fragment {
         switchAdmin = v.findViewById(R.id.switchAdmin);
         backButton = v.findViewById(R.id.backButton);
 
-        // ✅ Fixed navigation issue (use v instead of this)
         backButton.setOnClickListener(x -> NavHostFragment.findNavController(this).popBackStack());
 
         db = FirebaseFirestore.getInstance();
-        User u = new User(requireContext(), true);
+        User u = new User(requireContext());
         userId = u.getId();
 
         if (userId == null || userId.isEmpty()) {

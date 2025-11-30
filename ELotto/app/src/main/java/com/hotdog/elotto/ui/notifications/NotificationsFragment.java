@@ -21,6 +21,7 @@ import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.controller.NotificationController;
 import com.hotdog.elotto.databinding.FragmentInboxBinding;
 import com.hotdog.elotto.model.Notification;
+import com.hotdog.elotto.model.User;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class NotificationsFragment extends Fragment {
     private FragmentInboxBinding binding;
     private NotificationController notificationController;
     private NotificationAdapter adapter;
-    private String userId;
+    private User user;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
             ViewGroup container, Bundle savedInstanceState) {
@@ -48,8 +49,7 @@ public class NotificationsFragment extends Fragment {
         // Initialize Controller
         notificationController = new NotificationController();
 
-        // Get User ID (Device ID)
-        userId = Settings.Secure.getString(requireContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+        user = new User(getContext());
 
         // Setup RecyclerView
         RecyclerView recyclerView = binding.recyclerViewNotifications;
@@ -63,7 +63,7 @@ public class NotificationsFragment extends Fragment {
         // Setup Click Listener
         adapter.setOnNotificationClickListener(notification -> {
             if (!notification.isRead()) {
-                notificationController.markAsRead(userId, notification.getUuid(), new OperationCallback() {
+                notificationController.markAsRead(user.getId(), notification.getUuid(), new OperationCallback() {
                     @Override
                     public void onSuccess() {
                         notification.setRead(true);
@@ -108,7 +108,7 @@ public class NotificationsFragment extends Fragment {
         });
 
         // Load Notifications
-        notificationController.loadNotifications(userId, new FirestoreListCallback<Notification>() {
+        notificationController.loadNotifications(user.getId(), new FirestoreListCallback<Notification>() {
             @Override
             public void onSuccess(List<Notification> notifications) {
                 if (notifications.isEmpty()) {
