@@ -238,5 +238,18 @@
             android:textColor="@color/error_red"
             android:fontFamily="sans-serif-medium" />
 
+        <Button
+            android:id="@+id/btn_admin_dashboard"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="@color/black"
+            android:text="Admin Dashboard"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone" />
+
     </LinearLayout>
 </ScrollView>

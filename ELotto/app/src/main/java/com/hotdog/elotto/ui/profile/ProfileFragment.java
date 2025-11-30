@@ -10,10 +10,14 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.google.firebase.firestore.*;
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.model.User;
+import com.hotdog.elotto.helpers.UserType;
+import com.hotdog.elotto.ui.admin.AdminDashboardActivity;
+import android.content.Intent;
 import java.util.*;
 
 /**
- * Handles the Profile screen — lets user view, edit, and delete profile info stored in Firestore.
+ * Handles the Profile screen — lets user view, edit, and delete profile info
+ * stored in Firestore.
  * Connects text fields with Firestore and updates data in real time.
  * Also shows a confirmation before deleting the account.
  */
@@ -21,7 +25,7 @@ public class ProfileFragment extends Fragment {
 
     EditText inputName, inputEmail, inputPhone;
     TextView deviceIdText;
-    Button btnSave, btnDelete, btnEdit;
+    Button btnSave, btnDelete, btnEdit, btnAdmin;
     ImageButton backButton;
     FirebaseFirestore db;
     User currentUser;
@@ -45,8 +49,9 @@ public class ProfileFragment extends Fragment {
         btnDelete = v.findViewById(R.id.btn_delete);
         backButton = v.findViewById(R.id.btn_back);
         btnEdit = v.findViewById(R.id.btn_edit);
+        btnAdmin = v.findViewById(R.id.btn_admin_dashboard);
 
-        if(backButton != null)
+        if (backButton != null)
             backButton.setOnClickListener(b -> NavHostFragment.findNavController(this).popBackStack());
 
         loadUserData();
@@ -59,6 +64,11 @@ public class ProfileFragment extends Fragment {
                     .setPositiveButton("Yes", (dialog, w) -> deleteUserAccount())
                     .setNegativeButton("Cancel", (dialog, w) -> dialog.dismiss())
                     .show();
+        });
+
+        btnAdmin.setOnClickListener(a -> {
+            Intent intent = new Intent(getActivity(), AdminDashboardActivity.class);
+            startActivity(intent);
         });
 
         btnEdit.setOnClickListener(e -> {
@@ -106,13 +116,20 @@ public class ProfileFragment extends Fragment {
                         inputName.setText(doc.getString("name"));
                         inputEmail.setText(doc.getString("email"));
                         inputPhone.setText(doc.getString("phone"));
+                        inputPhone.setText(doc.getString("phone"));
                         deviceIdText.setText("Device ID: " + currentUserId);
+
+                        if (currentUser.getType() == UserType.Administrator) {
+                            btnAdmin.setVisibility(View.VISIBLE);
+                        } else {
+                            btnAdmin.setVisibility(View.GONE);
+                        }
                     } else {
                         Toast.makeText(getContext(), "No data", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Fail " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(
+                        e -> Toast.makeText(getContext(), "Fail " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     /**
@@ -139,8 +156,8 @@ public class ProfileFragment extends Fragment {
 
         db.collection("users").document(currentUserId).set(data, SetOptions.merge())
                 .addOnSuccessListener(x -> Toast.makeText(getContext(), "Updated", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(er ->
-                        Toast.makeText(getContext(), "Fail " + er.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(
+                        er -> Toast.makeText(getContext(), "Fail " + er.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     /**
@@ -157,7 +174,7 @@ public class ProfileFragment extends Fragment {
                     Toast.makeText(getContext(), "Deleted", Toast.LENGTH_SHORT).show();
                     requireActivity().finish();
                 })
-                .addOnFailureListener(er ->
-                        Toast.makeText(getContext(), "Fail " + er.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(
+                        er -> Toast.makeText(getContext(), "Fail " + er.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }
