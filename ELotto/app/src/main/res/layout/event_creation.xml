@@ -102,7 +102,7 @@
                     android:id="@+id/EventNameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
+                    android:inputType="text"
                     android:hint="Event Name"
                     android:padding="16dp"
                     android:textSize="16sp"/>
