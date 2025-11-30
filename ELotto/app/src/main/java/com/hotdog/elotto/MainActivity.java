@@ -90,6 +90,5 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
 
 
-        // TEMPORARY: Auto-launch organizer screen for testing
     }
 }
