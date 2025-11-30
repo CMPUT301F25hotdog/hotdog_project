@@ -19,6 +19,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import android.graphics.Bitmap;
@@ -626,14 +627,14 @@ public class EventCreationView extends AppCompatActivity {
                 }
 
                 // Set event price
-                priceInput.setText(String.valueOf(event.getPrice()));
+                eventPriceInput.setText(String.valueOf(event.getPrice()));
 
                 // Set event date and time
                 if (event.getEventDateTime() != null) {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
                     SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
-                    dateInput.setText(dateFormat.format(event.getEventDateTime()));
-                    timeInput.setText(timeFormat.format(event.getEventDateTime()));
+                    eventDateInput.setText(dateFormat.format(event.getEventDateTime()));
+                    eventTimeInput.setText(timeFormat.format(event.getEventDateTime()));
                 }
 
                 // Set registration period
@@ -648,7 +649,7 @@ public class EventCreationView extends AppCompatActivity {
                 }
 
                 // Set max entrants
-                entrantLimitInput.setText(String.valueOf(event.getMaxEntrants()));
+                maxEntrantInput.setText(String.valueOf(event.getMaxEntrants()));
 
                 if (event.getWaitlistLimit() != null && event.getWaitlistLimit() > 0) {
                     waitListSizeInput.setText(String.valueOf(event.getWaitlistLimit()));
