@@ -6,6 +6,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputFilter;
 import android.text.Spanned;
 import android.util.Log;
@@ -297,6 +298,7 @@ public class EventCreationView extends AppCompatActivity {
         // Time picker!
         MaterialTimePicker eventTimePicker =
                 new MaterialTimePicker.Builder()
+                        .setInputMode(MaterialTimePicker.INPUT_MODE_CLOCK)
                         .setTimeFormat(TimeFormat.CLOCK_24H)
                         .setHour(12)
                         .setMinute(0)
@@ -317,15 +319,23 @@ public class EventCreationView extends AppCompatActivity {
         // Money Man
         eventPriceInput.setFilters(new InputFilter[]{new DecimalInputFilter(2)});
         eventPriceInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                String raw = ((TextInputEditText) v).getText().toString().trim();
-                if (raw.isEmpty()) return;
-                try {
-                    BigDecimal value = new BigDecimal(raw);
-                    NumberFormat numForm = NumberFormat.getCurrencyInstance(Locale.getDefault());
-                    ((TextInputEditText) v).setText(numForm.format(value));
-                } catch (NumberFormatException ignore) {
-                }
+            if (hasFocus) return;
+            TextInputEditText editText = (TextInputEditText) v;
+            Editable editable = editText.getText();
+            if (editable == null) return;
+            String raw = editable.toString().trim();
+            if (raw.isEmpty()) {
+                return;
+            }
+            raw = raw.replaceFirst("^0+(?=[0-9])", "");
+            if (raw.startsWith(".")) {
+                raw = "0" + raw;
+            }
+            if (raw.endsWith(".")) {
+                raw = raw.substring(0, raw.length() - 1);
+            }
+            if (!raw.equals(editable.toString())) {
+                editText.setText(raw);
             }
         });
 
@@ -459,11 +469,10 @@ public class EventCreationView extends AppCompatActivity {
         String eventDescription = eventDescriptionInput.getText().toString().trim();
         String timeString = eventTimeInput.getText().toString().trim();
         String dateString = eventDateInput.getText().toString().trim();
-        String priceString = eventPriceInput.getText().toString().trim();
+        String priceString = (eventPriceInput.getText() != null) ? eventPriceInput.getText().toString().trim() : "0";
         boolean hasError = false;
 
         double price = 0;
-        priceString = priceString.replace("$", "");
         try {
             price = Double.parseDouble(priceString);
         } catch (NumberFormatException e) {
