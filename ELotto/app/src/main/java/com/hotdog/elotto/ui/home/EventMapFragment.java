@@ -81,19 +81,39 @@
                             return;
                         }
                         LatLngBounds.Builder bounds = new LatLngBounds.Builder();
-
+                        final int[] completed = {0};
+                        final int total = locs.size();
                         for (Map.Entry<String, GeoPoint> entry : locs.entrySet()) {
+                            String userId = entry.getKey();
                             GeoPoint gp = entry.getValue();
                             if (gp == null) {
                                 continue;
                             }
                             LatLng pos = new LatLng(gp.getLatitude(), gp.getLongitude());
-                            gMap.addMarker(new MarkerOptions()
-                                    .position(pos)
-                                    .title("Entrant ;-;"));
-                            bounds.include(pos);
+                            db.collection("users").document(userId)
+                                            .get()
+                                            .addOnSuccessListener(userDoc-> {
+                                                String name = "placeholder";
+                                                if (userDoc.exists()) {
+                                                    name = userDoc.getString("name");
+                                                    if (name == null) name = "Unknown";
+                                                }
+                                                gMap.addMarker(new MarkerOptions().position(pos).title(name));
+                                                bounds.include(pos);
+                                                completed[0]++;
+                                                if (completed[0] == total) {
+                                                    gMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 100));
+                                                }
+                                            }).addOnFailureListener(e->{
+                                            gMap.addMarker(new MarkerOptions().position(pos).title("Unknown"));
+                                            bounds.include(pos);
+                                            completed[0]++;
+                                            if (completed[0] == total) {
+                                                gMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 100));
+                                            }
+                                            });
+
                         }
-                        gMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 100));
                     })
                     .addOnFailureListener(e ->
                             Toast.makeText(getContext(), "Failed to load map data", Toast.LENGTH_SHORT).show());
