@@ -54,7 +54,7 @@ public class EntriesFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @androidx.annotation.Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+            @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_entries, container, false);
 
         init(view, getContext());
@@ -71,9 +71,9 @@ public class EntriesFragment extends Fragment {
                     NavController navController = NavHostFragment.findNavController(EntriesFragment.this);
                     navController.navigate(R.id.action_navigation_entries_to_profileFragment);
                     return true;
-                }
-                else if (id == R.id.action_inbox) {
-                    Toast.makeText(requireContext(), "Inbox clicked", Toast.LENGTH_SHORT).show();
+                } else if (id == R.id.action_inbox) {
+                    NavHostFragment.findNavController(EntriesFragment.this)
+                            .navigate(R.id.action_navigation_entries_to_notificationsFragment);
                     return true;
 
                 } else if (id == R.id.action_settings) {
@@ -125,15 +125,15 @@ public class EntriesFragment extends Fragment {
     }
 
     private void init(View view, Context context) {
-        entriesView=view.findViewById(R.id.entriesRecyclerView);
+        entriesView = view.findViewById(R.id.entriesRecyclerView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         entriesView.setLayoutManager(layoutManager);
-        loadingProgressBar=view.findViewById(R.id.entriesProgressBar);
-        emptyStateLayout=view.findViewById(R.id.entriesEmptyLayout);
-        eventRepository=new EventRepository();
+        loadingProgressBar = view.findViewById(R.id.entriesProgressBar);
+        emptyStateLayout = view.findViewById(R.id.entriesEmptyLayout);
+        eventRepository = new EventRepository();
         profileButton = view.findViewById(R.id.entriesProfileButton);
-        curUser=new User(context, true);
-        eventAdapter=new EventAdapter(new ArrayList<>(), curUser.getId());
+        curUser = new User(context);
+        eventAdapter = new EventAdapter(new ArrayList<>(), curUser.getId());
         entriesView.setAdapter(eventAdapter);
 
         // Set click listener for event cards

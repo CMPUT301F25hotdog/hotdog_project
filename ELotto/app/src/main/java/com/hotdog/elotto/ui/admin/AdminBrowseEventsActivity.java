@@ -24,6 +24,7 @@ import com.hotdog.elotto.helpers.UserType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Admin Browse Events Activity.
@@ -53,12 +54,24 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         super.onCreate(savedInstanceState);
 
         // Check for Admin Access
-        User currentUser = new User(this, true);
-        if (currentUser.getType() != UserType.Administrator) {
-            Toast.makeText(this, "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        // Styled as a callback to conform to the new User creation style
+        User currentUser = new User(this, new Consumer<User>() {
+            @Override
+            public void accept(User user) {
+                if (user.getType() != UserType.Administrator) {
+                    Toast.makeText(getApplicationContext(), "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+
+                setContentView(R.layout.activity_admin_browse_events);
+
+                initializeViews();
+                setupRecyclerView();
+                setupSearch();
+                loadEvents();
+            }
+        });
 
         // DEVICE ID CHECK REMOVED FOR TESTING
         // String deviceId = Settings.Secure.getString(getContentResolver(),
@@ -68,13 +81,6 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         // finish();
         // return;
         // }
-
-        setContentView(R.layout.activity_admin_browse_events);
-
-        initializeViews();
-        setupRecyclerView();
-        setupSearch();
-        loadEvents();
     }
 
     private void initializeViews() {

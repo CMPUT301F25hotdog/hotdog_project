@@ -41,7 +41,6 @@ import java.util.Locale;
  */
 public class EventDetailsFragment extends Fragment {
 
-
     private Event event;
     private User currentUser;
 
@@ -74,14 +73,13 @@ public class EventDetailsFragment extends Fragment {
             event = (Event) getArguments().getSerializable("event");
         }
 
-
-        currentUser = new User(requireContext(), true);
+        currentUser = new User(requireContext());
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+            @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_event_details, container, false);
 
         initializeViews(view);
@@ -108,7 +106,8 @@ public class EventDetailsFragment extends Fragment {
     }
 
     private void populateEventData() {
-        if (event == null) return;
+        if (event == null)
+            return;
 
         // Set title
         eventTitleTextView.setText(event.getName());
@@ -151,7 +150,6 @@ public class EventDetailsFragment extends Fragment {
             eventDescriptionTextView.setText("No description available.");
         }
 
-
         loadEventImage();
 
         // Update button state based on user's registration status
@@ -160,7 +158,6 @@ public class EventDetailsFragment extends Fragment {
 
     private void loadEventImage() {
         String posterImageUrl = event.getPosterImageUrl();
-
 
         if (posterImageUrl == null || posterImageUrl.isEmpty() ||
                 posterImageUrl.equals("no_image") ||
@@ -192,8 +189,10 @@ public class EventDetailsFragment extends Fragment {
             eventImageView.setImageResource(R.drawable.image_24px);
         }
     }
+
     private void updateButtonState() {
-        if (event == null || currentUser == null) return;
+        if (event == null || currentUser == null)
+            return;
 
         // Check if user is already registered for this event
         List<String> registeredEvents = currentUser.getRegEventIds();
@@ -227,13 +226,13 @@ public class EventDetailsFragment extends Fragment {
             NavController navController = NavHostFragment.findNavController(EventDetailsFragment.this);
             navController.navigateUp();
         });
-        enterLotteryButton.setOnClickListener(v ->{
+        enterLotteryButton.setOnClickListener(v -> {
             List<String> registeredEvents = currentUser.getRegEventIds();
             boolean isRegistered = registeredEvents.contains(event.getId());
 
-            if (isRegistered){
+            if (isRegistered) {
                 leaveWaitlist();
-            } else{
+            } else {
                 joinWaitlist();
             }
         });
@@ -246,7 +245,6 @@ public class EventDetailsFragment extends Fragment {
             return;
         }
 
-
         // Checks if already registered
         if (currentUser.getRegEvents().contains(event.getId())) {
             Toast.makeText(getContext(),
@@ -254,7 +252,6 @@ public class EventDetailsFragment extends Fragment {
                     Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         enterLotteryButton.setEnabled(false);
         enterLotteryButton.setText("Joining...");
@@ -266,11 +263,11 @@ public class EventDetailsFragment extends Fragment {
             String userId = currentUser.getId();
 
             List<String> waitlistIds = event.getWaitlistEntrantIds();
-            if (waitlistIds == null){
+            if (waitlistIds == null) {
                 waitlistIds = new ArrayList<>();
                 event.setWaitlistEntrantIds(waitlistIds);
             }
-            if (!waitlistIds.contains(userId)){
+            if (!waitlistIds.contains(userId)) {
                 waitlistIds.add(userId);
             }
 
@@ -290,17 +287,15 @@ public class EventDetailsFragment extends Fragment {
                             "Error joining waitlist: " + errorMessage,
                             Toast.LENGTH_SHORT).show();
 
-
                     enterLotteryButton.setEnabled(true);
                     enterLotteryButton.setText("Enter Lottery");
                 }
             });
 
-            } catch (Exception e) {
+        } catch (Exception e) {
             Toast.makeText(getContext(),
                     "Error joining waitlist: " + e.getMessage(),
                     Toast.LENGTH_SHORT).show();
-
 
             enterLotteryButton.setEnabled(true);
             enterLotteryButton.setText("Enter Lottery");
@@ -312,7 +307,6 @@ public class EventDetailsFragment extends Fragment {
             Toast.makeText(getContext(), "Error: Unable to leave waitlist", Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         new android.app.AlertDialog.Builder(requireContext())
                 .setTitle("Leave Waitlist")
@@ -349,7 +343,8 @@ public class EventDetailsFragment extends Fragment {
             eventRepository.updateEvent(event, new OperationCallback() {
                 @Override
                 public void onSuccess() {
-                    Toast.makeText(getContext(), "Successfully left waitlist for " + event.getName(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Successfully left waitlist for " + event.getName(),
+                            Toast.LENGTH_SHORT).show();
 
                     updateButtonState();
                 }
@@ -373,4 +368,5 @@ public class EventDetailsFragment extends Fragment {
             enterLotteryButton.setEnabled(true);
             enterLotteryButton.setText("Leave Waitlist");
         }
-    }}
+    }
+}

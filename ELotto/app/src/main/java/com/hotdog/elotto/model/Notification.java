@@ -5,83 +5,41 @@ import com.google.firebase.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 
 /**
- * Notification model for admin notification logs
+ * Represents a notification sent to a user.
+ * Stored within a list in the user's notification document.
  */
 public class Notification {
-    private String uuid; // Unique ID for the notification within the array
-    private String eventId;
-    private String message;
-    private String title;
-    private boolean read;
+    private String uuid;
     private Timestamp timestamp;
-    private String userId; // Helper field to store which user this belongs to
+    private String title;
+    private String message;
+    private boolean isRead;
+    private String eventId;
+    private String eventTitle;
+    private String eventImageUrl;
+    private String userId;
 
-    // Empty constructor for Firestore
     public Notification() {
     }
 
-    public Notification(String uuid, String eventId, String message, String title, boolean read, Timestamp timestamp,
-            String userId) {
-        this.uuid = uuid;
-        this.eventId = eventId;
-        this.message = message;
+    public Notification(String title, String message, String eventId) {
+        this.uuid = UUID.randomUUID().toString();
+        this.timestamp = Timestamp.now();
         this.title = title;
-        this.read = read;
-        this.timestamp = timestamp;
-        this.userId = userId;
+        this.message = message;
+        this.isRead = false;
+        this.eventId = eventId;
     }
 
-    // Getters and Setters
     public String getUuid() {
         return uuid;
     }
 
     public void setUuid(String uuid) {
         this.uuid = uuid;
-    }
-
-    // Alias for getUuid to maintain compatibility with existing code that uses
-    // getId()
-    public String getId() {
-        return uuid;
-    }
-
-    public void setId(String id) {
-        this.uuid = id;
-    }
-
-    public String getEventId() {
-        return eventId;
-    }
-
-    public void setEventId(String eventId) {
-        this.eventId = eventId;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public boolean isRead() {
-        return read;
-    }
-
-    public void setRead(boolean read) {
-        this.read = read;
     }
 
     public Timestamp getTimestamp() {
@@ -92,6 +50,54 @@ public class Notification {
         this.timestamp = timestamp;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public void setRead(boolean read) {
+        isRead = read;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
+
+    public String getEventTitle() {
+        return eventTitle;
+    }
+
+    public void setEventTitle(String eventTitle) {
+        this.eventTitle = eventTitle;
+    }
+
+    public String getEventImageUrl() {
+        return eventImageUrl;
+    }
+
+    public void setEventImageUrl(String eventImageUrl) {
+        this.eventImageUrl = eventImageUrl;
+    }
+
     public String getUserId() {
         return userId;
     }
@@ -100,9 +106,6 @@ public class Notification {
         this.userId = userId;
     }
 
-    /**
-     * Get formatted timestamp string
-     */
     public String getFormattedTimestamp() {
         if (timestamp != null) {
             Date date = timestamp.toDate();
@@ -112,9 +115,6 @@ public class Notification {
         return "Unknown time";
     }
 
-    /**
-     * Get short user ID for display
-     */
     public String getShortUserId() {
         if (userId != null && userId.length() > 8) {
             return userId.substring(0, 8) + "...";

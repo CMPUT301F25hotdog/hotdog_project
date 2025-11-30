@@ -1,31 +1,77 @@
 package com.hotdog.elotto.ui.home;
 
-import android.content.Intent;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.inputmethod.EditorInfo;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
+import com.google.android.gms.tasks.Tasks;
+import com.google.android.libraries.places.api.model.AutocompletePrediction;
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
 import com.hotdog.elotto.R;
+import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.controller.EventCreationController;
+import com.hotdog.elotto.repository.EventRepository;
 
+
+import com.hotdog.elotto.callback.FirestoreCallback;
+import com.hotdog.elotto.model.Event;
+import com.google.android.libraries.places.api.*;
+
+import org.w3c.dom.Text;
+
+import java.math.BigDecimal;
+import java.sql.Time;
+import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.regex.Pattern;
 
 /**
  * Activity responsible for handling user interaction during the event creation process. Then takes the
@@ -33,24 +79,56 @@ import java.util.Locale;
  *
  */
 public class EventCreationView extends AppCompatActivity {
-    private EditText eventNameInput;
+    private TextInputEditText eventNameInput;
+    private TextInputLayout eventNameLayout;
     private EditText eventDescriptionInput;
-    private EditText timeInput;
-    private EditText dateInput;
-    private EditText openPeriodInput;
-    private EditText closePeriodInput;
-    private EditText entrantLimitInput;
+    private TextInputEditText eventTimeInput;
+    private TextInputLayout eventTimeLayout;
+    private TextInputLayout eventDateLayout;
+    private TextInputEditText eventDateInput;
+    private TextInputLayout openPeriodLayout;
+    private TextInputEditText openPeriodInput;
+    private TextInputLayout closePeriodLayout;
+    private TextInputEditText closePeriodInput;
+    private TextInputEditText maxEntrantInput;
+    private TextInputLayout maxEntrantLayout;
     private EditText waitListSizeInput;
     private SwitchCompat geolocation;
-    private EditText priceInput;
-    private EditText locationInput;
+    private TextInputEditText eventPriceInput;
+    private TextInputLayout eventPriceLayout;
+    private TextInputLayout locationLayout;
+    private AutoCompleteTextView locationInput;
     private Button cancelButton;
     private Button confirmButton;
+    private Button deleteButton;  // ← ADD THIS LINE
     private ImageButton backButton;
     private ImageView bannerInput;
     private Uri selectedBannerUri;
-    private EditText tags;
+    private Button tags;
     private ArrayList<String> tagList = new ArrayList<>();
+
+    private String currentMode;  // ← ADD THIS
+    private String currentEventId;  // ← ADD THIS
+
+
+    // For location shtuff
+    private PlacesClient client;
+    private AutocompleteSessionToken token;
+    private PlaceAutoSuggestAdapter placeAutoSuggestAdapter;
+
+    private static class DecimalInputFilter implements InputFilter {
+        private final Pattern inPattern;
+        public DecimalInputFilter(int digitsAfterZero) {
+            // Ballin i love regex muah regex my baby I love you
+            inPattern = Pattern.compile("[0-9]*+((\\.[0-9]{0,"+digitsAfterZero+"})?)");
+        }
+        @Override
+        public CharSequence filter (CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
+            String result = dst.subSequence(0, dstart) + src.toString() + dst.subSequence(dend, dst.length());
+            return inPattern.matcher(result).matches() ? null : "";
+        }
+    }
+
     /**
      * Initializes the activity and sets up UI event listeners.
      *
@@ -65,72 +143,340 @@ public class EventCreationView extends AppCompatActivity {
         }
         backButton = findViewById(R.id.Back_button);
         bannerInput = findViewById(R.id.Event_Poster_Input);
-        eventNameInput = findViewById(R.id.Event_Name_Input);
+        eventNameInput = findViewById(R.id.EventNameInput);
+        eventNameLayout = findViewById(R.id.EventNameLayout);
         eventDescriptionInput = findViewById(R.id.Event_Description_Input);
-        timeInput = findViewById(R.id.Time_Input);
-        dateInput = findViewById(R.id.Date_Input);
-        openPeriodInput = findViewById(R.id.Open_Period_Input);
-        closePeriodInput = findViewById(R.id.Close_Period_Input);
-        entrantLimitInput = findViewById(R.id.Entrant_Limit_Input);
-        waitListSizeInput = findViewById(R.id.Waitlist_Size_Input);
+        eventTimeInput = findViewById(R.id.EventTimeInput);
+        eventTimeLayout = findViewById(R.id.EventTimeLayout);
+        openPeriodLayout = findViewById(R.id.EventOpensLayout);
+        openPeriodInput = findViewById(R.id.EventOpensSelector);
+        closePeriodLayout = findViewById(R.id.EventClosesLayout);
+        closePeriodInput = findViewById(R.id.EventClosesSelector);
+        eventDateLayout = findViewById(R.id.EventDateLayout);
+        eventDateInput = findViewById(R.id.EventDateInput);
+        maxEntrantInput = findViewById(R.id.MaxEntrantInput);
+        maxEntrantLayout = findViewById(R.id.MaxEntrantLayout);
+        waitListSizeInput = findViewById(R.id.WaitlistSizeInput);
         geolocation = findViewById(R.id.Geolocation_Toggle);
         cancelButton = findViewById(R.id.Cancel_Creation_Button);
         confirmButton = findViewById(R.id.Confirm_Creation_Button);
-        locationInput = findViewById(R.id.Event_Location_Input);
-        priceInput = findViewById(R.id.Event_Price_Input);
-        tags = findViewById(R.id.Tag_Input);
+        deleteButton = findViewById(R.id.Delete_Event_Button);  // ← ADD THIS LINE
+        locationLayout = findViewById(R.id.EventAddressLayout);
+        locationInput = findViewById(R.id.EventAddressInput);
+        eventPriceInput = findViewById(R.id.EventPriceInput);
+        eventPriceLayout = findViewById(R.id.EventPriceLayout);
+        tags = findViewById(R.id.Tag_Button);
+
+
+        // ← ADD THIS ENTIRE BLOCK HERE ↓
+
+        currentMode = getIntent().getStringExtra("MODE");
+        currentEventId = getIntent().getStringExtra("EVENT_ID");
+
+        if ("EDIT".equals(currentMode) && currentEventId != null) {
+            // Edit mode
+            TextView headerText = findViewById(R.id.Create_Event_Header);
+            headerText.setText("Edit Event");
+            confirmButton.setText("Save Changes");
+            deleteButton.setVisibility(View.VISIBLE);
+
+            // TODO: Load event data (we'll implement this next)
+            loadEventData(currentEventId);
+        } else {
+            // Create mode (default)
+            deleteButton.setVisibility(View.GONE);
+        }
 
 
         EditText[] fields = {
-                eventNameInput, eventDescriptionInput, timeInput, dateInput,
-                openPeriodInput, closePeriodInput, entrantLimitInput, locationInput, priceInput
+                eventDescriptionInput,
+        };
+
+        TextInputLayout[] layouts = {
+                eventTimeLayout, eventDateLayout, locationLayout,
+                closePeriodLayout, openPeriodLayout, eventNameLayout
         };
 
         bannerInput.setOnClickListener(v -> openGallery());
 
         cancelButton.setOnClickListener(v -> finish());
         backButton.setOnClickListener(v -> finish());
-        tags.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE ||
-                        (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
-                                && event.getAction() == KeyEvent.ACTION_DOWN)) {
-                    String tag = tags.getText().toString().trim();
-                    if (!tag.isEmpty()) {
-                        tagList.add(tag);
-                        tags.setText("");
-                    }
-                    return true;
-                }
-                return false;
-            }
+
+        // ← ADD THIS ENTIRE BLOCK HERE ↓
+        deleteButton.setOnClickListener(v -> {
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Delete Event")
+                    .setMessage("Are you sure you want to delete this event? This action cannot be undone.")
+                    .setPositiveButton("Delete", (dialog, which) -> deleteEvent())
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
+
+        String[] tag_options = getResources().getStringArray(R.array.tag_options);
+        boolean[] selected = new boolean[tag_options.length];
+        tags.setOnClickListener(v -> {
+            boolean[] tempSelected = selected.clone();
+            new AlertDialog.Builder(this)
+                    .setTitle("Select Tags")
+                    .setMultiChoiceItems(tag_options, tempSelected, (dialog, position, isChecked) -> {
+                        tempSelected[position] = isChecked;
+                    })
+                    .setPositiveButton("OK", (dialog, position) -> {
+                        System.arraycopy(tempSelected, 0, selected, 0, tag_options.length);
+                        tagList.clear();
+                        for (int i = 0; i < tag_options.length; i++) {
+                            if (selected[i]) tagList.add(tag_options[i]);
+                        }
+                        if (tagList.isEmpty()) {
+                            tags.setText("Select Event Tags");
+                            return;
+                        }
+                        tags.setText(String.join(", ", tagList));
+                    })
+                    .setNegativeButton("Cancel", (dialog, position) -> {
+                        dialog.dismiss();
+                    })
+                    .show();
         });
         confirmButton.setOnClickListener(v -> {
-            if (!validateAllEditTexts(fields)) {
+            if (!validateAllEditTexts(fields, layouts)) {
                 return;
             }
             confirmationPass(tagList);
         });
+
+        // Calendar Dialog
+        MaterialDatePicker<Long> openDatePicker =
+                MaterialDatePicker.Builder.datePicker()
+                        .setTitleText("Select Opening Date")
+                        .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+                        .build();
+        MaterialDatePicker<Long> closeDatePicker =
+                MaterialDatePicker.Builder.datePicker()
+                        .setTitleText("Select Closing Date")
+                        .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+                        .build();
+        MaterialDatePicker<Long> eventDatePicker =
+                MaterialDatePicker.Builder.datePicker()
+                        .setTitleText("Select Event Date")
+                        .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+                        .build();
+
+        View.OnClickListener openOpen = v -> openDatePicker.show(getSupportFragmentManager(), "DATE");
+        openPeriodInput.setOnClickListener(openOpen);
+        openPeriodLayout.setOnClickListener(openOpen);
+
+        View.OnClickListener closeOpen = v -> closeDatePicker.show(getSupportFragmentManager(), "DATE");
+        closePeriodInput.setOnClickListener(closeOpen);
+        closePeriodLayout.setOnClickListener(closeOpen);
+
+        View.OnClickListener dateOpen = v -> eventDatePicker.show(getSupportFragmentManager(), "DATE");
+        eventDateInput.setOnClickListener(dateOpen);
+        eventDateLayout.setOnClickListener(dateOpen);
+
+
+        SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+
+        openDatePicker.addOnPositiveButtonClickListener(selectionMillis -> {
+            Date date = new Date(selectionMillis);
+            format.setTimeZone(TimeZone.getTimeZone("UTC")); // Prevent tz difference from shifting date
+            openPeriodInput.setText(format.format(date));
+        });
+
+        closeDatePicker.addOnPositiveButtonClickListener(selectionMillis -> {
+            Date date = new Date(selectionMillis);
+            format.setTimeZone(TimeZone.getTimeZone("UTC")); // Prevent tz difference from shifting date
+            closePeriodInput.setText(format.format(date));
+        });
+
+        eventDatePicker.addOnPositiveButtonClickListener(selectionMillis -> {
+            Date date = new Date(selectionMillis);
+            format.setTimeZone(TimeZone.getTimeZone("UTC")); // Prevent tz difference from shifting date
+            eventDateInput.setText(format.format(date));
+        });
+
+        // Time picker!
+        MaterialTimePicker eventTimePicker =
+                new MaterialTimePicker.Builder()
+                        .setInputMode(MaterialTimePicker.INPUT_MODE_CLOCK)
+                        .setTimeFormat(TimeFormat.CLOCK_24H)
+                        .setHour(12)
+                        .setMinute(0)
+                        .setTitleText("Select Event Time")
+                        .build();
+        View.OnClickListener timeOpen = v -> eventTimePicker.show(getSupportFragmentManager(), "TIME");
+        eventTimeInput.setOnClickListener(timeOpen);
+        eventTimeLayout.setOnClickListener(timeOpen);
+
+        eventTimePicker.addOnPositiveButtonClickListener(v -> {
+            int hour = eventTimePicker.getHour();
+            int minute = eventTimePicker.getMinute();
+
+            String formattedTime = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
+            eventTimeInput.setText(formattedTime);
+        });
+
+        // Money Man
+        eventPriceInput.setFilters(new InputFilter[]{new DecimalInputFilter(2)});
+        eventPriceInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) return;
+            TextInputEditText editText = (TextInputEditText) v;
+            Editable editable = editText.getText();
+            if (editable == null) return;
+            String raw = editable.toString().trim();
+            if (raw.isEmpty()) {
+                return;
+            }
+            raw = raw.replaceFirst("^0+(?=[0-9])", "");
+            if (raw.startsWith(".")) {
+                raw = "0" + raw;
+            }
+            if (raw.endsWith(".")) {
+                raw = raw.substring(0, raw.length() - 1);
+            }
+            if (!raw.equals(editable.toString())) {
+                editText.setText(raw);
+            }
+        });
+
+        // Max Entrant time
+        View.OnFocusChangeListener maxEntrantListener = (v, hasFocus) -> {
+            if (hasFocus) return;
+            int entrantLimit = 0;
+            try {
+                entrantLimit = Integer.parseInt(maxEntrantInput.getText() == null ? "" : maxEntrantInput.getText().toString().trim());
+                if (entrantLimit <= 0) throw new NumberFormatException("Negative");
+                maxEntrantInput.setError(null);
+            } catch (NumberFormatException e) {
+                if (e.getMessage() != null && e.getMessage().equals("Negative"))
+                    maxEntrantInput.setError("Max Entrants Must Be Positive");
+                else maxEntrantInput.setError("Max Entrants is Required");
+            }
+        };
+        maxEntrantInput.setOnFocusChangeListener(maxEntrantListener);
+
+        // Location time!
+        this.initPlaces("AIzaSyB1WXzUjkY-JxcAhppv5wCJ8kH81lbwpME");
+
+    }
+
+    private void initPlaces(String apiKey) {
+        if(!Places.isInitialized()) Places.initializeWithNewPlacesApiEnabled(this, apiKey);
+
+        client = Places.createClient(this);
+        token = AutocompleteSessionToken.newInstance();
+        placeAutoSuggestAdapter = new PlaceAutoSuggestAdapter(this, android.R.layout.simple_dropdown_item_1line);
+
+        locationInput.setAdapter(placeAutoSuggestAdapter);
+        locationInput.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedAddress = placeAutoSuggestAdapter.getItem(position);
+            locationLayout.setError(null);
+            locationInput.setText(selectedAddress);
+        });
+
+        // Event needs some address, but custom is allowed too
+        locationInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if(!hasFocus) {
+                String input = locationInput.getText().toString();
+                if(input.isEmpty()) locationInput.setError("Address is required.");
+                else locationInput.setError(null);
+            }
+        });
+    }
+
+    private class PlaceAutoSuggestAdapter extends ArrayAdapter<String> implements Filterable {
+        private List<String> resultList = new ArrayList<>();
+
+        public PlaceAutoSuggestAdapter(Context context, int resource) {
+            super(context, resource);
+        }
+
+        @Override
+        public int getCount() {
+            return resultList.size();
+        }
+
+        @Override
+        public String getItem(int position) {
+            return resultList.get(position);
+        }
+
+        @NonNull
+        @Override
+        public Filter getFilter() {
+            return new Filter() {
+                @Override
+                protected FilterResults performFiltering(CharSequence constraint) {
+                    FilterResults filterRes = new FilterResults();
+                    if(constraint != null) {
+                        List<String> predictions = getPlacePredictions(constraint);
+                        if (predictions != null) {
+                            filterRes.values = predictions;
+                            filterRes.count = predictions.size();
+                        }
+                    }
+                    return filterRes;
+                }
+
+                @Override
+                protected void publishResults(CharSequence constraint, FilterResults results) {
+                    if(results != null && results.count > 0) {
+                        resultList = (List<String>) results.values;
+                        notifyDataSetChanged();
+                    } else {
+                        // If the results were fucked we kill ourselves
+                        notifyDataSetInvalidated();
+                    }
+                }
+            };
+        }
+
+        private List<String> getPlacePredictions(CharSequence constraint) {
+            List<String> resultStrings = new ArrayList<>();
+
+            // Create the request
+            FindAutocompletePredictionsRequest request = FindAutocompletePredictionsRequest.builder()
+                    .setSessionToken(token)
+                    .setQuery(constraint.toString())
+                    .build();
+
+            try {
+                FindAutocompletePredictionsResponse response = Tasks.await(
+                        client.findAutocompletePredictions(request),
+                        60,
+                        TimeUnit.SECONDS
+                );
+
+                if (response != null) {
+                    for (AutocompletePrediction prediction : response.getAutocompletePredictions()) {
+                        resultStrings.add(prediction.getFullText(null).toString());
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("PlaceAdapter", "Error fetching predictions", e);
+            }
+
+            return resultStrings;
+        }
     }
 
     /**
      * Validates all input fields, and gets all the strings then passes to the Controller
+     * @param tagList, a list of all tags for the event
      */
     private void confirmationPass(ArrayList<String> tagList) {
         String eventName = eventNameInput.getText().toString().trim();
         String eventDescription = eventDescriptionInput.getText().toString().trim();
-        String timeString = timeInput.getText().toString().trim();
-        String dateString = dateInput.getText().toString().trim();
-        String priceString = priceInput.getText().toString().trim();
+        String timeString = eventTimeInput.getText().toString().trim();
+        String dateString = eventDateInput.getText().toString().trim();
+        String priceString = (eventPriceInput.getText() != null) ? eventPriceInput.getText().toString().trim() : "0";
         boolean hasError = false;
 
         double price = 0;
-        priceString = priceString.replace("$", "");
         try {
             price = Double.parseDouble(priceString);
         } catch (NumberFormatException e) {
-            priceInput.setError("Please enter a valid price");
+            eventPriceInput.setError("Please enter a valid price");
             hasError = true;
         }
 
@@ -141,8 +487,8 @@ public class EventCreationView extends AppCompatActivity {
             String combined = dateString + "T" + timeString;
             dateTime = dateTimeFormat.parse(combined);
         } catch (ParseException e) {
-            dateInput.setError("Please follow the format for Date");
-            timeInput.setError("Please follow the format for Time");
+            eventDateInput.setError("Please follow the format for Date");
+            eventTimeInput.setError("Please follow the format for Time");
             hasError = true;
         }
 
@@ -166,9 +512,12 @@ public class EventCreationView extends AppCompatActivity {
 
         int entrantLimit = 0;
         try {
-            entrantLimit = Integer.parseInt(entrantLimitInput.getText().toString().trim());
+            entrantLimit = Integer.parseInt(maxEntrantInput.getText()==null ? "" : maxEntrantInput.getText().toString().trim());
+            if(entrantLimit <= 0) throw new NumberFormatException("Negative");
+            maxEntrantInput.setError(null);
         } catch (NumberFormatException e) {
-            entrantLimitInput.setError("Please enter a valid entrant limit");
+            if(e.getMessage() != null && e.getMessage().equals("Negative")) maxEntrantInput.setError("Max Entrants Must Be Positive");
+            else maxEntrantInput.setError("Max Entrants is Required");
             hasError = true;
         }
 
@@ -195,10 +544,23 @@ public class EventCreationView extends AppCompatActivity {
             return;
         }
         EventCreationController controller = new EventCreationController(this);
-        controller.EncodeImage(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
-                entrantLimit, waitListSize, location, price, requireGeo, selectedBannerUri,tagList);
-
-
+        String encodedString = controller.EncodeImage(selectedBannerUri);
+        int maxFirestoreSize = 900000;
+        int encodedSize = encodedString.getBytes().length;
+        if (encodedSize > maxFirestoreSize) {
+            Toast.makeText(this, "Image too large! Please choose a smaller image.", Toast.LENGTH_LONG).show();
+            Log.e("EventCreationView", "Encoded image size: " + encodedSize + " bytes (too large for Firestore)");
+            return;
+        }
+        if ("EDIT".equals(currentMode) && currentEventId != null) {
+            // Update existing event
+            controller.UpdateEvent(currentEventId, eventName, eventDescription, dateTime, openPeriodDate,
+                    closePeriodDate, entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList);
+        } else {
+            // Create new event
+            controller.SaveEvent(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
+                    entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList);
+        }
 
         finish();
     }
@@ -230,20 +592,127 @@ public class EventCreationView extends AppCompatActivity {
      * @param fields an array of EditTexts to validate.
      * @return true if all fields are filled, false otherwise.
      */
-    private boolean validateAllEditTexts(EditText[] fields) {
+    private boolean validateAllEditTexts(EditText[] fields, TextInputLayout[] layouts) {
         boolean allFilled = true;
         for (EditText field : fields) {
             String text = field.getText().toString().trim();
             if (text.isEmpty()) {
                 allFilled = false;
                 field.setBackgroundResource(R.drawable.edit_text_error);
-            } else {
-                field.setBackgroundResource(android.R.drawable.editbox_background);
+            }
+        }
+
+        for (TextInputLayout layout : layouts) {
+            String text = layout.getEditText().getText().toString().trim();
+            if (text.isEmpty()) {
+                Log.e("PENIS", "WEINOR");
+                allFilled = false;
+                layout.setBoxStrokeColorStateList( new ColorStateList(new int[][] {new int[]{android.R.attr.state_focused}, new int[] {}}, new int[] {getColor(R.color.error_red), getColor(R.color.error_red)}));
             }
         }
         if (!allFilled) {
             Toast.makeText(this, "Please fill in all required fields", Toast.LENGTH_SHORT).show();
         }
         return allFilled;
+    }
+
+    /**
+     * Loads event data and pre-fills all fields for editing
+     */
+    private void loadEventData(String eventId) {
+        EventRepository eventRepository = new EventRepository();
+        eventRepository.getEventById(eventId, new FirestoreCallback<Event>() {
+            @Override
+            public void onSuccess(Event event) {
+                // Set event name
+                eventNameInput.setText(event.getName());
+
+                // Set event description
+                eventDescriptionInput.setText(event.getDescription());
+
+                // Set event location
+                if (event.getLocation() != null) {
+                    locationInput.setText(event.getLocation());
+                }
+
+                // Set event price
+                eventPriceInput.setText(String.valueOf(event.getPrice()));
+
+                // Set event date and time
+                if (event.getEventDateTime() != null) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                    eventDateInput.setText(dateFormat.format(event.getEventDateTime()));
+                    eventTimeInput.setText(timeFormat.format(event.getEventDateTime()));
+                }
+
+                // Set registration period
+                if (event.getRegistrationStartDate() != null) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                    openPeriodInput.setText(dateFormat.format(event.getRegistrationStartDate()));
+                }
+
+                if (event.getRegistrationEndDate() != null) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                    closePeriodInput.setText(dateFormat.format(event.getRegistrationEndDate()));
+                }
+
+                // Set max entrants
+                maxEntrantInput.setText(String.valueOf(event.getMaxEntrants()));
+
+                if (event.getWaitlistLimit() != null && event.getWaitlistLimit() > 0) {
+                    waitListSizeInput.setText(String.valueOf(event.getWaitlistLimit()));
+                }
+
+                // Set geolocation
+                geolocation.setChecked(event.isGeolocationRequired());
+
+                // Set event poster image
+                // Set event poster image
+                if (event.getPosterImageUrl() != null && !event.getPosterImageUrl().isEmpty()) {
+                    try {
+                        String encodedImage = event.getPosterImageUrl();
+                        byte[] decodedBytes = android.util.Base64.decode(encodedImage, android.util.Base64.DEFAULT);
+                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                        bannerInput.setImageBitmap(bitmap);
+                        // Don't set selectedBannerUri - we loaded from existing data
+                    } catch (Exception e) {
+                        Log.e("EventCreationView", "Error decoding poster image: " + e.getMessage());
+                    }
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(EventCreationView.this, "Error loading event: " + errorMessage, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
+
+        });
+    }
+
+    /**
+     * Deletes the current event
+     */
+    private void deleteEvent() {
+        if (currentEventId == null) {
+            Toast.makeText(this, "Error: Event ID not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        EventRepository eventRepository = new EventRepository();
+        eventRepository.deleteEvent(currentEventId, new OperationCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(EventCreationView.this, "Event deleted successfully", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(EventCreationView.this, "Error deleting event: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

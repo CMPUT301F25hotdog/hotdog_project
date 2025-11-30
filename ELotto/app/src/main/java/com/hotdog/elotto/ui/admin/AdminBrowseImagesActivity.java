@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Admin Browse Images Activity.
@@ -65,12 +66,29 @@ public class AdminBrowseImagesActivity extends AppCompatActivity implements Admi
         super.onCreate(savedInstanceState);
 
         // Check for Admin Access
-        User currentUser = new User(this, true);
-        if (currentUser.getType() != UserType.Administrator) {
-            Toast.makeText(this, "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        User currentUser = new User(this, new Consumer<User>() {
+            @Override
+            public void accept(User user) {
+                if (user.getType() != UserType.Administrator) {
+                    Toast.makeText(getApplicationContext(), "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+
+                setContentView(R.layout.activity_admin_browse_images);
+
+                // Hide action bar
+                if (getSupportActionBar() != null) {
+                    getSupportActionBar().hide();
+                }
+
+                initializeViews();
+                setupRecyclerView();
+                setupSearchBox();
+                setupBackButton();
+                loadImages();
+            }
+        });
 
         // DEVICE ID CHECK REMOVED FOR TESTING
         // String deviceId = Settings.Secure.getString(getContentResolver(),
@@ -81,18 +99,7 @@ public class AdminBrowseImagesActivity extends AppCompatActivity implements Admi
         // return;
         // }
 
-        setContentView(R.layout.activity_admin_browse_images);
 
-        // Hide action bar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
-
-        initializeViews();
-        setupRecyclerView();
-        setupSearchBox();
-        setupBackButton();
-        loadImages();
     }
 
     private void initializeViews() {

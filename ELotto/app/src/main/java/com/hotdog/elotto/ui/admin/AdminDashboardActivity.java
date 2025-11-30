@@ -15,6 +15,8 @@ import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.UserRepository;
 
+import java.util.function.Consumer;
+
 /**
  * Admin Dashboard Activity - Main screen for admin functionality.
  *
@@ -43,24 +45,28 @@ public class AdminDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Check for Admin Access
-        User currentUser = new User(this, true);
-        if (currentUser.getType() != UserType.Administrator) {
-            Toast.makeText(this, "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        User currentUser = new User(this, new Consumer<User>() {
+            @Override
+            public void accept(User user) {
+                if (user.getType() != UserType.Administrator) {
+                    Toast.makeText(getApplicationContext(), "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
 
-        setContentView(R.layout.activity_admin_dashboard);
+                setContentView(R.layout.activity_admin_dashboard);
 
-        // HIDE ACTION BAR to prevent duplicate title
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+                // HIDE ACTION BAR to prevent duplicate title
+                if (getSupportActionBar() != null) {
+                    getSupportActionBar().hide();
+                }
 
-        initializeViews();
-        initializeRepositories();
-        loadOverviewData();
-        setupClickListeners();
+                initializeViews();
+                initializeRepositories();
+                loadOverviewData();
+                setupClickListeners();
+            }
+        });
     }
 
     private void initializeViews() {

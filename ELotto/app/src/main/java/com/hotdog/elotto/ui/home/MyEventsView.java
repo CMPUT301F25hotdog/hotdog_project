@@ -40,11 +40,14 @@ import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.OrganizerRepository;
 import com.hotdog.elotto.ui.entries.EntriesFragment;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.security.auth.callback.Callback;
+/**
+ * MyEventsView is a Fragment that displays a list of events created
+ * by an organizer and allows them to create new events.
+ */
 
 public class MyEventsView extends Fragment {
     private FloatingActionButton createEventButton;
@@ -52,6 +55,13 @@ public class MyEventsView extends Fragment {
     private ProgressBar loadingProgressBar;
     private ActivityResultLauncher<Intent> createEventLauncher;
     private Organizer organizer;
+    /**
+     * Called when the fragment is first created.
+     * Initializes components like Organizer} and EventAdapter,
+     * registers the activity result launcher, and loads the organizer’s events.
+     *
+     * @param savedInstanceState the previously saved state of the fragment, or null if none exists
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,15 +79,21 @@ public class MyEventsView extends Fragment {
                     if (result.getResultCode() == RESULT_OK) {
                         loadEvents(); // refresh after creating a new event
                     }
-                }
-        );
+                });
     }
-
+    /**
+     * Inflates the layout for this fragment.
+     *
+     * @param inflater  LayoutInflater object to inflate views
+     * @param container The parent view the fragment's UI should attach to
+     * @param savedInstanceState the previously saved instance state, or null
+     * @return The root View for the fragment’s layout
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         // Inflate your fragment layout
         View view = inflater.inflate(R.layout.fragment_my_events, container, false);
 
@@ -95,9 +111,9 @@ public class MyEventsView extends Fragment {
                     NavController navController = NavHostFragment.findNavController(this);
                     navController.navigate(R.id.action_navigation_my_events_to_profileFragment);
                     return true;
-                }
-                else if (id == R.id.action_inbox) {
-                    Toast.makeText(requireContext(), "Inbox clicked", Toast.LENGTH_SHORT).show();
+                } else if (id == R.id.action_inbox) {
+                    NavHostFragment.findNavController(this)
+                            .navigate(R.id.action_navigation_my_events_to_notificationsFragment);
                     return true;
 
                 } else if (id == R.id.action_settings) {
@@ -124,7 +140,14 @@ public class MyEventsView extends Fragment {
 
         return view;
     }
-
+    /**
+     * Called after the view hierarchy has been created.
+     * Sets up the RecyclerView, configures the adapter,
+     * and attaches the listener to the “Create New Event” button.
+     *
+     * @param view The root view of the fragment’s layout
+     * @param savedInstanceState the previously saved instance state, or {@code null}
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -139,9 +162,18 @@ public class MyEventsView extends Fragment {
             @Override
             public void onEventClick(Event event) {
                 Bundle bundle = new Bundle();
-                bundle.putSerializable("event", event);
                 NavController navController = NavHostFragment.findNavController(MyEventsView.this);
-                navController.navigate(R.id.action_navigation_my_events_to_eventDetailsFragment, bundle);
+
+                // Check if current user is the organizer of this event
+                if (event.getOrganizerId() != null && event.getOrganizerId().equals(organizer.getId())) {
+                    // Navigate to Organizer View
+                    bundle.putString("eventId", event.getId());
+                    navController.navigate(R.id.action_navigation_my_events_to_organizerEventEntrantsFragment, bundle);
+                } else {
+                    // Navigate to Entrant View (Event Details)
+                    bundle.putSerializable("event", event);
+                    navController.navigate(R.id.action_navigation_my_events_to_eventDetailsFragment, bundle);
+                }
             }
         });
 
@@ -154,13 +186,19 @@ public class MyEventsView extends Fragment {
         // Initial load
         loadEvents();
     }
-
+    /**
+     * Called when the fragment becomes visible again.
+     * Ensures the event list is refreshed in case new events have been created
+     */
     @Override
     public void onResume() {
         super.onResume();
         this.loadEvents();
     }
-
+    /**
+     * Loads the list of events belonging to the organizer and updates the adapter.
+     * Uses a FirestoreCallback to handle asynchronous data loading.
+     */
     private void loadEvents(){
         organizer.getEventList(new FirestoreCallback<>() {
             @Override

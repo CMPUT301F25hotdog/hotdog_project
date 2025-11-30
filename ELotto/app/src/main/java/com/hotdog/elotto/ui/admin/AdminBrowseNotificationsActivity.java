@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Admin Browse Notifications Activity.
@@ -60,25 +61,29 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         // Check for Admin Access
-        User currentUser = new User(this, true);
-        if (currentUser.getType() != UserType.Administrator) {
-            Toast.makeText(this, "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        User currentUser = new User(this, new Consumer<User>() {
+            @Override
+            public void accept(User user) {
+                if (user.getType() != UserType.Administrator) {
+                    Toast.makeText(getApplicationContext(), "Access Denied: Admin only", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
 
-        setContentView(R.layout.activity_admin_browse_notifications);
+                setContentView(R.layout.activity_admin_browse_notifications);
 
-        // Hide action bar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+                // Hide action bar
+                if (getSupportActionBar() != null) {
+                    getSupportActionBar().hide();
+                }
 
-        initializeViews();
-        setupRecyclerView();
-        setupSearch();
-        setupBackButton();
-        loadNotifications();
+                initializeViews();
+                setupRecyclerView();
+                setupSearch();
+                setupBackButton();
+                loadNotifications();
+            }
+        });
     }
 
     private void initializeViews() {
@@ -148,13 +153,24 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
                                         notification.setMessage((String) notifMap.get("message"));
                                         notification.setTitle((String) notifMap.get("title"));
 
-                                        // Handle read field safely (default to false if missing or null)
-                                        Boolean isRead = (Boolean) notifMap.get("read");
+                                        // Handle read field safely (check both "read" and "isRead")
+                                        Boolean isRead = (Boolean) notifMap.get("isRead");
+                                        if (isRead == null) {
+                                            isRead = (Boolean) notifMap.get("read");
+                                        }
                                         notification.setRead(isRead != null ? isRead : false);
 
                                         notification.setTimestamp(
                                                 (com.google.firebase.Timestamp) notifMap.get("timestamp"));
                                         notification.setUserId(userId); // Store the document ID (userId) for context
+
+                                        // Handle new fields from dev branch if present
+                                        if (notifMap.containsKey("eventTitle")) {
+                                            notification.setEventTitle((String) notifMap.get("eventTitle"));
+                                        }
+                                        if (notifMap.containsKey("eventImageUrl")) {
+                                            notification.setEventImageUrl((String) notifMap.get("eventImageUrl"));
+                                        }
 
                                         allNotifications.add(notification);
                                     } catch (Exception e) {
@@ -262,18 +278,19 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
 
         progressBar.setVisibility(View.VISIBLE);
 
-        // Reconstruct the map to remove it from the array
-        // Note: FieldValue.arrayRemove requires an exact match of the element.
-        // We need to be careful here. If the map has other fields we don't know about,
-        // this might fail.
-        // However, based on the user's description, we have all the fields.
-
         Map<String, Object> notificationMap = new HashMap<>();
         notificationMap.put("uuid", notification.getUuid());
         notificationMap.put("eventId", notification.getEventId());
         notificationMap.put("message", notification.getMessage());
         notificationMap.put("title", notification.getTitle());
-        notificationMap.put("read", notification.isRead());
+        notificationMap.put("isRead", notification.isRead());
+
+        // Also add new fields if they are not null
+        if (notification.getEventTitle() != null)
+            notificationMap.put("eventTitle", notification.getEventTitle());
+        if (notification.getEventImageUrl() != null)
+            notificationMap.put("eventImageUrl", notification.getEventImageUrl());
+
         notificationMap.put("timestamp", notification.getTimestamp());
 
         db.collection("notifications")
