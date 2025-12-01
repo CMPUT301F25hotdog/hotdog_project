@@ -241,6 +241,8 @@ public class HomeFragment extends Fragment {
         dialog.setCurrentFilters(currentSelectedTags, currentDateFilter);
         dialog.setOnFilterAppliedListener((selectedTags, dateFilter) -> {
             applyFilters(selectedTags, dateFilter);
+            String message = eventAdapter.getItemCount() + " event(s) found";
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         });
         dialog.show(getParentFragmentManager(), "filter_dialog");
     }
@@ -266,9 +268,6 @@ public class HomeFragment extends Fragment {
         eventAdapter.updateEvents(filteredEvents);
         // Show empty state if no results
         showEmptyState(filteredEvents.isEmpty());
-
-        String message = filteredEvents.size() + " event(s) found";
-        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     private boolean matchesAnyTag(Event event, Set<String> selectedTags) {
@@ -306,6 +305,8 @@ public class HomeFragment extends Fragment {
                 eventAdapter.updateEvents(allEvents);
 
                 showEmptyState(events.isEmpty());
+
+                applyFilters(currentSelectedTags, currentDateFilter);
             }
 
             @Override
