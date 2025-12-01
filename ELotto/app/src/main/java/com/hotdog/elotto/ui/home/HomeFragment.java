@@ -23,6 +23,7 @@ import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.model.Event;
+import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 
@@ -57,6 +58,8 @@ public class HomeFragment extends Fragment {
     private String currentUserId;
     private User currentUser;
 
+    private Organizer organizer;
+
     private Set<String> currentSelectedTags = new HashSet<>();
     private DateFilter currentDateFilter = DateFilter.ALL_DATES;
 
@@ -67,8 +70,10 @@ public class HomeFragment extends Fragment {
         // Initialize repository
         eventRepository = new EventRepository();
 
-        currentUser = new User(requireContext());
-        currentUserId = currentUser.getId();
+        currentUser = new User(requireContext(), (user) -> {
+            organizer = new Organizer(requireContext());
+            currentUserId = user.getId();
+        });
     }
 
     @Nullable
@@ -114,7 +119,11 @@ public class HomeFragment extends Fragment {
                 NavController navController = NavHostFragment.findNavController(HomeFragment.this);
 
                 // If user is invited and invitation hasn't expired then go to accept/decline screen
-                if (userStatus == Status.Selected && !isInvitationExpired(event.getId())) {
+                if (event.getOrganizerId() != null && event.getOrganizerId().equals(organizer.getId())) {
+                    // Navigate to Organizer View
+                    bundle.putString("eventId", event.getId());
+                    navController.navigate(R.id.action_navigation_home_to_organizerEventEntrantsFragment, bundle);
+                } else if (userStatus == Status.Selected && !isInvitationExpired(event.getId())) {
                     navController.navigate(R.id.action_navigation_home_to_acceptDeclineInvitation, bundle);
                 } else {
                     // default to regular event details screen

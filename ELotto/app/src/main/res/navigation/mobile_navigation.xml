@@ -65,6 +65,9 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_navigation_home_to_organizerEventEntrantsFragment"
+            app:destination="@id/organizerEventEntrantsFragment" />
     </fragment>
 
     <!-- Calendar tab destination -->
