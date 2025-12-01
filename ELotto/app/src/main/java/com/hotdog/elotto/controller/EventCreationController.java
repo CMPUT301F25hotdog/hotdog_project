@@ -67,6 +67,7 @@ public class EventCreationController {
      * Repository for event data access operations.
      */
     private EventRepository repository;
+    private boolean testMode;
 
     /**
      * Constructs a new EventCreationController with default repository.

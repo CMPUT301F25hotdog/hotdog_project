@@ -140,8 +140,11 @@ public class HomeFragment extends Fragment {
         // Initialize repository
         eventRepository = new EventRepository();
 
-        currentUser = new User(requireContext());
-        currentUserId = currentUser.getId();
+        currentUser = new User(requireContext(), (user) -> {
+
+            currentUserId = user.getId();
+            organizer = new Organizer(requireContext());
+        });
     }
 
     /**
