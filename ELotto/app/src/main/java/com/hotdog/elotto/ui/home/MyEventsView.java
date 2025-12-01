@@ -46,22 +46,66 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.security.auth.callback.Callback;
-/**
- * MyEventsView is a Fragment that displays a list of events created
- * by an organizer and allows them to create new events.
- */
 
+/**
+ * Fragment that displays a list of events created by the current organizer.
+ *
+ * <p>This view allows organizers to:</p>
+ * <ul>
+ *     <li>See all events they have created</li>
+ *     <li>Navigate to an event's entrant/management view</li>
+ *     <li>Create new events via a dedicated event creation activity</li>
+ * </ul>
+ *
+ * <p>Events are loaded asynchronously from Firestore through the {@link Organizer} model,
+ * and rendered using an {@link EventAdapter} in a {@link RecyclerView}. Empty and loading
+ * states are managed via overlay views.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently.</p>
+ *
+ * @version 1.0
+ * @since 2025-11-01
+ */
 public class MyEventsView extends Fragment {
+
+    /**
+     * Floating action button used to navigate to the event creation screen.
+     */
     private FloatingActionButton createEventButton;
+
+    /**
+     * Adapter used to display the organizer's events in a RecyclerView.
+     */
     private EventAdapter eventAdapter;
+
+    /**
+     * Launcher used to start the event creation activity and receive its result.
+     */
     private ActivityResultLauncher<Intent> createEventLauncher;
+
+    /**
+     * Model representing the currently logged-in organizer, including their events.
+     */
     private Organizer organizer;
+
+    /**
+     * Cover layout that overlays the content when loading or empty states are shown.
+     */
     private ConstraintLayout myEventsCover;
+
+    /**
+     * Progress bar displayed while events are being loaded.
+     */
     private ProgressBar loadingProgressBar;
+
+    /**
+     * TextView displayed when there are no events to show in the organizer's list.
+     */
     private TextView myEventsEmpty;
+
     /**
      * Called when the fragment is first created.
-     * Initializes components like Organizer} and EventAdapter,
+     * Initializes components like {@link Organizer} and {@link EventAdapter},
      * registers the activity result launcher, and loads the organizer’s events.
      *
      * @param savedInstanceState the previously saved state of the fragment, or null if none exists
@@ -85,6 +129,7 @@ public class MyEventsView extends Fragment {
                     }
                 });
     }
+
     /**
      * Inflates the layout for this fragment.
      *
@@ -96,8 +141,8 @@ public class MyEventsView extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
-            @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         // Inflate your fragment layout
         View view = inflater.inflate(R.layout.fragment_my_events, container, false);
 
@@ -148,6 +193,7 @@ public class MyEventsView extends Fragment {
 
         return view;
     }
+
     /**
      * Called after the view hierarchy has been created.
      * Sets up the RecyclerView, configures the adapter,
@@ -194,18 +240,21 @@ public class MyEventsView extends Fragment {
         // Initial load
         loadEvents();
     }
+
     /**
      * Called when the fragment becomes visible again.
-     * Ensures the event list is refreshed in case new events have been created
+     * Ensures the event list is refreshed in case new events have been created.
      */
     @Override
     public void onResume() {
         super.onResume();
         this.loadEvents();
     }
+
     /**
      * Loads the list of events belonging to the organizer and updates the adapter.
-     * Uses a FirestoreCallback to handle asynchronous data loading.
+     * Uses a {@link FirestoreCallback} to handle asynchronous data loading and
+     * manages loading and empty states based on the results.
      */
     private void loadEvents(){
         organizer.getEventList(new FirestoreCallback<>() {
@@ -223,12 +272,24 @@ public class MyEventsView extends Fragment {
         });
     }
 
+    /**
+     * Toggles the empty state overlay and related views based on whether
+     * the organizer has any events to display.
+     *
+     * @param value {@code true} to show the empty state, {@code false} to hide it
+     */
     private void empty(boolean value) {
         this.myEventsCover.setVisibility(value ? View.VISIBLE : View.GONE);
         this.loadingProgressBar.setVisibility(value ? View.GONE : this.loadingProgressBar.getVisibility());
         this.myEventsEmpty.setVisibility(value ? View.VISIBLE : View.GONE);
     }
 
+    /**
+     * Toggles the loading state overlay and related views while events
+     * are being fetched from the backend.
+     *
+     * @param value {@code true} to show the loading indicator, {@code false} to hide it
+     */
     private void loading(boolean value) {
         this.myEventsCover.setVisibility(value ? View.VISIBLE : View.GONE);
         this.myEventsEmpty.setVisibility(value ? View.GONE: this.myEventsEmpty.getVisibility());

@@ -33,33 +33,103 @@ import java.util.Set;
 import com.hotdog.elotto.helpers.Status;
 
 /**
- * HomeFragment displays a list of all available events that users can browse
- * and join.
- * Implements US 01.01.03 - As an entrant, I want to be able to see a list of
- * events
- * that I can join the waiting list for.
+ * Fragment responsible for displaying the main event list on the home screen.
  *
- * Serves as the View layer of MVC design.
+ * <p>This component loads events from Firestore via {@link EventRepository}, displays
+ * them in a {@link RecyclerView}, and provides search and filter capabilities.</p>
  *
+ * <p>Key features include:</p>
+ * <ul>
+ *     <li>Displaying a scrollable list of events using {@link EventAdapter}</li>
+ *     <li>Text-based search by event name or location</li>
+ *     <li>Filtering by interests (tags) and date ranges through a filter dialog</li>
+ *     <li>Conditional navigation to either event details or invitation response screen
+ *         based on the user's registration status</li>
+ *     <li>Profile menu for quick navigation to profile, inbox, settings, FAQ, and QR scanning</li>
+ * </ul>
+ *
+ * <p>This fragment primarily serves as the View layer in an MVC-style design.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently.</p>
+ *
+ * @version 1.0
+ * @since 2025-11-01
  */
 public class HomeFragment extends Fragment {
 
+    /**
+     * RecyclerView used to display the list of events.
+     */
     private RecyclerView eventsRecyclerView;
+
+    /**
+     * Adapter providing event data and view binding for the {@link #eventsRecyclerView}.
+     */
     private EventAdapter eventAdapter;
+
+    /**
+     * Progress bar shown while events are being loaded from Firestore.
+     */
     private ProgressBar loadingProgressBar;
+
+    /**
+     * View shown when there are no events to display or loading fails.
+     */
     private View emptyStateLayout;
+
+    /**
+     * SearchView used to filter events by text query (name or location).
+     */
     private SearchView searchView;
+
+    /**
+     * Button that opens a profile-related popup menu with navigation options.
+     */
     private ImageButton profileButton;
+
+    /**
+     * Button that opens the filter dialog for interest and date filtering.
+     */
     private ImageButton filterButton;
 
+    /**
+     * Repository used to retrieve event data from Firestore.
+     */
     private EventRepository eventRepository;
+
+    /**
+     * In-memory list of all events retrieved from the repository.
+     */
     private List<Event> allEvents;
+
+    /**
+     * ID of the currently active user.
+     */
     private String currentUserId;
+
+    /**
+     * Model representing the current user, including registered event metadata.
+     */
     private User currentUser;
 
+    /**
+     * Currently selected interest tags used for filtering the event list.
+     */
     private Set<String> currentSelectedTags = new HashSet<>();
+
+    /**
+     * Currently selected date filter used for filtering the event list.
+     */
     private DateFilter currentDateFilter = DateFilter.ALL_DATES;
 
+    /**
+     * Called when the fragment is being created.
+     *
+     * <p>Initializes the event repository and constructs the current user model
+     * using the host context.</p>
+     *
+     * @param savedInstanceState previously saved state, if available
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,10 +141,18 @@ public class HomeFragment extends Fragment {
         currentUserId = currentUser.getId();
     }
 
+    /**
+     * Inflates the layout for the home screen and initializes the UI and data loading.
+     *
+     * @param inflater LayoutInflater used to inflate the fragment's layout
+     * @param container parent view that the fragment's UI will be attached to
+     * @param savedInstanceState previously saved state, if available
+     * @return the root view of the home fragment layout
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         initializeViews(view);
@@ -85,6 +163,12 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Binds UI elements from the layout to their corresponding fields and initializes
+     * the backing event list.
+     *
+     * @param view the root fragment view
+     */
     private void initializeViews(View view) {
         eventsRecyclerView = view.findViewById(R.id.eventsRecyclerView);
         loadingProgressBar = view.findViewById(R.id.loadingProgressBar);
@@ -95,6 +179,10 @@ public class HomeFragment extends Fragment {
         allEvents = new ArrayList<>();
     }
 
+    /**
+     * Configures the RecyclerView, attaches the {@link EventAdapter}, and sets up
+     * the event click behavior to navigate to the appropriate detail or invitation screen.
+     */
     private void setupRecyclerView() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         eventsRecyclerView.setLayoutManager(layoutManager);
@@ -125,10 +213,11 @@ public class HomeFragment extends Fragment {
     }
 
     /**
-     * Get the user's status for a specific event
+     * Retrieves the current user's status for a specific event.
      *
-     * @param eventId The ID of the event
-     * @return The user's Status for this event or null if not registered
+     * @param eventId the unique identifier of the event
+     * @return the {@link Status} of the user for the given event, or {@code null}
+     *         if the user is not registered or user data is unavailable
      */
     private Status getUserStatusForEvent(String eventId) {
         if (currentUser == null) {
@@ -143,10 +232,14 @@ public class HomeFragment extends Fragment {
     }
 
     /**
-     * Check if the invitation for an event has expired
+     * Determines whether the invitation for a given event has expired for the current user.
      *
-     * @param eventId The ID of the event
-     * @return true if invitation expired, false otherwise
+     * <p>The invitation is considered expired if more than 24 hours have elapsed since the
+     * {@code selectedDate} timestamp recorded for the event.</p>
+     *
+     * @param eventId the unique identifier of the event
+     * @return {@code true} if the invitation has expired or user data is unavailable;
+     *         {@code false} if the invitation is still valid or not applicable
      */
     private boolean isInvitationExpired(String eventId) {
         if (currentUser == null) {
@@ -173,6 +266,16 @@ public class HomeFragment extends Fragment {
         return false;
     }
 
+    /**
+     * Attaches listeners to toolbar buttons and search view.
+     *
+     * <p>Includes:</p>
+     * <ul>
+     *     <li>Profile button popup menu navigation</li>
+     *     <li>Filter dialog launch behavior</li>
+     *     <li>SearchView query handling for live text filtering</li>
+     * </ul>
+     */
     private void setupListeners() {
         // Profile button dropdown menu
         profileButton.setOnClickListener(v -> {
@@ -216,9 +319,6 @@ public class HomeFragment extends Fragment {
         // Filter button
         filterButton.setOnClickListener(v -> openFilterDialog());
 
-
-
-
         // Search bar functionality
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -235,6 +335,11 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    /**
+     * Opens the filter dialog allowing the user to select interest tags and a date range,
+     * applies the currently active filters as initial state, and receives updated filters
+     * via a callback.
+     */
     private void openFilterDialog(){
         FilterDialogFragment dialog = FilterDialogFragment.newInstance();
 
@@ -247,6 +352,13 @@ public class HomeFragment extends Fragment {
         dialog.show(getParentFragmentManager(), "filter_dialog");
     }
 
+    /**
+     * Applies the specified interest tags and date filter to {@link #allEvents} and updates
+     * the adapter with the filtered result set.
+     *
+     * @param selectedTags the set of selected interest tags
+     * @param dateFilter   the {@link DateFilter} specifying the desired date range
+     */
     private void applyFilters(Set<String> selectedTags, DateFilter dateFilter) {
         this.currentSelectedTags = new HashSet<>(selectedTags);
         this.currentDateFilter = dateFilter;
@@ -270,6 +382,13 @@ public class HomeFragment extends Fragment {
         showEmptyState(filteredEvents.isEmpty());
     }
 
+    /**
+     * Checks whether the given event matches at least one of the selected interest tags.
+     *
+     * @param event        the event to evaluate
+     * @param selectedTags the set of tags used for filtering
+     * @return {@code true} if the event contains any of the selected tags; {@code false} otherwise
+     */
     private boolean matchesAnyTag(Event event, Set<String> selectedTags) {
         ArrayList<String> eventTags = event.getTagList();
 
@@ -287,12 +406,23 @@ public class HomeFragment extends Fragment {
         return false;
     }
 
+    /**
+     * Clears all active filters, restores the full event list, and updates the empty state.
+     * Displays a toast message to confirm that filters have been cleared.
+     */
     private void clearFilters() {
         eventAdapter.updateEvents(allEvents);
         showEmptyState(allEvents.isEmpty());
         Toast.makeText(getContext(), "Filters cleared", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Loads all events from the repository, updates the adapter, and applies any
+     * previously selected filters once loading completes.
+     *
+     * <p>Displays a loading indicator while the network/database call is in progress
+     * and toggles an empty state view if no events are returned.</p>
+     */
     private void loadEvents() {
         showLoading(true);
 
@@ -318,6 +448,12 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    /**
+     * Filters the list of events based on a free-text query, matching against
+     * the event name and location fields.
+     *
+     * @param query the search text entered by the user; if empty, restores the full list
+     */
     private void filterEvents(String query) {
         if (query == null || query.trim().isEmpty()) {
             eventAdapter.updateEvents(allEvents);
@@ -339,6 +475,12 @@ public class HomeFragment extends Fragment {
         showEmptyState(filteredEvents.isEmpty());
     }
 
+    /**
+     * Toggles visibility of the loading indicator and hides or shows the main content
+     * views as appropriate.
+     *
+     * @param show {@code true} to show the loading indicator; {@code false} to hide it
+     */
     private void showLoading(boolean show) {
         if (show) {
             loadingProgressBar.setVisibility(View.VISIBLE);
@@ -350,6 +492,12 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    /**
+     * Toggles visibility of the empty state layout and the event list depending on whether
+     * there are any events to display.
+     *
+     * @param show {@code true} to display the empty state; {@code false} to display the list
+     */
     private void showEmptyState(boolean show) {
         if (show) {
             emptyStateLayout.setVisibility(View.VISIBLE);
