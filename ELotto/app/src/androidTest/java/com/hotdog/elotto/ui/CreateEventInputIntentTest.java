@@ -14,51 +14,66 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import android.app.Activity;
 import android.app.Instrumentation;
-import android.app.UiAutomation;
 import android.content.Intent;
 import android.net.Uri;
 
 import androidx.test.espresso.intent.Intents;
-import androidx.test.ext.junit.rules.ActivityScenarioRule;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.core.app.ActivityScenario;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.hotdog.elotto.MainActivity;
 import com.hotdog.elotto.R;
+import com.hotdog.elotto.ui.home.EventCreationView;
 
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(AndroidJUnit4.class)
 public class CreateEventInputIntentTest {
-    @Rule
-    public ActivityScenarioRule<MainActivity> rule = new ActivityScenarioRule<>( MainActivity.class );
+
     @Test
-    public void inputValuesToCreateEvent(){
+    public void inputValuesToCreateEvent() {
         Intents.init();
-        onView(withId(R.id.navigation_my_events)).perform(click());
-        onView(withId(R.id.CreateNewEventButton)).check(matches(isDisplayed()));
-        onView(withId(R.id.CreateNewEventButton)).perform(click());
+
+        // Launch EventCreationView with TEST_MODE enabled
+        Intent intent = new Intent(
+                InstrumentationRegistry.getInstrumentation().getTargetContext(),
+                EventCreationView.class);
+        intent.putExtra("TEST_MODE", true); // enables controller test mode
+        intent.putExtra("ORGANIZER_NAME", "Test Organizer");
+
+        ActivityScenario<EventCreationView> scenario = ActivityScenario.launch(intent);
+
+        // Mock image picking
         Uri fakeImageUri = Uri.parse("WalterPutItAway");
         Instrumentation.ActivityResult result =
                 new Instrumentation.ActivityResult(Activity.RESULT_OK,
                         new Intent().setData(fakeImageUri));
-
         intending(hasAction(Intent.ACTION_GET_CONTENT)).respondWith(result);
 
+        // Fill in event fields
         onView(withId(R.id.Event_Poster_Input)).perform(click());
-        onView(withId(R.id.Event_Name_Input)).perform(scrollTo(),typeText("Jesse We Need To Cook"), closeSoftKeyboard());
-        onView(withId(R.id.Event_Description_Input)).perform(scrollTo(),typeText("Blue"), closeSoftKeyboard());
-        onView(withId(R.id.Event_Price_Input)).perform(scrollTo(),typeText("$99.1"), closeSoftKeyboard());
-        onView(withId(R.id.Event_Location_Input)).perform(scrollTo(),typeText("Walter White"), closeSoftKeyboard());
-        onView(withId(R.id.Time_Input)).perform(scrollTo(),typeText("12:00"), closeSoftKeyboard());
-        onView(withId(R.id.Date_Input)).perform(scrollTo(),typeText("11/07/2025"), closeSoftKeyboard());
-        onView(withId(R.id.Open_Period_Input)).perform(scrollTo(),typeText("11/01/2025"), closeSoftKeyboard());
-        onView(withId(R.id.Close_Period_Input)).perform(scrollTo(),typeText("11/06/2025"), closeSoftKeyboard());
-        onView(withId(R.id.Entrant_Limit_Input)).perform(scrollTo(),typeText("50"), closeSoftKeyboard());
+        onView(withId(R.id.EventNameInput)).perform(scrollTo(), typeText("Jesse We Need To Cook"), closeSoftKeyboard());
+        onView(withId(R.id.Event_Description_Input)).perform(scrollTo(), typeText("Blue"), closeSoftKeyboard());
+        onView(withId(R.id.EventPriceInput)).perform(scrollTo(), typeText("99.1"), closeSoftKeyboard());
+        onView(withId(R.id.EventAddressInput)).perform(scrollTo(), typeText("Walter White"), closeSoftKeyboard());
+
+        // Click date/time layouts instead of typing
+        onView(withId(R.id.EventDateInput)).perform(scrollTo(), click());
+        onView(withId(R.id.EventTimeInput)).perform(scrollTo(), click());
+
+        // Click registration period selectors
+        onView(withId(R.id.EventOpensSelector)).perform(scrollTo(), click());
+        onView(withId(R.id.EventClosesSelector)).perform(scrollTo(), click());
+
+        onView(withId(R.id.MaxEntrantInput)).perform(scrollTo(), typeText("50"), closeSoftKeyboard());
+
+        // Confirm creation
         onView(withId(R.id.Confirm_Creation_Button)).perform(click());
+
+        // Verify event creation Toast or message
         onView(withText("Event Created")).check(matches(isDisplayed()));
 
         Intents.release();
     }
-
 }

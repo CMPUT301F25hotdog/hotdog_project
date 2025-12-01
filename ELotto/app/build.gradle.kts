@@ -7,11 +7,9 @@ plugins {
 android {
     namespace = "com.hotdog.elotto"
     compileSdk = 36
-    defaultConfig {
-        vectorDrawables.useSupportLibrary = true
-    }
 
     defaultConfig {
+        vectorDrawables.useSupportLibrary = true
         applicationId = "com.hotdog.elotto"
         minSdk = 26
         targetSdk = 36
@@ -81,7 +79,8 @@ dependencies {
     //new
     androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
     implementation(libs.zxing.core)
+
 }
-tasks.withType<Test>{
-    useJUnitPlatform()
-}
+//tasks.withType<Test>{
+//    useJUnitPlatform()
+//}

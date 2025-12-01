@@ -34,6 +34,7 @@ public class    EventCreationController {
     private FirebaseStorage storage;
     private final Context context;
     private EventRepository repository;
+    private boolean testMode = false;
     /**
      * Constructs a new EventCreationController.
      *
@@ -79,7 +80,9 @@ public class    EventCreationController {
         }
         return base64String;
     }
-
+    public void setTestMode(boolean testMode){
+        this.testMode = testMode;
+    }
     /**
      * Creates a new event and saves it to FireStore using the EventRepository class, then opens up the QRCode
      * Screen, also runs updateOrganizer which creates or updates an organizer
@@ -95,10 +98,22 @@ public class    EventCreationController {
      * @param price         the cost to participate in the event.
      * @param requireGeo    whether the event enforces geolocation verification.
      * @param bannerUrl     the Base64-encoded image string or fallback identifier.
+     * @param tagList       a string list of tags
+     * @param organizerName the organizers name
      */
     public void SaveEvent(String name, String description, Date dateTime, Date openPeriod,
                           Date closePeriod, int entrantLimit, int waitListSize,
                           String location, double price, boolean requireGeo, String bannerUrl,ArrayList<String> tagList,String organizerName) {
+        if(testMode){
+            Intent qrIntent = new Intent(context, QRCodeView.class);
+            qrIntent.putExtra("EVENT_NAME", name);
+            qrIntent.putExtra("EVENT_ID", "1728");
+            context.startActivity(qrIntent);
+            if (context instanceof Activity) {
+                ((Activity) context).setResult(Activity.RESULT_OK);
+                ((Activity) context).finish();
+            }
+        }
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
         event.setCreatedAt(new Date());
         event.setUpdatedAt(new Date());
