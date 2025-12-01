@@ -36,8 +36,8 @@ public class UserUnitTests {
 
     @Test
     void testRegisteredEventSetStatus() {
-        registeredEvent.setStatus(Status.Invited);
-        assertEquals(Status.Invited, registeredEvent.getStatus());
+        registeredEvent.setStatus(Status.Selected);
+        assertEquals(Status.Selected, registeredEvent.getStatus());
 
         registeredEvent.setStatus(Status.Accepted);
         assertEquals(Status.Accepted, registeredEvent.getStatus());
@@ -91,7 +91,7 @@ public class UserUnitTests {
     @Test
     void testAllStatusValues() {
         assertEquals(Status.Pending, Status.valueOf("Pending"));
-        assertEquals(Status.Invited, Status.valueOf("Invited"));
+        assertEquals(Status.Selected, Status.valueOf("Selected"));
         assertEquals(Status.Waitlisted, Status.valueOf("Waitlisted"));
         assertEquals(Status.Accepted, Status.valueOf("Accepted"));
         assertEquals(Status.Declined, Status.valueOf("Declined"));
