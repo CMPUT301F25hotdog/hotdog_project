@@ -24,7 +24,7 @@ import java.util.List;
  * Adapter for displaying event poster images in admin browse screen.
  * Supports both Firebase Storage URLs and Base64-encoded images.
  *
- * @author Admin Module
+ * @author Tatsat
  * @version 1.0
  */
 public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.ImageViewHolder> {

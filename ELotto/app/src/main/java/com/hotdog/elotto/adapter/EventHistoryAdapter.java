@@ -30,7 +30,7 @@ import java.util.Locale;
  *
  * <p><b>Outstanding Issues:</b> None currently</p>
  *
- * @author [Your Name]
+ * @author Bhuvnesh Batta & Layne Pitman
  * @version 1.0
  * @since 2025-11-23
  */

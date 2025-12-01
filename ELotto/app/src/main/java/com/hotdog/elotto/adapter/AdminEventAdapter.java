@@ -19,7 +19,7 @@ import java.util.Locale;
 /**
  * Adapter for displaying events in admin browse screen.
  *
- * @author Admin Module
+ * @author Tatsat
  * @version 1.0
  */
 public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.EventViewHolder> {

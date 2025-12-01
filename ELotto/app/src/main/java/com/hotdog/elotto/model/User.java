@@ -72,33 +72,67 @@ public class User {
             return eventId.compareTo(o.eventId);
         }
 
+        /**
+         * Sets the date the user registered
+         * @param registeredDate Date the user registered
+         */
         public void setRegisteredDate(Timestamp registeredDate) {
             this.registeredDate = registeredDate;
         }
 
+        /**
+         * Sets this events ID
+         * @param eventId The event id...
+         */
         public void setEventId(String eventId) {
             this.eventId = eventId;
         }
 
+        /**
+         * Set the status of the user with relation to this event
+         * @param status The status to set
+         */
         public void setStatus(Status status) {
             this.status = status;
         }
 
+
+        /**
+         * Gets the user status with relation to this event
+         * @return The user status (Status enum type)
+         */
         public Status getStatus() {
             return status;
         }
 
+        /**
+         * Gets the ID of the event this object refers to
+         * @return Id of that event
+         */
         public String getEventId() {
             return eventId;
         }
 
+        /**
+         * Gets the date the user registered for the event
+         * @return Date of user registration
+         */
         public Timestamp getRegisteredDate() {
             return registeredDate;
         }
 
+        /**
+         * Gets the date that the user was selected to participate in the event
+         * @return The date the user was selected to participate in the event
+         */
         public Timestamp getSelectedDate(){
             return selectedDate;
         }
+
+        /**
+         * Sets the date that the user was selected to participate in the event
+         * @param selectedDate The date that the user was selected to participate in the event
+         */
         public void setSelectedDate(Timestamp selectedDate){
             this.selectedDate = selectedDate;
         }
@@ -174,6 +208,10 @@ public class User {
             userRef.set(superUser);
         }
 
+        /**
+         * Obvi just the thing that is run on a successful fetch
+         * @param user The user reference that we get from firestore
+         */
         public void onSuccess(User user) {
             // Set the info to the returned user value
             this.userRef.get().setUser(user);
@@ -182,7 +220,10 @@ public class User {
             if(this.runnable.get() != null) this.runnable.get().run();
         }
 
-
+        /**
+         * Obvi just the thing that is run on a not successful fetch
+         * @param errorMessage The explanation of what killed itself
+         */
         public void onError(String errorMessage) {
             Log.d("USER_REPO", errorMessage);
             // Signals whether the firestore db has an instance of this user.
@@ -496,6 +537,11 @@ public class User {
         return ret;
     }
 
+    /**
+     * Gets a single RegisteredEvent object from the regEvents instead of pulling and reading through the whole damn list
+     * @param eventId Id of the event... wow
+     * @return The RegisteredEvent object associated with that id, or null if something failed really really bad somehow
+     */
     public RegisteredEvent getSingleRegEvent(String eventId) {
         int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
         if(index<0) {

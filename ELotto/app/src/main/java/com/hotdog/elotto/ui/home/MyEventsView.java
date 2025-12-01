@@ -40,7 +40,6 @@ import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.OrganizerRepository;
-import com.hotdog.elotto.ui.entries.EntriesFragment;
 
 import java.util.ArrayList;
 import java.util.List;

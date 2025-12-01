@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * Adapter for displaying user profiles in admin browse screen.
  *
- * @author Admin Module
+ * @author Tatsat
  * @version 1.0
  */
 public class AdminProfileAdapter extends RecyclerView.Adapter<AdminProfileAdapter.ProfileViewHolder> {

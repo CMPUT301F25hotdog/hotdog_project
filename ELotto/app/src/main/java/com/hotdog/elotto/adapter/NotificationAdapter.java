@@ -20,7 +20,7 @@ import java.util.List;
  * Adapter for displaying a list of notifications.
  * Handles styling for read/unread states.
  *
- * @author [Your Name]
+ * @author Layne Pitman
  * @version 1.0
  * @since 2025-11-26
  */
