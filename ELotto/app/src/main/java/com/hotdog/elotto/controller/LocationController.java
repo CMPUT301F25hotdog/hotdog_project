@@ -45,8 +45,7 @@ public class LocationController {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return Tasks.forException(new SecurityException("Permission Not Granted"));
         }
-        return fusedLocationProviderClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY,
-                cancellationToken.getToken());
+        return fusedLocationProviderClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationToken.getToken());
     }
     /**
      * Callback interface for receiving coordinate results returning as a list of 2 doubles.
