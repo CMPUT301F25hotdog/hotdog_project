@@ -278,29 +278,7 @@ public class OrganizerEventController {
                 public void onSuccess(User user) {
                     try {
                         // Update status to Selected
-                        user.setRegEventStatus(event.getId(), com.hotdog.elotto.helpers.Status.Invited);
-
-                        // Set selectedDate to NOW
-                        int index = java.util.Collections.binarySearch(
-                                user.getRegEvents(),
-                                new User.RegisteredEvent(event.getId())
-                        );
-                        if (index >= 0) {
-                            user.getRegEvents().get(index).setSelectedDate(Timestamp.now());
-                        }
-
-                        // Save to Firebase
-                        userRepository.updateUser(user, new OperationCallback() {
-                            @Override
-                            public void onSuccess() {
-                                Log.d(TAG, "Updated user status to Selected: " + userId);
-                            }
-
-                            @Override
-                            public void onError(String errorMessage) {
-                                Log.e(TAG, "Failed to update user status: " + errorMessage);
-                            }
-                        });
+                        user.setRegEventStatus(event.getId(), com.hotdog.elotto.helpers.Status.Selected);
                     } catch (NoSuchFieldException e) {
                         Log.e(TAG, "Event not found in user's registered events: " + e.getMessage());
                     }

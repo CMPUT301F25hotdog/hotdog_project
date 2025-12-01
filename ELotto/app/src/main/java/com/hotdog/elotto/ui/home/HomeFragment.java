@@ -26,9 +26,6 @@ import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 
-import android.view.MenuInflater;
-import android.widget.PopupMenu;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -117,7 +114,7 @@ public class HomeFragment extends Fragment {
                 NavController navController = NavHostFragment.findNavController(HomeFragment.this);
 
                 // If user is invited and invitation hasn't expired then go to accept/decline screen
-                if (userStatus == Status.Invited && !isInvitationExpired(event.getId())) {
+                if (userStatus == Status.Selected && !isInvitationExpired(event.getId())) {
                     navController.navigate(R.id.action_navigation_home_to_acceptDeclineInvitation, bundle);
                 } else {
                     // default to regular event details screen

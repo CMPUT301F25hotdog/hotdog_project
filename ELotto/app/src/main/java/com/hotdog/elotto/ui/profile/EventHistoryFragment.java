@@ -190,7 +190,7 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
             if (userStatus != null) {
                 // Categorize based on status
                 switch (userStatus) {
-                    case Invited:
+                    case Selected:
                     case Accepted:
                     case Declined:
                         drawnEvents.add(event);
@@ -275,7 +275,7 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
         NavController navController = Navigation.findNavController(requireView());
 
         // If user is invited and invitation hasn't expired, go to accept/decline screen
-        if (userStatus == Status.Invited && !isInvitationExpired(event.getId())) {
+        if (userStatus == Status.Selected && !isInvitationExpired(event.getId())) {
             // Navigate to AcceptDeclineInvitationFragment
             navController.navigate(R.id.action_eventHistoryFragment_to_acceptDeclineInvitation, bundle);
         } else {

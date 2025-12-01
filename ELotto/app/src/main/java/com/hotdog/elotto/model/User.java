@@ -529,6 +529,8 @@ public class User {
         int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
         if(index<0) throw new NoSuchFieldException("No such event ID " + eventId + " in this Users registered events.");
         this.regEvents.get(index).status=status;
+        if(status == Status.Selected) this.regEvents.get(index).selectedDate=Timestamp.now();
+        this.updateUser();
     }
 
     /**

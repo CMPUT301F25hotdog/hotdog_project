@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * Fragment for accepting or declining event invitations.
@@ -107,8 +108,12 @@ public class AcceptDeclineInvitationFragment extends Fragment {
     }
 
     private void loadCurrentUser() {
-        User currentUser = new User(requireContext(), true);
-        currentUserId = currentUser.getId();
+        new User(requireContext(), new Consumer<User>() {
+            @Override
+            public void accept(User user) {
+                currentUserId = user.getId();
+            }
+        });
     }
 
     private void loadEventData() {

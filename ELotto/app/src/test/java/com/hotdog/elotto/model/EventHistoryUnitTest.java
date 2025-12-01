@@ -268,7 +268,7 @@ public class  EventHistoryUnitTest {
 
         assertEquals(6, statuses.length);
         assertTrue(containsStatus(statuses, Status.Pending));
-        assertTrue(containsStatus(statuses, Status.Invited));
+        assertTrue(containsStatus(statuses, Status.Selected));
         assertTrue(containsStatus(statuses, Status.Waitlisted));
         assertTrue(containsStatus(statuses, Status.Accepted));
         assertTrue(containsStatus(statuses, Status.Declined));
@@ -288,7 +288,7 @@ public class  EventHistoryUnitTest {
     public void testStatusToString() {
         // Verify Status enum can be converted to string
         assertEquals("Pending", Status.Pending.toString());
-        assertEquals("Invited", Status.Invited.toString());
+        assertEquals("Invited", Status.Selected.toString());
         assertEquals("Waitlisted", Status.Waitlisted.toString());
         assertEquals("Accepted", Status.Accepted.toString());
         assertEquals("Declined", Status.Declined.toString());
