@@ -72,7 +72,17 @@
         android:id="@+id/navigation_calendar"
         android:name="com.hotdog.elotto.ui.calendar.CalendarFragment"
         android:label="Calendar"
-        tools:layout="@layout/fragment_calendar" />
+        tools:layout="@layout/fragment_calendar" >
+        <action
+            android:id="@+id/action_navigation_calendar_to_eventDetailsFragment"
+            app:destination="@id/eventDetailsFragment" />
+        <action
+            android:id="@+id/action_navigation_calendar_to_acceptDeclineInvitationFragment"
+            app:destination="@id/acceptDeclineInvitationFragment" />
+        <action
+            android:id="@+id/action_navigation_calendar_to_organizerEventEntrantsFragment"
+            app:destination="@id/organizerEventEntrantsFragment" />
+    </fragment>
 
     <!-- Entries tab destination (Event history) -->
     <fragment

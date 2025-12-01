@@ -66,10 +66,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("USER EXISTS", "" + curUser.exists());
 
-        // Hide the action bar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
 
         NavHostFragment navHostFragment =
                 (NavHostFragment) getSupportFragmentManager()
@@ -83,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
                 R.id.navigation_my_events
         ).build();
 
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        setSupportActionBar(null);
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
     }
 

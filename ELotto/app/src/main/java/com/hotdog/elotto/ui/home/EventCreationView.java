@@ -40,6 +40,10 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse;
 import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.material.datepicker.CalendarConstraints;
+import com.google.android.material.datepicker.CompositeDateValidator;
+import com.google.android.material.datepicker.DateValidatorPointBackward;
+import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -49,7 +53,6 @@ import com.hotdog.elotto.R;
 import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.controller.EventCreationController;
 import com.hotdog.elotto.repository.EventRepository;
-
 
 import com.hotdog.elotto.callback.FirestoreCallback;
 import com.hotdog.elotto.model.Event;
@@ -74,7 +77,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 
 /**
- * Activity responsible for handling user interaction during the event creation process. Then takes the
+ * Activity responsible for handling user interaction during the event creation
+ * process. Then takes the
  * input data and sends it to the EventController class to be saved
  *
  */
@@ -100,16 +104,15 @@ public class EventCreationView extends AppCompatActivity {
     private AutoCompleteTextView locationInput;
     private Button cancelButton;
     private Button confirmButton;
-    private Button deleteButton;  // ← ADD THIS LINE
+    private Button deleteButton; // ← ADD THIS LINE
     private ImageButton backButton;
     private ImageView bannerInput;
     private Uri selectedBannerUri;
     private Button tags;
     private ArrayList<String> tagList = new ArrayList<>();
 
-    private String currentMode;  // ← ADD THIS
-    private String currentEventId;  // ← ADD THIS
-
+    private String currentMode; // ← ADD THIS
+    private String currentEventId; // ← ADD THIS
 
     // For location shtuff
     private PlacesClient client;
@@ -118,12 +121,14 @@ public class EventCreationView extends AppCompatActivity {
 
     private static class DecimalInputFilter implements InputFilter {
         private final Pattern inPattern;
+
         public DecimalInputFilter(int digitsAfterZero) {
             // Ballin i love regex muah regex my baby I love you
-            inPattern = Pattern.compile("[0-9]*+((\\.[0-9]{0,"+digitsAfterZero+"})?)");
+            inPattern = Pattern.compile("[0-9]*+((\\.[0-9]{0," + digitsAfterZero + "})?)");
         }
+
         @Override
-        public CharSequence filter (CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
+        public CharSequence filter(CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
             String result = dst.subSequence(0, dstart) + src.toString() + dst.subSequence(dend, dst.length());
             return inPattern.matcher(result).matches() ? null : "";
         }
@@ -160,13 +165,12 @@ public class EventCreationView extends AppCompatActivity {
         geolocation = findViewById(R.id.Geolocation_Toggle);
         cancelButton = findViewById(R.id.Cancel_Creation_Button);
         confirmButton = findViewById(R.id.Confirm_Creation_Button);
-        deleteButton = findViewById(R.id.Delete_Event_Button);  // ← ADD THIS LINE
+        deleteButton = findViewById(R.id.Delete_Event_Button); // ← ADD THIS LINE
         locationLayout = findViewById(R.id.EventAddressLayout);
         locationInput = findViewById(R.id.EventAddressInput);
         eventPriceInput = findViewById(R.id.EventPriceInput);
         eventPriceLayout = findViewById(R.id.EventPriceLayout);
         tags = findViewById(R.id.Tag_Button);
-
 
         // ← ADD THIS ENTIRE BLOCK HERE ↓
 
@@ -186,7 +190,6 @@ public class EventCreationView extends AppCompatActivity {
             // Create mode (default)
             deleteButton.setVisibility(View.GONE);
         }
-
 
         EditText[] fields = {
                 eventDescriptionInput,
@@ -225,7 +228,8 @@ public class EventCreationView extends AppCompatActivity {
                         System.arraycopy(tempSelected, 0, selected, 0, tag_options.length);
                         tagList.clear();
                         for (int i = 0; i < tag_options.length; i++) {
-                            if (selected[i]) tagList.add(tag_options[i]);
+                            if (selected[i])
+                                tagList.add(tag_options[i]);
                         }
                         if (tagList.isEmpty()) {
                             tags.setText("Select Event Tags");
@@ -245,65 +249,172 @@ public class EventCreationView extends AppCompatActivity {
             confirmationPass(tagList);
         });
 
-        // Calendar Dialog
-        MaterialDatePicker<Long> openDatePicker =
-                MaterialDatePicker.Builder.datePicker()
-                        .setTitleText("Select Opening Date")
-                        .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
-                        .build();
-        MaterialDatePicker<Long> closeDatePicker =
-                MaterialDatePicker.Builder.datePicker()
-                        .setTitleText("Select Closing Date")
-                        .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
-                        .build();
-        MaterialDatePicker<Long> eventDatePicker =
-                MaterialDatePicker.Builder.datePicker()
-                        .setTitleText("Select Event Date")
-                        .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
-                        .build();
+        // Calendar Dialogs with Constraints
 
-        View.OnClickListener openOpen = v -> openDatePicker.show(getSupportFragmentManager(), "DATE");
+        // Helper to parse date from string
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        View.OnClickListener openOpen = v -> {
+            long today = MaterialDatePicker.todayInUtcMilliseconds();
+            CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder();
+            ArrayList<CalendarConstraints.DateValidator> validators = new ArrayList<>();
+
+            validators.add(DateValidatorPointForward.now());
+
+            // Constraint: Opening date must be before Closing Date (if set)
+            String closeDateString = closePeriodInput.getText().toString().trim();
+            if (!closeDateString.isEmpty()) {
+                try {
+                    Date closeDate = dateFormat.parse(closeDateString);
+                    if (closeDate != null) {
+                        validators.add(DateValidatorPointBackward.before(closeDate.getTime()));
+                    }
+                } catch (ParseException e) {
+                    // Ignore
+                }
+            }
+
+            // Constraint: Opening date must be before Event Date (if set)
+            String eventDateString = eventDateInput.getText().toString().trim();
+            if (!eventDateString.isEmpty()) {
+                try {
+                    Date eventDate = dateFormat.parse(eventDateString);
+                    if (eventDate != null) {
+                        validators.add(DateValidatorPointBackward.before(eventDate.getTime()));
+                    }
+                } catch (ParseException e) {
+                    // Ignore
+                }
+            }
+
+            constraintsBuilder.setValidator(CompositeDateValidator.allOf(validators));
+
+            MaterialDatePicker<Long> openDatePicker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Select Opening Date")
+                    .setSelection(today)
+                    .setCalendarConstraints(constraintsBuilder.build())
+                    .build();
+
+            openDatePicker.addOnPositiveButtonClickListener(selectionMillis -> {
+                Date date = new Date(selectionMillis);
+                openPeriodInput.setText(dateFormat.format(date));
+            });
+            openDatePicker.show(getSupportFragmentManager(), "DATE_OPEN");
+        };
         openPeriodInput.setOnClickListener(openOpen);
         openPeriodLayout.setOnClickListener(openOpen);
 
-        View.OnClickListener closeOpen = v -> closeDatePicker.show(getSupportFragmentManager(), "DATE");
+        View.OnClickListener closeOpen = v -> {
+            long today = MaterialDatePicker.todayInUtcMilliseconds();
+            CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder();
+            ArrayList<CalendarConstraints.DateValidator> validators = new ArrayList<>();
+
+            validators.add(DateValidatorPointForward.now());
+
+            // Constraint: Closing date must be after Opening Date (if set)
+            String openDateString = openPeriodInput.getText().toString().trim();
+            if (!openDateString.isEmpty()) {
+                try {
+                    Date openDate = dateFormat.parse(openDateString);
+                    if (openDate != null) {
+                        validators.add(DateValidatorPointForward.from(openDate.getTime()));
+                    }
+                } catch (ParseException e) {
+                    // Ignore
+                }
+            }
+
+            // Constraint: Closing date must be before Event Date (if set)
+            String eventDateString = eventDateInput.getText().toString().trim();
+            if (!eventDateString.isEmpty()) {
+                try {
+                    Date eventDate = dateFormat.parse(eventDateString);
+                    if (eventDate != null) {
+                        validators.add(DateValidatorPointBackward.before(eventDate.getTime()));
+                    }
+                } catch (ParseException e) {
+                    // Ignore
+                }
+            }
+
+            if (!validators.isEmpty()) {
+                constraintsBuilder.setValidator(CompositeDateValidator.allOf(validators));
+            }
+
+            MaterialDatePicker<Long> closeDatePicker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Select Closing Date")
+                    .setSelection(today)
+                    .setCalendarConstraints(constraintsBuilder.build())
+                    .build();
+
+            closeDatePicker.addOnPositiveButtonClickListener(selectionMillis -> {
+                Date date = new Date(selectionMillis);
+                closePeriodInput.setText(dateFormat.format(date));
+            });
+            closeDatePicker.show(getSupportFragmentManager(), "DATE_CLOSE");
+        };
         closePeriodInput.setOnClickListener(closeOpen);
         closePeriodLayout.setOnClickListener(closeOpen);
 
-        View.OnClickListener dateOpen = v -> eventDatePicker.show(getSupportFragmentManager(), "DATE");
+        View.OnClickListener dateOpen = v -> {
+            long today = MaterialDatePicker.todayInUtcMilliseconds();
+            CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder();
+            ArrayList<CalendarConstraints.DateValidator> validators = new ArrayList<>();
+
+            validators.add(DateValidatorPointForward.now());
+
+            // Constraint: Event Date must be after Opening Date (if set)
+            String openDateString = openPeriodInput.getText().toString().trim();
+            if (!openDateString.isEmpty()) {
+                try {
+                    Date openDate = dateFormat.parse(openDateString);
+                    if (openDate != null) {
+                        validators.add(DateValidatorPointForward.from(openDate.getTime()));
+                    }
+                } catch (ParseException e) {
+                    // Ignore
+                }
+            }
+
+            // Constraint: Event Date must be after Closing Date (if set)
+            String closeDateString = closePeriodInput.getText().toString().trim();
+            if (!closeDateString.isEmpty()) {
+                try {
+                    Date closeDate = dateFormat.parse(closeDateString);
+                    if (closeDate != null) {
+                        validators.add(DateValidatorPointForward.from(closeDate.getTime()));
+                    }
+                } catch (ParseException e) {
+                    // Ignore
+                }
+            }
+
+            constraintsBuilder.setValidator(CompositeDateValidator.allOf(validators));
+
+            MaterialDatePicker<Long> eventDatePicker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Select Event Date")
+                    .setSelection(today)
+                    .setCalendarConstraints(constraintsBuilder.build())
+                    .build();
+
+            eventDatePicker.addOnPositiveButtonClickListener(selectionMillis -> {
+                Date date = new Date(selectionMillis);
+                eventDateInput.setText(dateFormat.format(date));
+            });
+            eventDatePicker.show(getSupportFragmentManager(), "DATE_EVENT");
+        };
         eventDateInput.setOnClickListener(dateOpen);
         eventDateLayout.setOnClickListener(dateOpen);
 
-
-        SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-
-        openDatePicker.addOnPositiveButtonClickListener(selectionMillis -> {
-            Date date = new Date(selectionMillis);
-            format.setTimeZone(TimeZone.getTimeZone("UTC")); // Prevent tz difference from shifting date
-            openPeriodInput.setText(format.format(date));
-        });
-
-        closeDatePicker.addOnPositiveButtonClickListener(selectionMillis -> {
-            Date date = new Date(selectionMillis);
-            format.setTimeZone(TimeZone.getTimeZone("UTC")); // Prevent tz difference from shifting date
-            closePeriodInput.setText(format.format(date));
-        });
-
-        eventDatePicker.addOnPositiveButtonClickListener(selectionMillis -> {
-            Date date = new Date(selectionMillis);
-            format.setTimeZone(TimeZone.getTimeZone("UTC")); // Prevent tz difference from shifting date
-            eventDateInput.setText(format.format(date));
-        });
-
         // Time picker!
-        MaterialTimePicker eventTimePicker =
-                new MaterialTimePicker.Builder()
-                        .setInputMode(MaterialTimePicker.INPUT_MODE_CLOCK)
-                        .setTimeFormat(TimeFormat.CLOCK_24H)
-                        .setHour(12)
-                        .setMinute(0)
-                        .setTitleText("Select Event Time")
-                        .build();
+        MaterialTimePicker eventTimePicker = new MaterialTimePicker.Builder()
+                .setInputMode(MaterialTimePicker.INPUT_MODE_CLOCK)
+                .setTimeFormat(TimeFormat.CLOCK_24H)
+                .setHour(12)
+                .setMinute(0)
+                .setTitleText("Select Event Time")
+                .build();
         View.OnClickListener timeOpen = v -> eventTimePicker.show(getSupportFragmentManager(), "TIME");
         eventTimeInput.setOnClickListener(timeOpen);
         eventTimeLayout.setOnClickListener(timeOpen);
@@ -317,12 +428,14 @@ public class EventCreationView extends AppCompatActivity {
         });
 
         // Money Man
-        eventPriceInput.setFilters(new InputFilter[]{new DecimalInputFilter(2)});
+        eventPriceInput.setFilters(new InputFilter[] { new DecimalInputFilter(2) });
         eventPriceInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) return;
+            if (hasFocus)
+                return;
             TextInputEditText editText = (TextInputEditText) v;
             Editable editable = editText.getText();
-            if (editable == null) return;
+            if (editable == null)
+                return;
             String raw = editable.toString().trim();
             if (raw.isEmpty()) {
                 return;
@@ -341,16 +454,20 @@ public class EventCreationView extends AppCompatActivity {
 
         // Max Entrant time
         View.OnFocusChangeListener maxEntrantListener = (v, hasFocus) -> {
-            if (hasFocus) return;
+            if (hasFocus)
+                return;
             int entrantLimit = 0;
             try {
-                entrantLimit = Integer.parseInt(maxEntrantInput.getText() == null ? "" : maxEntrantInput.getText().toString().trim());
-                if (entrantLimit <= 0) throw new NumberFormatException("Negative");
+                entrantLimit = Integer
+                        .parseInt(maxEntrantInput.getText() == null ? "" : maxEntrantInput.getText().toString().trim());
+                if (entrantLimit <= 0)
+                    throw new NumberFormatException("Negative");
                 maxEntrantInput.setError(null);
             } catch (NumberFormatException e) {
                 if (e.getMessage() != null && e.getMessage().equals("Negative"))
                     maxEntrantInput.setError("Max Entrants Must Be Positive");
-                else maxEntrantInput.setError("Max Entrants is Required");
+                else
+                    maxEntrantInput.setError("Max Entrants is Required");
             }
         };
         maxEntrantInput.setOnFocusChangeListener(maxEntrantListener);
@@ -361,7 +478,8 @@ public class EventCreationView extends AppCompatActivity {
     }
 
     private void initPlaces(String apiKey) {
-        if(!Places.isInitialized()) Places.initializeWithNewPlacesApiEnabled(this, apiKey);
+        if (!Places.isInitialized())
+            Places.initializeWithNewPlacesApiEnabled(this, apiKey);
 
         client = Places.createClient(this);
         token = AutocompleteSessionToken.newInstance();
@@ -376,10 +494,12 @@ public class EventCreationView extends AppCompatActivity {
 
         // Event needs some address, but custom is allowed too
         locationInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if(!hasFocus) {
+            if (!hasFocus) {
                 String input = locationInput.getText().toString();
-                if(input.isEmpty()) locationInput.setError("Address is required.");
-                else locationInput.setError(null);
+                if (input.isEmpty())
+                    locationInput.setError("Address is required.");
+                else
+                    locationInput.setError(null);
             }
         });
     }
@@ -408,7 +528,7 @@ public class EventCreationView extends AppCompatActivity {
                 @Override
                 protected FilterResults performFiltering(CharSequence constraint) {
                     FilterResults filterRes = new FilterResults();
-                    if(constraint != null) {
+                    if (constraint != null) {
                         List<String> predictions = getPlacePredictions(constraint);
                         if (predictions != null) {
                             filterRes.values = predictions;
@@ -420,7 +540,7 @@ public class EventCreationView extends AppCompatActivity {
 
                 @Override
                 protected void publishResults(CharSequence constraint, FilterResults results) {
-                    if(results != null && results.count > 0) {
+                    if (results != null && results.count > 0) {
                         resultList = (List<String>) results.values;
                         notifyDataSetChanged();
                     } else {
@@ -444,8 +564,7 @@ public class EventCreationView extends AppCompatActivity {
                 FindAutocompletePredictionsResponse response = Tasks.await(
                         client.findAutocompletePredictions(request),
                         60,
-                        TimeUnit.SECONDS
-                );
+                        TimeUnit.SECONDS);
 
                 if (response != null) {
                     for (AutocompletePrediction prediction : response.getAutocompletePredictions()) {
@@ -461,7 +580,9 @@ public class EventCreationView extends AppCompatActivity {
     }
 
     /**
-     * Validates all input fields, and gets all the strings then passes to the Controller
+     * Validates all input fields, and gets all the strings then passes to the
+     * Controller
+     * 
      * @param tagList, a list of all tags for the event
      */
     private void confirmationPass(ArrayList<String> tagList) {
@@ -510,14 +631,55 @@ public class EventCreationView extends AppCompatActivity {
             hasError = true;
         }
 
+        if (dateTime != null && openPeriodDate != null) {
+            if (!openPeriodDate.before(dateTime)) {
+                openPeriodInput.setError("Opening date must be before the event date");
+                Toast.makeText(this, "Opening date must be before the event date", Toast.LENGTH_SHORT).show();
+                hasError = true;
+            }
+        }
+
+        Date now = new Date();
+        if (dateTime != null && dateTime.before(now)) {
+            eventDateInput.setError("Event date cannot be in the past");
+            Toast.makeText(this, "Event date cannot be in the past", Toast.LENGTH_SHORT).show();
+            hasError = true;
+        }
+
+        if (openPeriodDate != null && openPeriodDate.before(now)) {
+            openPeriodInput.setError("Opening date cannot be in the past");
+            Toast.makeText(this, "Opening date cannot be in the past", Toast.LENGTH_SHORT).show();
+            hasError = true;
+        }
+
+        if (openPeriodDate != null && closePeriodDate != null) {
+            if (closePeriodDate.before(openPeriodDate)) {
+                closePeriodInput.setError("Closing date must be after the opening date");
+                Toast.makeText(this, "Closing date must be after the opening date", Toast.LENGTH_SHORT).show();
+                hasError = true;
+            }
+        }
+
+        if (dateTime != null && closePeriodDate != null) {
+            if (closePeriodDate.after(dateTime)) {
+                closePeriodInput.setError("Closing date must be before the event date");
+                Toast.makeText(this, "Closing date must be before the event date", Toast.LENGTH_SHORT).show();
+                hasError = true;
+            }
+        }
+
         int entrantLimit = 0;
         try {
-            entrantLimit = Integer.parseInt(maxEntrantInput.getText()==null ? "" : maxEntrantInput.getText().toString().trim());
-            if(entrantLimit <= 0) throw new NumberFormatException("Negative");
+            entrantLimit = Integer
+                    .parseInt(maxEntrantInput.getText() == null ? "" : maxEntrantInput.getText().toString().trim());
+            if (entrantLimit <= 0)
+                throw new NumberFormatException("Negative");
             maxEntrantInput.setError(null);
         } catch (NumberFormatException e) {
-            if(e.getMessage() != null && e.getMessage().equals("Negative")) maxEntrantInput.setError("Max Entrants Must Be Positive");
-            else maxEntrantInput.setError("Max Entrants is Required");
+            if (e.getMessage() != null && e.getMessage().equals("Negative"))
+                maxEntrantInput.setError("Max Entrants Must Be Positive");
+            else
+                maxEntrantInput.setError("Max Entrants is Required");
             hasError = true;
         }
 
@@ -566,11 +728,12 @@ public class EventCreationView extends AppCompatActivity {
     }
 
     /**
-     * Launcher for selecting an image from the device’s gallery, then the image is saved as a uri
+     * Launcher for selecting an image from the device’s gallery, then the image is
+     * saved as a uri
      * and displayed for the user to see how it looks
      */
-    private final ActivityResultLauncher<String> imagePickerLauncher =
-            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+    private final ActivityResultLauncher<String> imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetContent(), uri -> {
                 if (uri != null) {
                     selectedBannerUri = uri;
                     bannerInput.setImageURI(uri);
@@ -578,7 +741,8 @@ public class EventCreationView extends AppCompatActivity {
             });
 
     /**
-     * Opens the device’s gallery to allow the user to pick a banner image, limits valid items to only
+     * Opens the device’s gallery to allow the user to pick a banner image, limits
+     * valid items to only
      * images
      */
     private void openGallery() {
@@ -586,7 +750,8 @@ public class EventCreationView extends AppCompatActivity {
     }
 
     /**
-     * Validates that all required EditTexts are filled in, if any EditTexts are empty
+     * Validates that all required EditTexts are filled in, if any EditTexts are
+     * empty
      * they are highlighted and the user is prompted to fill them in
      *
      * @param fields an array of EditTexts to validate.
@@ -607,7 +772,9 @@ public class EventCreationView extends AppCompatActivity {
             if (text.isEmpty()) {
                 Log.e("PENIS", "WEINOR");
                 allFilled = false;
-                layout.setBoxStrokeColorStateList( new ColorStateList(new int[][] {new int[]{android.R.attr.state_focused}, new int[] {}}, new int[] {getColor(R.color.error_red), getColor(R.color.error_red)}));
+                layout.setBoxStrokeColorStateList(
+                        new ColorStateList(new int[][] { new int[] { android.R.attr.state_focused }, new int[] {} },
+                                new int[] { getColor(R.color.error_red), getColor(R.color.error_red) }));
             }
         }
         if (!allFilled) {
@@ -673,7 +840,8 @@ public class EventCreationView extends AppCompatActivity {
                     try {
                         String encodedImage = event.getPosterImageUrl();
                         byte[] decodedBytes = android.util.Base64.decode(encodedImage, android.util.Base64.DEFAULT);
-                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0,
+                                decodedBytes.length);
                         bannerInput.setImageBitmap(bitmap);
                         // Don't set selectedBannerUri - we loaded from existing data
                     } catch (Exception e) {
@@ -684,10 +852,10 @@ public class EventCreationView extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(EventCreationView.this, "Error loading event: " + errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(EventCreationView.this, "Error loading event: " + errorMessage, Toast.LENGTH_SHORT)
+                        .show();
                 finish();
             }
-
 
         });
     }
@@ -711,7 +879,8 @@ public class EventCreationView extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(EventCreationView.this, "Error deleting event: " + errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(EventCreationView.this, "Error deleting event: " + errorMessage, Toast.LENGTH_SHORT)
+                        .show();
             }
         });
     }

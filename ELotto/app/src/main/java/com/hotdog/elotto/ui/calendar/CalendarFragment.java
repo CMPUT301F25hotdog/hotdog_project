@@ -10,13 +10,21 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hotdog.elotto.R;
+import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.callback.FirestoreListCallback;
+import com.hotdog.elotto.helpers.Status;
 import com.hotdog.elotto.model.Event;
+import com.hotdog.elotto.model.Organizer;
+import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
+import com.hotdog.elotto.ui.home.MyEventsView;
+import com.hotdog.elotto.ui.profile.EventHistoryFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -63,6 +71,8 @@ public class CalendarFragment extends Fragment {
 
     /** Adapter that binds {@link Event} objects into event cards. */
     private CalendarEventAdapter eventAdapter;
+    /** Organizer instance that allows us to check if the user is an organizer for an event */
+    private Organizer organizer;
 
     /** Repository responsible for loading events from Firestore. */
     private final EventRepository eventRepository = new EventRepository();
@@ -78,6 +88,9 @@ public class CalendarFragment extends Fragment {
      * selection. When no day is selected, this simply contains all events.
      */
     private final List<Event> visibleEvents = new ArrayList<>();
+
+    /** User reference */
+    private User user;
 
     /**
      * Formatter used to render the "Events on March 15" header text.
@@ -124,10 +137,33 @@ public class CalendarFragment extends Fragment {
         calendarView = view.findViewById(R.id.calendar_view);
         tvEventsTitle = view.findViewById(R.id.tv_events_title);
         rvEvents = view.findViewById(R.id.rv_events);
+        organizer = new Organizer(requireContext());
+        user = new User(requireContext(), (user) -> {
+            eventAdapter = new CalendarEventAdapter(requireContext(), visibleEvents);
+            // Set click listener for event cards
+            eventAdapter.setOnEventClickListener(new EventAdapter.OnEventClickListener() {
+                @Override
+                public void onEventClick(Event event) {
+                    // Check if user is registered and has Invited status
+                    Status userStatus = getUserStatusForEvent(event.getId(), user);
+
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("event", event);
+                    NavController navController = NavHostFragment.findNavController(CalendarFragment.this);
+
+                    // If user is invited and invitation hasn't expired then go to accept/decline screen
+                    if (userStatus == Status.Selected) {
+                        navController.navigate(R.id.action_navigation_calendar_to_acceptDeclineInvitationFragment, bundle);
+                    } else {
+                        // default to regular event details screen
+                        navController.navigate(R.id.action_navigation_calendar_to_eventDetailsFragment, bundle);
+                    }
+                }
+            });
+        });
 
         // Set up RecyclerView
         rvEvents.setLayoutManager(new LinearLayoutManager(requireContext()));
-        eventAdapter = new CalendarEventAdapter(requireContext(), visibleEvents);
         rvEvents.setAdapter(eventAdapter);
 
         // Start the calendar on "today"
@@ -143,6 +179,19 @@ public class CalendarFragment extends Fragment {
 
         // Load events from Firestore
         loadEvents();
+    }
+
+    /**
+     * Get the user's status for a specific event.
+     *
+     * @param eventId The ID of the event
+     * @return The user's Status for this event, or null if not found
+     */
+    private Status getUserStatusForEvent(String eventId, User user) {
+        User.RegisteredEvent event = user.getSingleRegEvent(eventId);
+        if(event!=null) return event.getStatus();
+
+        return null;
     }
 
     /**

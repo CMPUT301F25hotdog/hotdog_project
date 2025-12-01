@@ -12,6 +12,7 @@
     <color name="dark_grey">#A9A9A9</color>
 
 
+    <color name="error_red">#FF0000</color>
     <color name="thumb_blue">#2460d1</color>
     <color name="thumb_grey">#CECCCC</color>
     <color name="track_blue">#91AEE4</color>

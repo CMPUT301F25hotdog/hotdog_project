@@ -2,6 +2,9 @@ package com.hotdog.elotto.ui.calendar;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hotdog.elotto.R;
+import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.model.Event;
 
 import java.text.SimpleDateFormat;
@@ -33,6 +37,8 @@ public class CalendarEventAdapter extends RecyclerView.Adapter<CalendarEventAdap
 
     private final LayoutInflater inflater;
     private final Context context;
+
+    private EventAdapter.OnEventClickListener listener;
     private List<Event> events;
 
     /**
@@ -52,6 +58,15 @@ public class CalendarEventAdapter extends RecyclerView.Adapter<CalendarEventAdap
         this.context = context;
         this.inflater = LayoutInflater.from(context);
         this.events = events;
+    }
+
+    /**
+     * Sets the listener that catches the clicks.
+     *
+     * @param listener The listener that actually does the work when a click happens.
+     */
+    public void setOnEventClickListener(EventAdapter.OnEventClickListener listener) {
+        this.listener = listener;
     }
 
     /**
@@ -91,6 +106,24 @@ public class CalendarEventAdapter extends RecyclerView.Adapter<CalendarEventAdap
         holder.eventStatusTextView.setBackgroundTintList(
                 ColorStateList.valueOf(getStatusColor(rawStatus))
         );
+        holder.eventStatusTextView2.setText("");
+        holder.eventStatusTextView2.setBackgroundTintList(
+                ColorStateList.valueOf(ContextCompat.getColor(context, R.color.white))
+        );
+
+        String base64Image = event.getPosterImageUrl(); // assuming your Base64 string is stored here
+        if (base64Image != null && !base64Image.isEmpty()) {
+            try {
+                byte[] decodedBytes = Base64.decode(base64Image, Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                holder.eventImageView.setImageBitmap(bitmap);
+            } catch (IllegalArgumentException e) {
+                // Base64 string is invalid
+                holder.eventImageView.setImageResource(R.drawable.baseline_image_24); // fallback
+            }
+        } else {
+            holder.eventImageView.setImageResource(R.drawable.baseline_image_24); // fallback
+        }
     }
 
     @Override
@@ -102,13 +135,14 @@ public class CalendarEventAdapter extends RecyclerView.Adapter<CalendarEventAdap
      * ViewHolder that stores references to all
      * UI components inside a single event card.
      */
-    static class EventViewHolder extends RecyclerView.ViewHolder {
+    class EventViewHolder extends RecyclerView.ViewHolder {
         ImageView eventImageView;
         TextView eventNameTextView;
         TextView eventDateTextView;
         TextView eventLocationTextView;
         TextView eventEntryCountTextView;
         TextView eventStatusTextView;
+        TextView eventStatusTextView2;
 
         EventViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -118,6 +152,19 @@ public class CalendarEventAdapter extends RecyclerView.Adapter<CalendarEventAdap
             eventLocationTextView = itemView.findViewById(R.id.eventLocationTextView);
             eventEntryCountTextView = itemView.findViewById(R.id.eventEntryCountTextView);
             eventStatusTextView = itemView.findViewById(R.id.eventStatusTextView);
+            eventStatusTextView2 = itemView.findViewById(R.id.eventStatusTextView2);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null) {
+                        int position = getBindingAdapterPosition();
+                        if (position != RecyclerView.NO_POSITION) {
+                            listener.onEventClick(events.get(position));
+                        }
+                    }
+                }
+            });
         }
     }
 
