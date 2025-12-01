@@ -21,6 +21,7 @@ import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.EventHistoryAdapter;
 import com.hotdog.elotto.callback.FirestoreCallback;
 import com.hotdog.elotto.helpers.Status;
+import com.hotdog.elotto.helpers.UserStatus;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
@@ -129,11 +130,11 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
      */
     private void loadUserEventHistory() {
         // Get current user
-        currentUser = new User(requireContext(), false);
+        currentUser = new User(requireContext());
 
         // Wait a moment for user data to load, then fetch events
         new android.os.Handler().postDelayed(() -> {
-            if (currentUser.exists()) {
+            if (currentUser.exists()== UserStatus.Existent) {
                 fetchUserEvents();
             } else {
                 Log.e(TAG, "User does not exist");

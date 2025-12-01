@@ -110,8 +110,8 @@
             android:id="@+id/switchOrganizer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:thumbTint="@color/main_icon_blue"
-            app:trackTint="@color/background_light_grey" />
+            app:thumbTint="@color/switch_thumb_tint"
+            app:trackTint="@color/switch_track_tint" />
     </LinearLayout>
 
     <LinearLayout
@@ -154,8 +154,8 @@
             android:id="@+id/switchAdmin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:thumbTint="@color/main_icon_blue"
-            app:trackTint="@color/background_light_grey" />
+            app:thumbTint="@color/switch_thumb_tint"
+            app:trackTint="@color/switch_track_tint"  />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

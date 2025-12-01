@@ -1,15 +1,15 @@
 package com.hotdog.elotto.model;
 
 import com.google.firebase.Timestamp;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
  * Represents a notification sent to a user.
  * Stored within a list in the user's notification document.
- *
- * @author Layne Pitman
- * @version 1.0
- * @since 2025-11-26
  */
 public class Notification {
     private String uuid;
@@ -20,21 +20,11 @@ public class Notification {
     private String eventId;
     private String eventTitle;
     private String eventImageUrl;
+    private String userId;
 
-    /**
-     * Default constructor required for Firestore serialization.
-     */
     public Notification() {
     }
 
-    /**
-     * Creates a new Notification.
-     *
-     * @param title   The title of the notification.
-     * @param message The body message of the notification.
-     * @param eventId The ID of the event associated with this notification
-     *                (optional).
-     */
     public Notification(String title, String message, String eventId) {
         this.uuid = UUID.randomUUID().toString();
         this.timestamp = Timestamp.now();
@@ -106,5 +96,29 @@ public class Notification {
 
     public void setEventImageUrl(String eventImageUrl) {
         this.eventImageUrl = eventImageUrl;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getFormattedTimestamp() {
+        if (timestamp != null) {
+            Date date = timestamp.toDate();
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd 'at' h:mm a", Locale.getDefault());
+            return sdf.format(date);
+        }
+        return "Unknown time";
+    }
+
+    public String getShortUserId() {
+        if (userId != null && userId.length() > 8) {
+            return userId.substring(0, 8) + "...";
+        }
+        return userId;
     }
 }

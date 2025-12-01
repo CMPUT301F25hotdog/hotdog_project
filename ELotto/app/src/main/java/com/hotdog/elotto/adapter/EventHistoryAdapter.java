@@ -188,7 +188,7 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
          */
         private void setStatusBadge(Event event) {
             // Get current user to check their status
-            User currentUser = new User(context, false);
+            User currentUser = new User(context);
 
             // Wait briefly for user data to load
             new android.os.Handler().postDelayed(() -> {

@@ -37,6 +37,47 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- Pending Events Section -->
+            <TextView
+                android:id="@+id/pendingEventsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pending Events"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="12dp" />
+
+            <!-- Pending Events RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/pendingEventsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="1"
+                tools:listitem="@layout/item_event_history" />
+
+            <!-- Empty State for Pending Events -->
+            <TextView
+                android:id="@+id/pendingEventsEmptyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No pending events"
+                android:textColor="@color/form_icon"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:padding="24dp"
+                android:visibility="gone" />
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/border_grey"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp" />
+
+
             <!-- Drawn Events Section -->
             <TextView
                 android:id="@+id/drawnEventsTitle"
@@ -69,45 +110,6 @@
                 android:padding="24dp"
                 android:visibility="gone" />
 
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/border_grey"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp" />
-
-            <!-- Pending Events Section -->
-            <TextView
-                android:id="@+id/pendingEventsTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pending Events"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:paddingBottom="12dp" />
-
-            <!-- Pending Events RecyclerView -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/pendingEventsRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:itemCount="1"
-                tools:listitem="@layout/item_event_history" />
-
-            <!-- Empty State for Pending Events -->
-            <TextView
-                android:id="@+id/pendingEventsEmptyText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="No pending events"
-                android:textColor="@color/form_icon"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:padding="24dp"
-                android:visibility="gone" />
 
         </LinearLayout>
 

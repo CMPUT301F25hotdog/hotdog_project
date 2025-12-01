@@ -51,26 +51,13 @@ public class EventCreationController {
     }
     /**
      * Encodes an image Uri into a string to be stored
-     *
-     *
-     * @param name          the name of the event.
-     * @param description   the description of the event.
-     * @param dateTime      the scheduled date and time of the event.
-     * @param openPeriod    the event’s opening registration period.
-     * @param closePeriod   the event’s closing registration period.
-     * @param entrantLimit  the maximum number of entrants allowed.
-     * @param waitListSize  the maximum size of the event waitlist.
-     * @param location      the location of the event.
-     * @param price         the ticket price for the event.
-     * @param requireGeo    whether geolocation is required for participation.
      * @param bannerUri     a URI pointing to the banner image selected by the user.
      *
      * https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database
      * used to figure out how to convert images into strings to store
      */
-    public void EncodeImage(String name, String description, Date dateTime, Date openPeriod,
-                            Date closePeriod, int entrantLimit, int waitListSize,
-                            String location, double price, boolean requireGeo, Uri bannerUri, ArrayList<String> tags) {
+    public String EncodeImage(Uri bannerUri) {
+        String base64String = "no_image";
         if (bannerUri != null) {
             try {
                 InputStream inputStream = context.getContentResolver().openInputStream(bannerUri);
@@ -80,25 +67,18 @@ public class EventCreationController {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
                     byte[] imageBytes = baos.toByteArray();
-                    String base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+                    base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
-                    SaveEvent(name, description, dateTime, openPeriod, closePeriod,
-                            entrantLimit, waitListSize, location, price, requireGeo, base64String,tags);
+
                 } else {
-                    SaveEvent(name, description, dateTime, openPeriod, closePeriod,
-                            entrantLimit, waitListSize, location, price, requireGeo,
-                            "image_failed_nullinput",tags);
+                    base64String = "image_failed_null";
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                SaveEvent(name, description, dateTime, openPeriod, closePeriod,
-                        entrantLimit, waitListSize, location, price, requireGeo,
-                        "image_failed_exception",tags);
+                base64String = "image_failed_exception";
             }
-        } else {
-            SaveEvent(name, description, dateTime, openPeriod, closePeriod,
-                    entrantLimit, waitListSize, location, price, requireGeo, "no_image",tags);
         }
+        return base64String;
     }
 
     /**
@@ -152,4 +132,55 @@ public class EventCreationController {
             }
         });
     }
+    /**
+     * Updates an existing event in the database
+     *
+     * @param eventId the ID of the event to update
+     * @param name the name of the event
+     * @param description a brief description of the event
+     * @param dateTime the scheduled event date and time
+     * @param openPeriod the registration open date
+     * @param closePeriod the registration close date
+     * @param entrantLimit the maximum number of attendees allowed
+     * @param waitListSize the number of users that can be on the waitlist
+     * @param location the physical or virtual location of the event
+     * @param price the cost to participate in the event
+     * @param requireGeo whether the event enforces geolocation verification
+     * @param bannerUrl the Base64-encoded image string or fallback identifier
+     * @param tagList the list of tags for the event
+     */
+    public void UpdateEvent(String eventId, String name, String description, Date dateTime,
+                            Date openPeriod, Date closePeriod, int entrantLimit, int waitListSize,
+                            String location, double price, boolean requireGeo, String bannerUrl,
+                            ArrayList<String> tagList) {
+
+        // Create event object with updated data
+        Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
+        event.setUpdatedAt(new Date());
+        event.setGeolocationRequired(requireGeo);
+        event.setPosterImageUrl(bannerUrl);
+        event.setPrice(price);
+        event.setTagList(tagList);
+
+        // Keep the organizer ID (don't change it)
+        Organizer org = new Organizer(context);
+        event.setOrganizerId(org.getId());
+
+        // Update the event in the database
+        repository.updateEvent(eventId, event, new OperationCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(context, "Event updated successfully!", Toast.LENGTH_SHORT).show();
+                if (context instanceof Activity) {
+                    ((Activity) context).finish();
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(context, "Failed to update event: " + errorMessage, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
 }

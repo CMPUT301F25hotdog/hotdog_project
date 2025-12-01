@@ -14,5 +14,9 @@
         <!-- Status bar color - Keep it white/light -->
         <item name="android:statusBarColor">@color/white</item>
         <item name="android:windowLightStatusBar">true</item>
+
+    </style>
+    <style name="Widget.Elotto.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <item name="boxStrokeErrorColor">@color/error_red</item>
     </style>
 </resources>

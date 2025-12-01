@@ -15,10 +15,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -44,14 +46,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.security.auth.callback.Callback;
+/**
+ * MyEventsView is a Fragment that displays a list of events created
+ * by an organizer and allows them to create new events.
+ */
 
 public class MyEventsView extends Fragment {
     private FloatingActionButton createEventButton;
     private EventAdapter eventAdapter;
-    private ProgressBar loadingProgressBar;
     private ActivityResultLauncher<Intent> createEventLauncher;
     private Organizer organizer;
-
+    private ConstraintLayout myEventsCover;
+    private ProgressBar loadingProgressBar;
+    private TextView myEventsEmpty;
+    /**
+     * Called when the fragment is first created.
+     * Initializes components like Organizer} and EventAdapter,
+     * registers the activity result launcher, and loads the organizer’s events.
+     *
+     * @param savedInstanceState the previously saved state of the fragment, or null if none exists
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +85,14 @@ public class MyEventsView extends Fragment {
                     }
                 });
     }
-
+    /**
+     * Inflates the layout for this fragment.
+     *
+     * @param inflater  LayoutInflater object to inflate views
+     * @param container The parent view the fragment's UI should attach to
+     * @param savedInstanceState the previously saved instance state, or null
+     * @return The root View for the fragment’s layout
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -81,6 +102,10 @@ public class MyEventsView extends Fragment {
         View view = inflater.inflate(R.layout.fragment_my_events, container, false);
 
         loadingProgressBar = view.findViewById(R.id.myEventsLoadingProgressBar);
+        myEventsEmpty = view.findViewById(R.id.MyEventsEmpty);
+        myEventsCover = view.findViewById(R.id.MyEventsCover);
+
+        loading(true);
 
         view.findViewById(R.id.profileButtonMyEvents).setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(requireContext(), v);
@@ -123,7 +148,14 @@ public class MyEventsView extends Fragment {
 
         return view;
     }
-
+    /**
+     * Called after the view hierarchy has been created.
+     * Sets up the RecyclerView, configures the adapter,
+     * and attaches the listener to the “Create New Event” button.
+     *
+     * @param view The root view of the fragment’s layout
+     * @param savedInstanceState the previously saved instance state, or {@code null}
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -162,23 +194,44 @@ public class MyEventsView extends Fragment {
         // Initial load
         loadEvents();
     }
-
+    /**
+     * Called when the fragment becomes visible again.
+     * Ensures the event list is refreshed in case new events have been created
+     */
     @Override
     public void onResume() {
         super.onResume();
         this.loadEvents();
     }
-
-    private void loadEvents() {
+    /**
+     * Loads the list of events belonging to the organizer and updates the adapter.
+     * Uses a FirestoreCallback to handle asynchronous data loading.
+     */
+    private void loadEvents(){
         organizer.getEventList(new FirestoreCallback<>() {
             @Override
             public void onSuccess(List<Event> result) {
                 eventAdapter.updateEvents(result);
+                loading(false);
+                empty(result.isEmpty());
             }
 
             @Override
             public void onError(String errorMessage) {
+                empty(true);
             }
         });
+    }
+
+    private void empty(boolean value) {
+        this.myEventsCover.setVisibility(value ? View.VISIBLE : View.GONE);
+        this.loadingProgressBar.setVisibility(value ? View.GONE : this.loadingProgressBar.getVisibility());
+        this.myEventsEmpty.setVisibility(value ? View.VISIBLE : View.GONE);
+    }
+
+    private void loading(boolean value) {
+        this.myEventsCover.setVisibility(value ? View.VISIBLE : View.GONE);
+        this.myEventsEmpty.setVisibility(value ? View.GONE: this.myEventsEmpty.getVisibility());
+        this.loadingProgressBar.setVisibility(value ? View.VISIBLE : View.GONE);
     }
 }

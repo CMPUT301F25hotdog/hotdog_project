@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.navigation.ui)
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("com.google.android.libraries.places:places:5.1.1")
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.intents)
@@ -78,6 +79,10 @@ dependencies {
     //new
     androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
     implementation(libs.zxing.core)
+
+    // GLIDE - Image Loading Library
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 }
 tasks.withType<Test>{
     useJUnitPlatform()
