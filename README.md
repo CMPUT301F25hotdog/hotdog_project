@@ -15,13 +15,13 @@
 
 ## **Project Description**
 
-The Event Lottery System Application is an Android application designed to provide fair and accessible registration for high-demand community events. Rather than relying on traditional first-come-first-served signups, the application implements a lottery-based selection system to ensure equitable participation opportunities for all users.
+- The Event Lottery System Application is an Android application designed to provide fair and accessible registration for high-demand community events. Rather than relying on traditional first-come-first-served signups, the application implements a lottery-based selection system to ensure equitable participation opportunities for all users.
 
-Event organizers can create and manage events, establish registration periods, and allow entrants to join waiting lists. Upon closure of the registration period, the system employs a randomized selection algorithm to choose participants and deliver automated notifications. 
+- Event organizers can create and manage events, establish registration periods, and allow entrants to join waiting lists. Upon closure of the registration period, the system employs a randomized selection algorithm to choose participants and deliver automated notifications. 
 
-Selected entrants may then accept or decline their invitations, with the system automatically conducting replacement draws to fill any declined positions.
+- Selected entrants may then accept or decline their invitations, with the system automatically conducting replacement draws to fill any declined positions.
 
-Administrators maintain system oversight with capabilities to browse and manage all events, user profiles, images, and notifications, ensuring platform integrity and compliance with community standards while facilitating seamless interaction among organizers, entrants, and administrators within a unified platform.
+- Administrators maintain system oversight with capabilities to browse and manage all events, user profiles, images, and notifications, ensuring platform integrity and compliance with community standards while facilitating seamless interaction among organizers, entrants, and administrators within a unified platform.
 
 ---
 
