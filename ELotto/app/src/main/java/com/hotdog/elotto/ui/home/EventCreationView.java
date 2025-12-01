@@ -118,7 +118,6 @@ public class EventCreationView extends AppCompatActivity {
     private PlacesClient client;
     private AutocompleteSessionToken token;
     private PlaceAutoSuggestAdapter placeAutoSuggestAdapter;
-
     private static class DecimalInputFilter implements InputFilter {
         private final Pattern inPattern;
 
@@ -705,7 +704,9 @@ public class EventCreationView extends AppCompatActivity {
             Toast.makeText(this, "Please correct the highlighted fields", Toast.LENGTH_SHORT).show();
             return;
         }
+        boolean testMode = getIntent().getBooleanExtra("TEST_MODE", false);
         EventCreationController controller = new EventCreationController(this);
+        controller.setTestMode(testMode);
         String encodedString = controller.EncodeImage(selectedBannerUri);
         int maxFirestoreSize = 900000;
         int encodedSize = encodedString.getBytes().length;
@@ -720,8 +721,9 @@ public class EventCreationView extends AppCompatActivity {
                     closePeriodDate, entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList);
         } else {
             // Create new event
+            String organizerName = getIntent().getStringExtra("ORGANIZER_NAME");
             controller.SaveEvent(eventName, eventDescription, dateTime, openPeriodDate, closePeriodDate,
-                    entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList);
+                    entrantLimit, waitListSize, location, price, requireGeo, encodedString, tagList, organizerName);
         }
 
         finish();

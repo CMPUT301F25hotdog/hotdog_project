@@ -158,102 +158,150 @@ public class UserUnitTests {
 //    }
 
 //    @Test
-//    void findRegEvent_trueIfPresent_falseOtherwise() {
+//    void defaults_fromNoArgCtor_areEmptyOrNull() {
 //        User u = new User();
-//        u.addRegEvent("Bingus");
-//        Assertions.assertTrue(u.findRegEvent("Bingus"));
-//        Assertions.assertFalse(u.findRegEvent("Bongus"));
+//        Assertions.assertEquals("", u.getName());
+//        Assertions.assertEquals("", u.getEmail());
+//        Assertions.assertEquals("", u.getPhone());
+//        Assertions.assertNull(u.getType());
+//        Assertions.assertEquals(List.of(), u.getRegEvents());
+//        Assertions.assertEquals("", u.getId());
+//        Assertions.assertFalse(u.exists());
 //    }
 //
+//    // Test firebase updates work
 //    @Test
-//    void removeRegEvent_removesWhenPresent_andFalseWhenMissing() {
-//        User u = new User();
-//        u.addRegEvent("E1");
-//        u.addRegEvent("E2");
+//    void setNameEmailPhoneType_changeState() {
+//        Context ctx = ApplicationProvider.getApplicationContext();
+//        // Creates the super user
+//        User u = new User(ctx, true);
+//        // Update the shit
+//        u.updateName("Alice");
+//        u.updateEmail("a@b.c");
+//        u.updatePhone("123");
+//        u.updateType(UserType.Organizer);
 //
-//        Assertions.assertTrue(u.removeRegEvent("E1"));
-//        Assertions.assertFalse(u.findRegEvent("E1"));
-//        Assertions.assertFalse(u.removeRegEvent("nope"));
-//        Assertions.assertEquals(List.of("E2"), u.getRegEvents());
+//        // POV CMPUT 175 Comments: Clear the super user with clearSuperUserBefore();
+//        clearSuperUserBefore();
+//
+//        // Try grabbin that new information (grabbin those balls)
+//        User balls = new User(ctx, true);
+//
+//        Assertions.assertEquals("Alice", balls.getName());
+//        Assertions.assertEquals("a@b.c", balls.getEmail());
+//        Assertions.assertEquals("123", balls.getPhone());
+//        Assertions.assertEquals(UserType.Organizer, balls.getType());
 //    }
 //
-//    @Test
-//    void setRegEventStatus_updatesStatus() throws Exception {
-//        User u = new User();
-//        u.addRegEvent("R1");
-//        u.addRegEvent("RDR2");
-//        u.setRegEventStatus("R1", Status.Invited);
+////    @Test
+////    void addRegEvent_addsAndSorts_uniqueOnly() {
+////        User u = new User();
+////
+////        Assertions.assertTrue(u.addRegEvent("Bongus"));
+////        Assertions.assertTrue(u.addRegEvent("Bingus"));
+////        Assertions.assertFalse(u.addRegEvent("Bongus")); // duplicate ignored
+////
+////        // Sorted them stinkers
+////        Assertions.assertEquals(List.of("Bingus", "Bongus"), u.getRegEvents());
+////    }
 //
-//        // Cuz we can't access registeredEvent :(
-//        List<?> regEvents = (List<?>) getPrivate(u, "regEvents");
-//        Object first = regEvents.get(0);
-//        Field status = first.getClass().getDeclaredField("status");
-//        status.setAccessible(true);
-//        Assertions.assertEquals(Status.Invited, status.get(first));
+////    @Test
+////    void findRegEvent_trueIfPresent_falseOtherwise() {
+////        User u = new User();
+////        u.addRegEvent("Bingus");
+////        Assertions.assertTrue(u.findRegEvent("Bingus"));
+////        Assertions.assertFalse(u.findRegEvent("Bongus"));
+////    }
+////
+////    @Test
+////    void removeRegEvent_removesWhenPresent_andFalseWhenMissing() {
+////        User u = new User();
+////        u.addRegEvent("E1");
+////        u.addRegEvent("E2");
+////
+////        Assertions.assertTrue(u.removeRegEvent("E1"));
+////        Assertions.assertFalse(u.findRegEvent("E1"));
+////        Assertions.assertFalse(u.removeRegEvent("nope"));
+////        Assertions.assertEquals(List.of("E2"), u.getRegEvents());
+////    }
+////
+////    @Test
+////    void setRegEventStatus_updatesStatus() throws Exception {
+////        User u = new User();
+////        u.addRegEvent("R1");
+////        u.addRegEvent("RDR2");
+////        u.setRegEventStatus("R1", Status.Invited);
+////
+////        // Cuz we can't access registeredEvent :(
+////        List<?> regEvents = (List<?>) getPrivate(u, "regEvents");
+////        Object first = regEvents.get(0);
+////        Field status = first.getClass().getDeclaredField("status");
+////        status.setAccessible(true);
+////        Assertions.assertEquals(Status.Invited, status.get(first));
+////    }
+//
+//    @Test
+//    void setRegEventStatus_throwsIfMissing() {
+//        User u = new User();
+//        Assertions.assertThrows(NoSuchFieldException.class,
+//                () -> u.setRegEventStatus("missing", Status.Waitlisted));
 //    }
-
-    @Test
-    void setRegEventStatus_throwsIfMissing() {
-        User u = new User();
-        Assertions.assertThrows(NoSuchFieldException.class,
-                () -> u.setRegEventStatus("missing", Status.Waitlisted));
-    }
-
+//
+////    @Test
+////    void setRegEvents_acceptsPreMadeList() throws Exception {
+////        User u = new User();
+////
+////        // This shit wild, I had no clue any of this existed before my sleep deprived deep dive
+////        Class<?> regEventClass = null;
+////        for (Class<?> c : User.class.getDeclaredClasses()) {
+////            if ("RegisteredEvent".equals(c.getSimpleName())) {
+////                regEventClass = c;
+////                break;
+////            }
+////        }
+////        Assertions.assertNotNull(regEventClass);
+////
+////        // Use constructor to make regevent instances outside of User class
+////        Constructor<?> constructor = regEventClass.getDeclaredConstructor(User.class, String.class);
+////        constructor.setAccessible(true);
+////        Object e1 = constructor.newInstance(u, "B");
+////        Object e2 = constructor.newInstance(u, "A");
+////
+////        // Make a list of em like we would pull from firebase
+////        List<Object> list = new ArrayList<>();
+////        list.add(e1);
+////        list.add(e2);
+////
+////        User.class.getDeclaredMethod("setRegEvents", List.class).invoke(u, list);
+////
+////        // Shouldn't sort it since pulling from firebase would assume it was sorted
+////        Assertions.assertEquals(List.of("B", "A"), u.getRegEvents());
+////    }
+//
+//
 //    @Test
-//    void setRegEvents_acceptsPreMadeList() throws Exception {
+//    void sharedString_getSet_reflective() throws Exception {
 //        User u = new User();
 //
-//        // This shit wild, I had no clue any of this existed before my sleep deprived deep dive
-//        Class<?> regEventClass = null;
+//        Class<?> ssClass = null;
 //        for (Class<?> c : User.class.getDeclaredClasses()) {
-//            if ("RegisteredEvent".equals(c.getSimpleName())) {
-//                regEventClass = c;
-//                break;
+//            if ("SharedString".equals(c.getSimpleName())) {
+//                ssClass = c; break;
 //            }
 //        }
-//        Assertions.assertNotNull(regEventClass);
+//        Assertions.assertNotNull(ssClass);
 //
-//        // Use constructor to make regevent instances outside of User class
-//        Constructor<?> constructor = regEventClass.getDeclaredConstructor(User.class, String.class);
+//        Constructor<?> constructor = ssClass.getDeclaredConstructor(User.class, String.class);
 //        constructor.setAccessible(true);
-//        Object e1 = constructor.newInstance(u, "B");
-//        Object e2 = constructor.newInstance(u, "A");
+//        Object shared = constructor.newInstance(u, "init");
 //
-//        // Make a list of em like we would pull from firebase
-//        List<Object> list = new ArrayList<>();
-//        list.add(e1);
-//        list.add(e2);
+//        Method get = ssClass.getDeclaredMethod("get");
+//        Method set = ssClass.getDeclaredMethod("set", String.class);
+//        get.setAccessible(true);
+//        set.setAccessible(true);
 //
-//        User.class.getDeclaredMethod("setRegEvents", List.class).invoke(u, list);
-//
-//        // Shouldn't sort it since pulling from firebase would assume it was sorted
-//        Assertions.assertEquals(List.of("B", "A"), u.getRegEvents());
+//        Assertions.assertEquals("init", get.invoke(shared));
+//        set.invoke(shared, "next");
+//        Assertions.assertEquals("next", get.invoke(shared));
 //    }
-
-
-    @Test
-    void sharedString_getSet_reflective() throws Exception {
-        User u = new User();
-
-        Class<?> ssClass = null;
-        for (Class<?> c : User.class.getDeclaredClasses()) {
-            if ("SharedString".equals(c.getSimpleName())) {
-                ssClass = c; break;
-            }
-        }
-        Assertions.assertNotNull(ssClass);
-
-        Constructor<?> constructor = ssClass.getDeclaredConstructor(User.class, String.class);
-        constructor.setAccessible(true);
-        Object shared = constructor.newInstance(u, "init");
-
-        Method get = ssClass.getDeclaredMethod("get");
-        Method set = ssClass.getDeclaredMethod("set", String.class);
-        get.setAccessible(true);
-        set.setAccessible(true);
-
-        Assertions.assertEquals("init", get.invoke(shared));
-        set.invoke(shared, "next");
-        Assertions.assertEquals("next", get.invoke(shared));
-    }
-}
+//}

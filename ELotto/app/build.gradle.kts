@@ -7,11 +7,9 @@ plugins {
 android {
     namespace = "com.hotdog.elotto"
     compileSdk = 36
-    defaultConfig {
-        vectorDrawables.useSupportLibrary = true
-    }
 
     defaultConfig {
+        vectorDrawables.useSupportLibrary = true
         applicationId = "com.hotdog.elotto"
         minSdk = 26
         targetSdk = 36
@@ -51,6 +49,8 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.core)
     implementation(libs.recyclerview)
+    implementation(libs.play.services.location)
+    implementation(libs.play.services.maps)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.mockito.inline)
     testImplementation(libs.junit.jupiter)

@@ -27,16 +27,16 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Controller class responsible for managing event creation logic, including
- * data processing, image encoding, and interaction with Firestore and Storage.
+ * Controller class responsible for managing location logic, including
+ * finding and converting current location of the user.
  */
-public class EventCreationController {
+public class    EventCreationController {
     private FirebaseFirestore db;
     private CollectionReference eventsRef;
     private FirebaseStorage storage;
     private final Context context;
     private EventRepository repository;
-
+    private boolean testMode = false;
     /**
      * Constructs a new EventCreationController.
      *
@@ -86,27 +86,41 @@ public class EventCreationController {
         }
         return base64String;
     }
-
+    public void setTestMode(boolean testMode){
+        this.testMode = testMode;
+    }
     /**
      * Creates a new event and saves it to FireStore using the EventRepository
      * class, then opens up the QRCode
      * Screen, also runs updateOrganizer which creates or updates an organizer
      *
-     * @param name         the name of the event.
-     * @param description  a brief description of the event.
-     * @param dateTime     the scheduled event date and time.
-     * @param openPeriod   the registration open date.
-     * @param closePeriod  the registration close date.
-     * @param entrantLimit the maximum number of attendees allowed.
-     * @param waitListSize the number of users that can be on the waitlist.
-     * @param location     the physical or virtual location of the event.
-     * @param price        the cost to participate in the event.
-     * @param requireGeo   whether the event enforces geolocation verification.
-     * @param bannerUrl    the Base64-encoded image string or fallback identifier.
+     * @param name          the name of the event.
+     * @param description   a brief description of the event.
+     * @param dateTime      the scheduled event date and time.
+     * @param openPeriod    the registration open date.
+     * @param closePeriod   the registration close date.
+     * @param entrantLimit  the maximum number of attendees allowed.
+     * @param waitListSize  the number of users that can be on the waitlist.
+     * @param location      the physical or virtual location of the event.
+     * @param price         the cost to participate in the event.
+     * @param requireGeo    whether the event enforces geolocation verification.
+     * @param bannerUrl     the Base64-encoded image string or fallback identifier.
+     * @param tagList       a string list of tags
+     * @param organizerName the organizers name
      */
     public void SaveEvent(String name, String description, Date dateTime, Date openPeriod,
             Date closePeriod, int entrantLimit, int waitListSize,
-            String location, double price, boolean requireGeo, String bannerUrl, ArrayList<String> tagList) {
+            String location, double price, boolean requireGeo, String bannerUrl, ArrayList<String> tagList,String organizerName) {
+        if(testMode){
+            Intent qrIntent = new Intent(context, QRCodeView.class);
+            qrIntent.putExtra("EVENT_NAME", name);
+            qrIntent.putExtra("EVENT_ID", "1728");
+            context.startActivity(qrIntent);
+            if (context instanceof Activity) {
+                ((Activity) context).setResult(Activity.RESULT_OK);
+                ((Activity) context).finish();
+            }
+        }
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
         event.setCreatedAt(new Date());
         event.setUpdatedAt(new Date());
@@ -122,6 +136,7 @@ public class EventCreationController {
             event.setStatus("CLOSED");
         }
 
+        event.setOrganizerName(organizerName);
         repository.createEvent(event, new OperationCallback() {
             @Override
             public void onSuccess() {
