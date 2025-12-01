@@ -281,7 +281,7 @@ public class EventDetailsFragment extends Fragment {
             Toast.makeText(getContext(), "Error: Unable to join waitlist", Toast.LENGTH_SHORT).show();
             return;
         }
-
+//AHAHAHAHAHAAAAAAAAAAAAAAAAAAAAAAA
         // Checks if already registered
         if (currentUser.getRegEvents().contains(event.getId())) {
             Toast.makeText(getContext(),

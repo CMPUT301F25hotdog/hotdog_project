@@ -12,20 +12,17 @@ import org.junit.Test;
 
 
 public class LocationControllerTests {
-
     @Test
     public void testConvertToCoord_success() {
         Location fakeLocation = new Location("test");
-        fakeLocation.setLatitude(12.34);
-        fakeLocation.setLongitude(56.78);
-
+        fakeLocation.setLatitude(41.88);
+        fakeLocation.setLongitude(-87.65);
         Task<Location> successTask = Tasks.forResult(fakeLocation);
-
         LocationController.convertToCoord(successTask, coords -> {
             assertNotNull(coords);
             assertEquals(2, coords.size());
-            assertEquals(12.34, coords.get(0), 0.0001);
-            assertEquals(56.78, coords.get(1), 0.0001);
+            assertEquals(41.88, coords.get(0), 0.0001);
+            assertEquals(-87.65, coords.get(1), 0.0001);
         });
     }
 

@@ -1,3 +1,3 @@
 package com.hotdog.elotto.helpers;
 
-public enum Status {Pending, Invited, Waitlisted, Accepted, Declined, Withdrawn}
+public enum Status {Selected,Pending, Invited, Waitlisted, Accepted, Declined, Withdrawn}

@@ -30,7 +30,7 @@ public class LocationController {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
         this.context = context;
     }
-
+//shoot me
     /**
      * Retrieves the current device location using fine location.
      *
@@ -39,7 +39,6 @@ public class LocationController {
     public Task<Location> getCurrentLocation(){
         CancellationTokenSource cancellationToken = new CancellationTokenSource();
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
             return Tasks.forException(new SecurityException("Permission Not Granted"));
         }
         return fusedLocationProviderClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY,
