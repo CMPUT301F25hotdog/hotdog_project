@@ -121,22 +121,45 @@
                     tools:text="24 Entries / 35 Spots" />
             </LinearLayout>
 
-            <!-- Status Badge -->
-            <TextView
-                android:id="@+id/eventStatusTextView"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                android:background="@drawable/status_badge_background"
-                tools:text=""
-                tools:backgroundTint="@color/success_green" />
+                android:orientation="horizontal">
+            <!-- Status Badge -->
+                <TextView
+                    android:id="@+id/eventStatusTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:background="@drawable/status_badge_background"
+                    tools:text=""
+                    tools:backgroundTint="@color/success_green"
+                    android:layout_marginEnd="5dp"/>
+
+                <TextView
+                    android:id="@+id/eventStatusTextView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:background="@drawable/status_badge_background"
+                    tools:text=""
+                    tools:backgroundTint="@color/success_green"
+                    android:layout_marginStart="5dp" />
+            </LinearLayout>
 
         </LinearLayout>
 

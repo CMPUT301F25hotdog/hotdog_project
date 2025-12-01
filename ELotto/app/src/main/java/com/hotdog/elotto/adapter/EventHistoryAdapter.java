@@ -30,7 +30,7 @@ import java.util.Locale;
  *
  * <p><b>Outstanding Issues:</b> None currently</p>
  *
- * @author [Your Name]
+ * @author Bhuvnesh Batta & Layne Pitman
  * @version 1.0
  * @since 2025-11-23
  */
@@ -244,7 +244,7 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
             if (inAccepted) {
                 setStatusBadgeUI(Status.Accepted);
             } else if (inSelected) {
-                setStatusBadgeUI(Status.Invited);
+                setStatusBadgeUI(Status.Selected);
             } else if (inCancelled) {
                 setStatusBadgeUI(Status.Declined);
             } else if (inWaitlist) {
@@ -269,7 +269,7 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
             int backgroundResource;
 
             switch (status) {
-                case Invited:
+                case Selected:
                     statusText = "Selected";
                     backgroundResource = R.drawable.button_primary_background;
                     break;

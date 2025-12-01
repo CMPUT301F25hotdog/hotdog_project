@@ -3,22 +3,22 @@
 
     <item
         android:id="@+id/navigation_home"
-        android:icon="@drawable/ic_home_black_24dp"
+        android:icon="@drawable/selector_nav_home"
         android:title="@string/home" />
 
     <item
         android:id="@+id/eventHistoryFragment"
-        android:icon="@drawable/confirmation_number_24px"
+        android:icon="@drawable/selector_nav_entries"
         android:title="@string/entries" />
 
     <item
         android:id="@+id/navigation_calendar"
-        android:icon="@drawable/event_24px"
+        android:icon="@drawable/selector_nav_calendar"
         android:title="@string/calendar" />
 
     <item
         android:id="@+id/navigation_my_events"
-        android:icon="@drawable/trip_24px"
+        android:icon="@drawable/selector_nav_my_events"
         android:title="@string/my_events" />
 
 </menu>

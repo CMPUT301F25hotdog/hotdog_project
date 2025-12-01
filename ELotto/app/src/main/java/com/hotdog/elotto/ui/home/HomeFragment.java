@@ -23,16 +23,15 @@ import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.model.Event;
+import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
-
-import android.view.MenuInflater;
-import android.widget.PopupMenu;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import com.hotdog.elotto.helpers.Status;
 
 /**
  * HomeFragment displays a list of all available events that users can browse
@@ -43,9 +42,6 @@ import java.util.Set;
  *
  * Serves as the View layer of MVC design.
  *
- * Outstanding Issues:
- * Filter functionality not yet implemented.
- * Profile navigation not yet implemented.
  */
 public class HomeFragment extends Fragment {
 
@@ -60,6 +56,9 @@ public class HomeFragment extends Fragment {
     private EventRepository eventRepository;
     private List<Event> allEvents;
     private String currentUserId;
+    private User currentUser;
+
+    private Organizer organizer;
 
     private Set<String> currentSelectedTags = new HashSet<>();
     private DateFilter currentDateFilter = DateFilter.ALL_DATES;
@@ -71,8 +70,10 @@ public class HomeFragment extends Fragment {
         // Initialize repository
         eventRepository = new EventRepository();
 
-        User currentUser = new User(requireContext());
-        currentUserId = currentUser.getId();
+        currentUser = new User(requireContext(), (user) -> {
+            organizer = new Organizer(requireContext());
+            currentUserId = user.getId();
+        });
     }
 
     @Nullable
@@ -110,12 +111,75 @@ public class HomeFragment extends Fragment {
         eventAdapter.setOnEventClickListener(new EventAdapter.OnEventClickListener() {
             @Override
             public void onEventClick(Event event) {
+                // Check if user is registered and has Invited status
+                Status userStatus = getUserStatusForEvent(event.getId());
+
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("event", event);
                 NavController navController = NavHostFragment.findNavController(HomeFragment.this);
-                navController.navigate(R.id.action_navigation_home_to_eventDetails, bundle);
+
+                // If user is invited and invitation hasn't expired then go to accept/decline screen
+                if (event.getOrganizerId() != null && event.getOrganizerId().equals(organizer.getId())) {
+                    // Navigate to Organizer View
+                    bundle.putString("eventId", event.getId());
+                    navController.navigate(R.id.action_navigation_home_to_organizerEventEntrantsFragment, bundle);
+                } else if (userStatus == Status.Selected && !isInvitationExpired(event.getId())) {
+                    navController.navigate(R.id.action_navigation_home_to_acceptDeclineInvitation, bundle);
+                } else {
+                    // default to regular event details screen
+                    navController.navigate(R.id.action_navigation_home_to_eventDetails, bundle);
+                }
             }
         });
+    }
+
+    /**
+     * Get the user's status for a specific event
+     *
+     * @param eventId The ID of the event
+     * @return The user's Status for this event or null if not registered
+     */
+    private Status getUserStatusForEvent(String eventId) {
+        if (currentUser == null) {
+            return null;
+        }
+
+        User.RegisteredEvent event = currentUser.getSingleRegEvent(eventId);
+        if (event == null) {
+            return null;
+        }
+        return event.getStatus();
+    }
+
+    /**
+     * Check if the invitation for an event has expired
+     *
+     * @param eventId The ID of the event
+     * @return true if invitation expired, false otherwise
+     */
+    private boolean isInvitationExpired(String eventId) {
+        if (currentUser == null) {
+            return true;
+        }
+
+        List<User.RegisteredEvent> regEvents = currentUser.getRegEvents();
+
+        if (regEvents != null) {
+            User.RegisteredEvent regEvent = currentUser.getSingleRegEvent(eventId);
+            if (regEvent == null) return false;
+            com.google.firebase.Timestamp selectedDate = regEvent.getSelectedDate();
+
+            if (selectedDate != null) {
+                long deadlineMillis = selectedDate.toDate().getTime() +
+                        java.util.concurrent.TimeUnit.HOURS.toMillis(24);
+                long currentMillis = System.currentTimeMillis();
+
+                return currentMillis > deadlineMillis;
+            }
+        }
+
+
+        return false;
     }
 
     private void setupListeners() {
@@ -146,8 +210,9 @@ public class HomeFragment extends Fragment {
                             .navigate(R.id.action_navigation_home_to_faqFragment);
                     return true;
 
-                } else if (id == R.id.action_qr) {
-                    Toast.makeText(requireContext(), "Scan QR clicked", Toast.LENGTH_SHORT).show();
+                }else if (id == R.id.action_qr) {
+                    NavHostFragment.findNavController(HomeFragment.this)
+                            .navigate(R.id.action_navigation_home_to_qrScannerFragment);
                     return true;
 
                 } else {
@@ -186,6 +251,8 @@ public class HomeFragment extends Fragment {
         dialog.setCurrentFilters(currentSelectedTags, currentDateFilter);
         dialog.setOnFilterAppliedListener((selectedTags, dateFilter) -> {
             applyFilters(selectedTags, dateFilter);
+            String message = eventAdapter.getItemCount() + " event(s) found";
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         });
         dialog.show(getParentFragmentManager(), "filter_dialog");
     }
@@ -211,9 +278,6 @@ public class HomeFragment extends Fragment {
         eventAdapter.updateEvents(filteredEvents);
         // Show empty state if no results
         showEmptyState(filteredEvents.isEmpty());
-
-        String message = filteredEvents.size() + " event(s) found";
-        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     private boolean matchesAnyTag(Event event, Set<String> selectedTags) {
@@ -251,6 +315,8 @@ public class HomeFragment extends Fragment {
                 eventAdapter.updateEvents(allEvents);
 
                 showEmptyState(events.isEmpty());
+
+                applyFilters(currentSelectedTags, currentDateFilter);
             }
 
             @Override

@@ -271,6 +271,28 @@ public class OrganizerEventController {
      */
     private void updateUserStatusesAndNotify(Event event, List<String> winners, List<String> losers,
             OperationCallback callback) {
+        // Update winner User statuses to Selected and set selectedDate
+        for (String userId : winners) {
+            userRepository.getUserById(userId, new FirestoreCallback<User>() {
+                @Override
+                public void onSuccess(User user) {
+                    try {
+                        // Update status to Selected
+                        user.setRegEventStatus(event.getId(), com.hotdog.elotto.helpers.Status.Selected);
+                    } catch (NoSuchFieldException e) {
+                        Log.e(TAG, "Event not found in user's registered events: " + e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    Log.e(TAG, "Failed to fetch user for status update: " + errorMessage);
+                }
+            });
+        }
+
+
+
         // Send win notifications
         for (String userId : winners) {
             notificationController.sendNotification(

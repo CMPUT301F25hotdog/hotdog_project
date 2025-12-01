@@ -65,6 +65,15 @@
     <string name="about">About</string>
     <string name="enter_lottery">Enter Lottery</string>
     <string name="inboxTitle">Inbox</string>
+
+    <!-- Accept/Decline Invitation Strings -->
+    <string name="congratulations_selected">Congratulations, you\'ve been selected!</string>
+    <string name="please_rsvp_message">Please RSVP within the time limit to confirm your attendance.</string>
+    <string name="timer_icon">Timer</string>
+    <string name="success_icon">Success</string>
+    <string name="cant_attend">I Can\'t Attend</string>
+    <string name="can_attend">I Can Attend</string>
+    <string name="MyEventsEmptyString">No events to show, you can create your first event by pressing the plus button in the bottom left!</string>
     <string-array name="tag_options">
         <item>Music</item>
         <item>Sports</item>

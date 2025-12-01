@@ -9,6 +9,7 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 import com.hotdog.elotto.callback.FirestoreCallback;
+import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.controller.UserController;
 import com.hotdog.elotto.helpers.Status;
 import com.hotdog.elotto.helpers.UserStatus;
@@ -50,6 +51,7 @@ public class User {
      */
     public static class RegisteredEvent implements Comparable<RegisteredEvent> {
         private Timestamp registeredDate;
+        private Timestamp selectedDate;
         private Status status;
         private String eventId;
 
@@ -70,28 +72,69 @@ public class User {
             return eventId.compareTo(o.eventId);
         }
 
+        /**
+         * Sets the date the user registered
+         * @param registeredDate Date the user registered
+         */
         public void setRegisteredDate(Timestamp registeredDate) {
             this.registeredDate = registeredDate;
         }
 
+        /**
+         * Sets this events ID
+         * @param eventId The event id...
+         */
         public void setEventId(String eventId) {
             this.eventId = eventId;
         }
 
+        /**
+         * Set the status of the user with relation to this event
+         * @param status The status to set
+         */
         public void setStatus(Status status) {
             this.status = status;
         }
 
+
+        /**
+         * Gets the user status with relation to this event
+         * @return The user status (Status enum type)
+         */
         public Status getStatus() {
             return status;
         }
 
+        /**
+         * Gets the ID of the event this object refers to
+         * @return Id of that event
+         */
         public String getEventId() {
             return eventId;
         }
 
+        /**
+         * Gets the date the user registered for the event
+         * @return Date of user registration
+         */
         public Timestamp getRegisteredDate() {
             return registeredDate;
+        }
+
+        /**
+         * Gets the date that the user was selected to participate in the event
+         * @return The date the user was selected to participate in the event
+         */
+        public Timestamp getSelectedDate(){
+            return selectedDate;
+        }
+
+        /**
+         * Sets the date that the user was selected to participate in the event
+         * @param selectedDate The date that the user was selected to participate in the event
+         */
+        public void setSelectedDate(Timestamp selectedDate){
+            this.selectedDate = selectedDate;
         }
     }
 
@@ -165,6 +208,10 @@ public class User {
             userRef.set(superUser);
         }
 
+        /**
+         * Obvi just the thing that is run on a successful fetch
+         * @param user The user reference that we get from firestore
+         */
         public void onSuccess(User user) {
             // Set the info to the returned user value
             this.userRef.get().setUser(user);
@@ -173,7 +220,10 @@ public class User {
             if(this.runnable.get() != null) this.runnable.get().run();
         }
 
-
+        /**
+         * Obvi just the thing that is run on a not successful fetch
+         * @param errorMessage The explanation of what killed itself
+         */
         public void onError(String errorMessage) {
             Log.d("USER_REPO", errorMessage);
             // Signals whether the firestore db has an instance of this user.
@@ -488,6 +538,20 @@ public class User {
     }
 
     /**
+     * Gets a single RegisteredEvent object from the regEvents instead of pulling and reading through the whole damn list
+     * @param eventId Id of the event... wow
+     * @return The RegisteredEvent object associated with that id, or null if something failed really really bad somehow
+     */
+    public RegisteredEvent getSingleRegEvent(String eventId) {
+        int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
+        if(index<0) {
+            return null;
+        }
+
+        return this.regEvents.get(index);
+    }
+
+    /**
      * Remove an event from this users registered events based on the event ID.
      * @param eventId ID of the event you wish to remove.
      * @return True if the event is found and subsequently removed, false if the event could not be found.
@@ -498,6 +562,7 @@ public class User {
             return false;
         }
         this.regEvents.remove(index);
+        this.controller.updateUser();
         return true;
     }
 
@@ -520,6 +585,8 @@ public class User {
         int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
         if(index<0) throw new NoSuchFieldException("No such event ID " + eventId + " in this Users registered events.");
         this.regEvents.get(index).status=status;
+        if(status == Status.Selected) this.regEvents.get(index).selectedDate=Timestamp.now();
+        this.updateUser();
     }
 
     /**
@@ -558,6 +625,7 @@ public class User {
      * Updates the user information in the firebase. To be used after every user information change.
      */
     private void updateUser() {
+        if(controller == null) controller = new UserController(this);
         controller.updateUser();
     }
 
@@ -597,8 +665,8 @@ public class User {
         this.regEvents.addAll(0, oldUser.getRegEvents());
         this.sort();
         // If the user was a higher position then replace the current one
-        if (oldUser.type.type.ordinal() > this.type.type.ordinal()) this.type=oldUser.type;
-        this.status=oldUser.status;
+        if (oldUser.type.type.ordinal() > this.type.type.ordinal()) this.type = oldUser.type;
+        this.status = oldUser.status;
         oldUser.setRegEvents(null);
         oldUser.setEmail(null);
         oldUser.setName(null);
@@ -606,6 +674,5 @@ public class User {
         oldUser.setType(null);
         this.updateUser();
     }
-
 }
 

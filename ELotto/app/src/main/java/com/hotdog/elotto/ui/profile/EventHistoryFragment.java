@@ -13,11 +13,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.hotdog.elotto.R;
+import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.adapter.EventHistoryAdapter;
 import com.hotdog.elotto.callback.FirestoreCallback;
 import com.hotdog.elotto.helpers.Status;
@@ -25,9 +27,11 @@ import com.hotdog.elotto.helpers.UserStatus;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
+import com.hotdog.elotto.ui.home.HomeFragment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Fragment that displays the event history for the current user.
@@ -41,11 +45,11 @@ import java.util.List;
  *
  * <p><b>Outstanding Issues:</b> None currently</p>
  *
- * @author [Your Name]
+ * @author Layne Pitman
  * @version 1.0
  * @since 2025-11-23
  */
-public class EventHistoryFragment extends Fragment implements EventHistoryAdapter.OnEventClickListener {
+public class EventHistoryFragment extends Fragment {
 
     private static final String TAG = "EventHistoryFragment";
 
@@ -57,8 +61,8 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
     private TextView pendingEventsEmptyText;
 
     // Adapters
-    private EventHistoryAdapter drawnEventsAdapter;
-    private EventHistoryAdapter pendingEventsAdapter;
+    private EventAdapter drawnEventsAdapter;
+    private EventAdapter pendingEventsAdapter;
 
     // Data
     private User currentUser;
@@ -73,9 +77,12 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
         View view = inflater.inflate(R.layout.fragment_event_history, container, false);
 
         initializeViews(view);
-        setupToolbar();
-        setupRecyclerViews();
-        loadUserEventHistory();
+
+        currentUser = new User(requireContext(), (User user) -> {
+            loadUserEventHistory(user);
+            setupToolbar();
+            setupRecyclerViews(user);
+        });
 
         return view;
     }
@@ -109,45 +116,61 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
     /**
      * Setup both RecyclerViews with their adapters and layout managers.
      */
-    private void setupRecyclerViews() {
+    private void setupRecyclerViews(User user) {
         // Setup Drawn Events RecyclerView
-        drawnEventsAdapter = new EventHistoryAdapter(drawnEvents, getContext());
-        drawnEventsAdapter.setOnEventClickListener(this);
+        drawnEventsAdapter = new EventAdapter(drawnEvents, user.getId());
         drawnEventsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         drawnEventsRecyclerView.setAdapter(drawnEventsAdapter);
         drawnEventsRecyclerView.setNestedScrollingEnabled(false);
 
         // Setup Pending Events RecyclerView
-        pendingEventsAdapter = new EventHistoryAdapter(pendingEvents, getContext());
-        pendingEventsAdapter.setOnEventClickListener(this);
+        pendingEventsAdapter = new EventAdapter(pendingEvents, user.getId());
         pendingEventsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         pendingEventsRecyclerView.setAdapter(pendingEventsAdapter);
         pendingEventsRecyclerView.setNestedScrollingEnabled(false);
+
+        EventAdapter.OnEventClickListener listener = new EventAdapter.OnEventClickListener() {
+            @Override
+            public void onEventClick(Event event) {
+                // Check if user is registered and has Invited status
+                Status userStatus = getUserStatusForEvent(event.getId(), user);
+
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("event", event);
+                NavController navController = NavHostFragment.findNavController(EventHistoryFragment.this);
+
+                // If user is invited and invitation hasn't expired then go to accept/decline screen
+                if (userStatus == Status.Selected) {
+                    navController.navigate(R.id.action_eventHistoryFragment_to_acceptDeclineInvitation, bundle);
+                } else {
+                    // default to regular event details screen
+                    navController.navigate(R.id.action_eventHistoryFragment_to_eventDetailsFragment, bundle);
+                }
+            }
+        };
+
+        // Set click listener for event cards
+        drawnEventsAdapter.setOnEventClickListener(listener);
+        pendingEventsAdapter.setOnEventClickListener(listener);
     }
 
     /**
      * Load the current user and their event history from Firebase.
      */
-    private void loadUserEventHistory() {
-        // Get current user
-        currentUser = new User(requireContext());
-
-        // Wait a moment for user data to load, then fetch events
-        new android.os.Handler().postDelayed(() -> {
-            if (currentUser.exists()== UserStatus.Existent) {
-                fetchUserEvents();
+    private void loadUserEventHistory(User user) {
+            if (user.exists()== UserStatus.Existent) {
+                fetchUserEvents(user);
             } else {
                 Log.e(TAG, "User does not exist");
                 Toast.makeText(getContext(), "Unable to load event history", Toast.LENGTH_SHORT).show();
             }
-        }, 500);
     }
 
     /**
      * Fetch all events that the user has registered for from Firebase.
      */
-    private void fetchUserEvents() {
-        List<String> registeredEventIds = currentUser.getRegEventIds();
+    private void fetchUserEvents(User user) {
+        List<String> registeredEventIds = user.getRegEventIds();
 
         if (registeredEventIds == null || registeredEventIds.isEmpty()) {
             showEmptyStates();
@@ -159,7 +182,7 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
             @Override
             public void onSuccess(List<Event> events) {
                 if (events != null && !events.isEmpty()) {
-                    categorizeEvents(events);
+                    categorizeEvents(events, user);
                     updateUI();
                 } else {
                     showEmptyStates();
@@ -180,17 +203,17 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
      *
      * @param events List of all events the user is registered for
      */
-    private void categorizeEvents(List<Event> events) {
+    private void categorizeEvents(List<Event> events, User user) {
         drawnEvents.clear();
         pendingEvents.clear();
 
         for (Event event : events) {
-            Status userStatus = getUserStatusForEvent(event.getId());
+            Status userStatus = getUserStatusForEvent(event.getId(), user);
 
             if (userStatus != null) {
                 // Categorize based on status
                 switch (userStatus) {
-                    case Invited:
+                    case Selected:
                     case Accepted:
                     case Declined:
                         drawnEvents.add(event);
@@ -211,16 +234,9 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
      * @param eventId The ID of the event
      * @return The user's Status for this event, or null if not found
      */
-    private Status getUserStatusForEvent(String eventId) {
-        List<User.RegisteredEvent> regEvents = currentUser.getRegEvents();
-
-        if (regEvents != null) {
-            for (User.RegisteredEvent regEvent : regEvents) {
-                if (regEvent.getEventId().equals(eventId)) {
-                    return regEvent.getStatus();
-                }
-            }
-        }
+    private Status getUserStatusForEvent(String eventId, User user) {
+        User.RegisteredEvent event = user.getSingleRegEvent(eventId);
+        if(event!=null) return event.getStatus();
 
         return null;
     }
@@ -230,23 +246,27 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
      */
     private void updateUI() {
         // Update Drawn Events
-        if (drawnEvents.isEmpty()) {
-            drawnEventsRecyclerView.setVisibility(View.GONE);
-            drawnEventsEmptyText.setVisibility(View.VISIBLE);
-        } else {
-            drawnEventsRecyclerView.setVisibility(View.VISIBLE);
-            drawnEventsEmptyText.setVisibility(View.GONE);
-            drawnEventsAdapter.updateEvents(drawnEvents);
+        if(drawnEvents != null && drawnEventsAdapter != null) {
+            if (drawnEvents.isEmpty()) {
+                drawnEventsRecyclerView.setVisibility(View.GONE);
+                drawnEventsEmptyText.setVisibility(View.VISIBLE);
+            } else {
+                drawnEventsRecyclerView.setVisibility(View.VISIBLE);
+                drawnEventsEmptyText.setVisibility(View.GONE);
+                drawnEventsAdapter.updateEvents(drawnEvents);
+            }
         }
 
         // Update Pending Events
-        if (pendingEvents.isEmpty()) {
-            pendingEventsRecyclerView.setVisibility(View.GONE);
-            pendingEventsEmptyText.setVisibility(View.VISIBLE);
-        } else {
-            pendingEventsRecyclerView.setVisibility(View.VISIBLE);
-            pendingEventsEmptyText.setVisibility(View.GONE);
-            pendingEventsAdapter.updateEvents(pendingEvents);
+        if (pendingEvents != null && pendingEventsAdapter != null) {
+            if (pendingEvents.isEmpty()) {
+                pendingEventsRecyclerView.setVisibility(View.GONE);
+                pendingEventsEmptyText.setVisibility(View.VISIBLE);
+            } else {
+                pendingEventsRecyclerView.setVisibility(View.VISIBLE);
+                pendingEventsEmptyText.setVisibility(View.GONE);
+                pendingEventsAdapter.updateEvents(pendingEvents);
+            }
         }
     }
 
@@ -259,20 +279,6 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
         pendingEventsRecyclerView.setVisibility(View.GONE);
         pendingEventsEmptyText.setVisibility(View.VISIBLE);
     }
-
-    /**
-     * Handle event item clicks to navigate to event details.
-     *
-     * @param event The event that was clicked
-     */
-    @Override
-    public void onEventClick(Event event) {
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("event", event);
-        NavController navController = Navigation.findNavController(requireView());
-        navController.navigate(R.id.action_eventHistoryFragment_to_eventDetailsFragment, bundle);
-    }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();

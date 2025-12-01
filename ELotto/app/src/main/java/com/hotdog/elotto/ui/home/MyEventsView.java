@@ -15,10 +15,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -36,9 +38,9 @@ import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.callback.FirestoreCallback;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.Organizer;
+import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.OrganizerRepository;
-import com.hotdog.elotto.ui.entries.EntriesFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,9 +54,12 @@ import javax.security.auth.callback.Callback;
 public class MyEventsView extends Fragment {
     private FloatingActionButton createEventButton;
     private EventAdapter eventAdapter;
-    private ProgressBar loadingProgressBar;
     private ActivityResultLauncher<Intent> createEventLauncher;
     private Organizer organizer;
+    private User user;
+    private ConstraintLayout myEventsCover;
+    private ProgressBar loadingProgressBar;
+    private TextView myEventsEmpty;
     /**
      * Called when the fragment is first created.
      * Initializes components like Organizer} and EventAdapter,
@@ -68,7 +73,7 @@ public class MyEventsView extends Fragment {
 
         // Safe to init non-view stuff here
         organizer = new Organizer(requireContext());
-
+        user = new User(requireContext(), () -> {});
         eventAdapter = new EventAdapter(new ArrayList<>(), organizer.getId());
         this.loadEvents();
 
@@ -98,6 +103,10 @@ public class MyEventsView extends Fragment {
         View view = inflater.inflate(R.layout.fragment_my_events, container, false);
 
         loadingProgressBar = view.findViewById(R.id.myEventsLoadingProgressBar);
+        myEventsEmpty = view.findViewById(R.id.MyEventsEmpty);
+        myEventsCover = view.findViewById(R.id.MyEventsCover);
+
+        loading(true);
 
         view.findViewById(R.id.profileButtonMyEvents).setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(requireContext(), v);
@@ -179,8 +188,11 @@ public class MyEventsView extends Fragment {
 
         createEventButton = view.findViewById(R.id.CreateNewEventButton);
         createEventButton.setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), EventCreationView.class);
-            createEventLauncher.launch(intent);
+            user.atomicReload(() -> {
+                Intent intent = new Intent(requireContext(), EventCreationView.class);
+                intent.putExtra("ORGANIZER_NAME", user.getName()); // now guaranteed loaded
+                createEventLauncher.launch(intent);
+            });
         });
 
         // Initial load
@@ -204,11 +216,26 @@ public class MyEventsView extends Fragment {
             @Override
             public void onSuccess(List<Event> result) {
                 eventAdapter.updateEvents(result);
+                loading(false);
+                empty(result.isEmpty());
             }
 
             @Override
             public void onError(String errorMessage) {
+                empty(true);
             }
         });
+    }
+
+    private void empty(boolean value) {
+        this.myEventsCover.setVisibility(value ? View.VISIBLE : View.GONE);
+        this.loadingProgressBar.setVisibility(value ? View.GONE : this.loadingProgressBar.getVisibility());
+        this.myEventsEmpty.setVisibility(value ? View.VISIBLE : View.GONE);
+    }
+
+    private void loading(boolean value) {
+        this.myEventsCover.setVisibility(value ? View.VISIBLE : View.GONE);
+        this.myEventsEmpty.setVisibility(value ? View.GONE: this.myEventsEmpty.getVisibility());
+        this.loadingProgressBar.setVisibility(value ? View.VISIBLE : View.GONE);
     }
 }

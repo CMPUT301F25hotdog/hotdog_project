@@ -37,7 +37,6 @@ public class QRCodeBackButtonTest {
         onView(withId(R.id.navigation_my_events)).perform(click());
         onView(withId(R.id.CreateNewEventButton)).check(matches(isDisplayed()));
         onView(withId(R.id.CreateNewEventButton)).perform(click());
-
         Uri fakeImageUri = Uri.parse("WalterPutItAway");
         Instrumentation.ActivityResult result =
                 new Instrumentation.ActivityResult(Activity.RESULT_OK,
@@ -46,6 +45,7 @@ public class QRCodeBackButtonTest {
         intending(hasAction(Intent.ACTION_GET_CONTENT)).respondWith(result);
 
         onView(withId(R.id.Event_Poster_Input)).perform(click());
+        onView(withId(R.id.EventNameInput)).perform(scrollTo(),typeText("Jesse We Need To Cook"), closeSoftKeyboard());
         onView(withId(R.id.EventNameInput)).perform(scrollTo(),typeText("Jesse We Need To Cook"), closeSoftKeyboard());
         onView(withId(R.id.Event_Description_Input)).perform(scrollTo(),typeText("Blue"), closeSoftKeyboard());
         onView(withId(R.id.EventPriceInput)).perform(scrollTo(),typeText("$99.1"), closeSoftKeyboard());
@@ -57,8 +57,7 @@ public class QRCodeBackButtonTest {
         onView(withId(R.id.MaxEntrantInput)).perform(scrollTo(),typeText("50"), closeSoftKeyboard());
         onView(withId(R.id.Tag_Button)).perform(scrollTo(), typeText("Outdoor"), pressKey(KeyEvent.KEYCODE_ENTER), closeSoftKeyboard());
         onView(withId(R.id.Confirm_Creation_Button)).perform(click());
-        onView(withId(R.id.Go_Back_Button)).perform(click());
-        onView(withText("My Events")).check(matches(isDisplayed()));
+        onView(withText("Event Created")).check(matches(isDisplayed()));
 
         Intents.release();
     }
