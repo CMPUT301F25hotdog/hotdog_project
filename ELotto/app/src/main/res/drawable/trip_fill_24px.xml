@@ -5,7 +5,7 @@
     android:viewportHeight="960"
     android:tint="?attr/colorControlNormal">
   <path
-      android:fillColor="@android:color/white"
+      android:fillColor="@color/main_icon_blue"
       android:strokeWidth="2"
       android:strokeLineJoin="round"
       android:pathData="M160,840 H800 Q833,840 856.5,816.5 Q880,793 880,760 V320 Q880,287 856.5,263.5 Q833,240 800,240 V160 Q640,127 616.5,103.5 Q593,80 560,80 H400 Q367,80 343.5,103.5 Q320,127 320,160 V240 H160 Q127,240 103.5,263.5 Q80,287 80,320 V760 Q80,793 103.5,816.5 Q127,840 160,840 Z M400,160 H560 V240 H400 Z M320,320 H640 V760 H320 Z M160,320 H240 V760 H160 Z M720,320 H800 V760 H720 Z"/>

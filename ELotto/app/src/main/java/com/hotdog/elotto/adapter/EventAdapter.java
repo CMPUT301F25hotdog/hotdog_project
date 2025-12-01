@@ -84,6 +84,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         private TextView eventLocationTextView;
         private TextView eventEntryCountTextView;
         private TextView eventStatusTextView;
+        private TextView eventStatusTextView2;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -94,6 +95,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             eventLocationTextView = itemView.findViewById(R.id.eventLocationTextView);
             eventEntryCountTextView = itemView.findViewById(R.id.eventEntryCountTextView);
             eventStatusTextView = itemView.findViewById(R.id.eventStatusTextView);
+            eventStatusTextView2 = itemView.findViewById(R.id.eventStatusTextView2);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -155,6 +157,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             boolean userSelected = false;
             boolean userAccepted = false;
 
+            // Assume secondary status isn't needed
+            eventStatusTextView2.setVisibility(View.GONE);
+
             if (event.getWaitlistEntrantIds() != null) {
                 userInWaitlist = event.getWaitlistEntrantIds().contains(currentUserId);
             }
@@ -179,17 +184,19 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             String statusText;
             int backgroundColor;
 
-            if (userSelected) {
-                if (userAccepted) {
-                    // User selected and accepted
-                    statusText = "SELECTED";
-                    backgroundColor = itemView.getContext().getColor(R.color.success_green);
-                } else {
-                    // User selected but hasn't responded so needs action
-                    statusText = "SELECTED | ACTION REQUIRED";
-                    backgroundColor = itemView.getContext().getColor(R.color.success_green);
-                    // TODO: Could show two separate badges
-                }
+            if (userAccepted) {
+                // User selected and accepted
+                statusText = "ACCEPTED";
+                backgroundColor = itemView.getContext().getColor(R.color.success_green);
+            } else if (userSelected) {
+                // User selected but hasn't responded so needs action
+                statusText = "SELECTED";
+                backgroundColor = itemView.getContext().getColor(R.color.success_green);
+                eventStatusTextView2.setVisibility(View.VISIBLE);
+                eventStatusTextView2.setText("ACTION REQUIRED");
+                GradientDrawable drawable = (GradientDrawable) eventStatusTextView2.getBackground().mutate();
+                drawable.setColor(itemView.getContext().getColor(R.color.waitlist_orange));
+                // TODO: Could show two separate badges
             } else if (userInWaitlist) {
                 // Check if lottery has been drawn
                 if (event.getSelectedEntrantIds() != null && !event.getSelectedEntrantIds().isEmpty()) {
@@ -199,7 +206,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 } else {
                     // Lottery not drawn yet
                     statusText = "PENDING";
-                    backgroundColor = itemView.getContext().getColor(R.color.waitlist_orange);
+                    backgroundColor = itemView.getContext().getColor(R.color.pending_yellow);
                 }
             } else {
                 // show pending otherwise
