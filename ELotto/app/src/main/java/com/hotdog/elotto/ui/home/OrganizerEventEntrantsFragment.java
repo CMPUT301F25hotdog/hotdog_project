@@ -30,6 +30,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -279,7 +280,10 @@ public class OrganizerEventEntrantsFragment extends Fragment {
 
         btnMap.setOnClickListener(v -> {
             // TODO: Navigate to map screen
-            Toast.makeText(getContext(), "View map - Coming soon", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "View map", Toast.LENGTH_SHORT).show();
+            Bundle args = new Bundle();
+            args.putString("eventId", eventId);
+            Navigation.findNavController(v).navigate(R.id.map, args);
         });
 
         btnRunLottery.setOnClickListener(v -> runLotteryDraw());

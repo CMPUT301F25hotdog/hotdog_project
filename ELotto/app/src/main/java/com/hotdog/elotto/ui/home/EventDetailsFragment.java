@@ -1,5 +1,7 @@
 package com.hotdog.elotto.ui.home;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -15,6 +17,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -23,8 +27,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.GeoPoint;
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.callback.OperationCallback;
+import com.hotdog.elotto.controller.LocationController;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
@@ -83,6 +89,7 @@ public class EventDetailsFragment extends Fragment {
 
     // For state consistency
     private String status;
+    private boolean locationGranted = false;
 
 
     public static EventDetailsFragment newInstance(Event event) {
@@ -98,6 +105,17 @@ public class EventDetailsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             event = (Event) getArguments().getSerializable("event");
+        }
+
+
+        currentUser = new User(requireContext());
+        if(event.isGeolocationRequired()){
+            new android.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Location Required")
+                    .setMessage("This event requires location sharing to be enabled to join the waitlist.")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                    .show();
         }
     }
 
@@ -149,6 +167,21 @@ public class EventDetailsFragment extends Fragment {
             return;
 
         status = getUserStatus(user);
+        List<String> entrantIds = event.getWaitlistEntrantIds();
+        if (user.findRegEvent(event.getId()) && !entrantIds.contains(user.getId())) {
+            user.removeRegEvent(event.getId());
+        } else if (!user.findRegEvent(event.getId()) && entrantIds.contains(user.getId())) {
+            entrantIds.remove(user.getId());
+            event.setWaitlistEntrantIds(entrantIds);
+            EventRepository eventRepo = new EventRepository();
+            eventRepo.updateEvent(event, new OperationCallback() {
+                @Override
+                public void onSuccess() {}
+
+                @Override
+                public void onError(String errorMessage) {}
+            });
+        }
 
         // Set title
         eventTitleTextView.setText(event.getName());
@@ -293,14 +326,7 @@ public class EventDetailsFragment extends Fragment {
             navController.navigateUp();
         });
         enterLotteryButton.setOnClickListener(v -> {
-            List<String> registeredEvents = user.getRegEventIds();
-            boolean isRegistered = registeredEvents.contains(event.getId());
-
-            if (isRegistered) {
-                leaveWaitlist();
-            } else {
-                joinWaitlist();
-            }
+            joinWaitlistBack();
         });
 
         leaveWaitlistButton.setOnClickListener(v -> {
@@ -309,14 +335,35 @@ public class EventDetailsFragment extends Fragment {
 
     }
 
+    private boolean locationPermission() {
+        return ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private final ActivityResultLauncher<String> locationPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(), isGranted -> {
+                locationGranted = isGranted;
+                joinWaitlist();
+            });
+
+    private void joinWaitlistBack() {
+        locationGranted = locationPermission();
+        if (event.isGeolocationRequired()) {
+            if (!locationPermission()) {
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+                return;
+            }
+        }
+        joinWaitlist();
+    }
+
     private void joinWaitlist() {
         if (event == null || currentUser == null) {
             Toast.makeText(getContext(), "Error: Unable to join waitlist", Toast.LENGTH_SHORT).show();
             return;
         }
-
         // Checks if already registered
-        if (currentUser.getRegEvents().contains(event.getId())) {
+        if (currentUser.findRegEvent(event.getId())) {
             Toast.makeText(getContext(),
                     "You're already registered for this event",
                     Toast.LENGTH_SHORT).show();
@@ -324,50 +371,101 @@ public class EventDetailsFragment extends Fragment {
         }
 
         buttonState("LOADING");
+        String userId = currentUser.getId();
 
         try {
-            // Add event to user's registered events
+            if (event.isGeolocationRequired() && locationGranted) {
+                LocationController locationController = new LocationController(getContext());
+                locationController.getLatLon(new LocationController.LocationCallBack() {
+                    @Override
+                    public void onLocationReady(double lat, double lon) {
+                        if (Double.isNaN(lat) || Double.isNaN(lon)) {
+                            enterLotteryButton.setEnabled(true);
+                            enterLotteryButton.setText("Enter Lottery");
+                            Toast.makeText(getContext(), "Location required to join waitlist", Toast.LENGTH_SHORT)
+                                    .show();
+                            return;
+                        }
 
-            String userId = currentUser.getId();
+                        event.setEntrantLocations(userId, new GeoPoint(lat, lon));
 
-            List<String> waitlistIds = event.getWaitlistEntrantIds();
-            if (waitlistIds == null) {
-                waitlistIds = new ArrayList<>();
+                        List<String> waitlistIds = event.getWaitlistEntrantIds();
+                        if (waitlistIds == null) {
+                            waitlistIds = new ArrayList<>();
+                        }
+                        if (!waitlistIds.contains(userId)) {
+                            waitlistIds.add(userId);
+                        }
+                        event.setWaitlistEntrantIds(waitlistIds);
+
+                        EventRepository eventRepository = new EventRepository();
+                        eventRepository.updateEvent(event, new OperationCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(getContext(),
+                                        "Successfully joined waitlist for " + event.getName(),
+                                        Toast.LENGTH_SHORT).show();
+                                // Only add reg event if it successfully added to firestore
+                                currentUser.addRegEvent(event.getId());
+                                updateUIBasedOnStatus(currentUser);
+
+                                int currentEntries = event.getCurrentWaitlistCount();
+                                int maxEntries = event.getMaxEntrants();
+                                entriesCountTextView.setText(currentEntries + " of " + maxEntries);
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                showDialogPerStatus("ERROR JOIN");
+                                updateUIBasedOnStatus(null);
+                            }
+                        });
+                    }
+                });
             }
-            Log.e("WEINER", Arrays.toString(waitlistIds.toArray()));
-            if (!waitlistIds.contains(userId)) {
-                waitlistIds.add(userId);
+            else if(event.isGeolocationRequired()) {
+                Toast.makeText(getContext(),
+                        "Geolocation is required. Please allow location access when prompted to join this event. " + event.getName(),
+                        Toast.LENGTH_SHORT).show();
+                updateUIBasedOnStatus(null);
+                buttonState(null);
+            } else {
+                // Non-geolocation events
+                List<String> waitlistIds = event.getWaitlistEntrantIds();
+                if (waitlistIds == null) {
+                    waitlistIds = new ArrayList<>();
+                }
+                if (!waitlistIds.contains(userId)) {
+                    waitlistIds.add(userId);
+                }
+                event.setWaitlistEntrantIds(waitlistIds);
+
+                EventRepository eventRepository = new EventRepository();
+                eventRepository.updateEvent(event, new OperationCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Toast.makeText(getContext(),
+                                "Successfully joined waitlist for " + event.getName(),
+                                Toast.LENGTH_SHORT).show();
+                        // Only add reg event if it successfully added to firestore
+                        currentUser.addRegEvent(event.getId());
+                        updateUIBasedOnStatus(currentUser); // ADD THIS LINE
+
+                        int currentEntries = event.getCurrentWaitlistCount();
+                        int maxEntries = event.getMaxEntrants();
+                        entriesCountTextView.setText(currentEntries + " of " + maxEntries);
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        Toast.makeText(getContext(),
+                                "Error joining waitlist: " + errorMessage,
+                                Toast.LENGTH_SHORT).show();
+                        buttonState(null);
+                        showDialogPerStatus("ERROR JOIN");
+                    }
+                });
             }
-            event.setWaitlistEntrantIds(waitlistIds);
-
-            EventRepository eventRepository = new EventRepository();
-            eventRepository.updateEvent(event, new OperationCallback() {
-                @Override
-                public void onSuccess() {
-                    Toast.makeText(getContext(),
-                            "Successfully joined waitlist for " + event.getName(),
-                            Toast.LENGTH_SHORT).show();
-                    // Only add reg event if it successfully added to firestore
-                    currentUser.addRegEvent(event.getId());
-                    updateUIBasedOnStatus(currentUser);  // ADD THIS LINE
-
-
-                    int currentEntries = event.getCurrentWaitlistCount();
-                    int maxEntries = event.getMaxEntrants();
-                    entriesCountTextView.setText(currentEntries + " of " + maxEntries);
-                }
-
-                @Override
-                public void onError(String errorMessage) {
-                    // Rollback: Remove event from user's registered events
-                    currentUser.removeRegEvent(event.getId());
-
-                    showDialogPerStatus("ERROR JOIN");
-
-                    status = getUserStatus(currentUser);
-                    buttonState(status);
-                }
-            });
 
         } catch (Exception e) {
             // Rollback
@@ -379,6 +477,7 @@ public class EventDetailsFragment extends Fragment {
             buttonState(status);
         }
     }
+
 
     private void leaveWaitlist() {
         if (event == null || currentUser == null) {
@@ -410,6 +509,10 @@ public class EventDetailsFragment extends Fragment {
             List<String> waitlistIds = event.getWaitlistEntrantIds();
             if (waitlistIds != null) {
                 waitlistIds.remove(userId);
+            }
+
+            if (event.getEntrantLocations() != null) {
+                event.getEntrantLocations().remove(userId);
             }
 
             EventRepository eventRepository = new EventRepository();

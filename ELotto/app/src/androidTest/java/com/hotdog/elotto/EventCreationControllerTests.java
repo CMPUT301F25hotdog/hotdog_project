@@ -41,7 +41,7 @@ public class EventCreationControllerTests {
         fakeRepo = new FakeEventRepository();
         controller = new EventCreationController(context, fakeRepo) {
             @Override
-            public void SaveEvent(String name, String description, Date dateTime, Date openPeriod, Date closePeriod, int entrantLimit, int waitListSize, String location, double price, boolean requireGeo, String bannerUrl, ArrayList<String> tagList) {
+            public void SaveEvent(String name, String description, Date dateTime, Date openPeriod, Date closePeriod, int entrantLimit, int waitListSize, String location, double price, boolean requireGeo, String bannerUrl, ArrayList<String> tagList,String organizerName) {
                 Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
                 event.setPosterImageUrl(bannerUrl);
                 event.setTagList(tagList);
@@ -59,7 +59,7 @@ public class EventCreationControllerTests {
     @Test
     void tesSaveEvent() {
         ArrayList<String> empty = new ArrayList<>();
-        controller.SaveEvent("Test Event", "Desc", new Date(), new Date(), new Date(), 10, 5, "Location", 20.0, true, "banner",empty);
+        controller.SaveEvent("Test Event", "Desc", new Date(), new Date(), new Date(), 10, 5, "Location", 20.0, true, "banner",empty,"Daniel");
 
         assertTrue(fakeRepo.called);
         assertNotNull(fakeRepo.lastSavedEvent);

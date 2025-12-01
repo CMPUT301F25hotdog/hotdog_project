@@ -13,19 +13,15 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.hotdog.elotto.databinding.ActivityMainBinding;
 import com.hotdog.elotto.helpers.UserStatus;
 import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.model.Organizer;
-import com.hotdog.elotto.ui.home.EventCreationView;
 import com.hotdog.elotto.model.User;
-import com.hotdog.elotto.ui.home.MyEventsView;
-import com.hotdog.elotto.ui.home.OrganizerEventEntrantsFragment;
-
-import java.util.Arrays;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
@@ -51,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
                                 initAfterLogin(); // The user now exists and we can continue
                             });
                         } else {
-                            // What to do if the user cancelled, whatever we want here
+                            // user cancelled login, handle if needed
                         }
                     });
 
@@ -64,19 +60,26 @@ public class MainActivity extends AppCompatActivity {
 
     private void initAfterLogin() {
 
-        if(curUser.getType()==UserType.Organizer){
+        if (curUser.getType() == UserType.Organizer) {
             Organizer org = new Organizer(getApplicationContext());
         }
 
         Log.d("USER EXISTS", "" + curUser.exists());
 
-        // Hide the action bar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
 
-        // Setup bottom navigation
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
+        NavHostFragment navHostFragment =
+                (NavHostFragment) getSupportFragmentManager()
+                        .findFragmentById(R.id.nav_host_fragment_activity_main);
+        NavController navController = navHostFragment.getNavController();
+
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.navigation_home,
+                R.id.eventHistoryFragment,
+                R.id.navigation_calendar,
+                R.id.navigation_my_events
+        ).build();
+
+        setSupportActionBar(null);
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
     }
 

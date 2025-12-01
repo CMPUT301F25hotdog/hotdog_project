@@ -46,6 +46,7 @@ public class QRCodeBackButtonTest {
 
         onView(withId(R.id.Event_Poster_Input)).perform(click());
         onView(withId(R.id.EventNameInput)).perform(scrollTo(),typeText("Jesse We Need To Cook"), closeSoftKeyboard());
+        onView(withId(R.id.EventNameInput)).perform(scrollTo(),typeText("Jesse We Need To Cook"), closeSoftKeyboard());
         onView(withId(R.id.Event_Description_Input)).perform(scrollTo(),typeText("Blue"), closeSoftKeyboard());
         onView(withId(R.id.EventPriceInput)).perform(scrollTo(),typeText("$99.1"), closeSoftKeyboard());
         onView(withId(R.id.EventAddressInput)).perform(scrollTo(),typeText("Walter White"), closeSoftKeyboard());
@@ -54,6 +55,7 @@ public class QRCodeBackButtonTest {
         onView(withId(R.id.EventOpensSelector)).perform(scrollTo(),typeText("11/01/2025"), closeSoftKeyboard());
         onView(withId(R.id.EventClosesSelector)).perform(scrollTo(),typeText("11/06/2025"), closeSoftKeyboard());
         onView(withId(R.id.MaxEntrantInput)).perform(scrollTo(),typeText("50"), closeSoftKeyboard());
+        onView(withId(R.id.Tag_Button)).perform(scrollTo(), typeText("Outdoor"), pressKey(KeyEvent.KEYCODE_ENTER), closeSoftKeyboard());
         onView(withId(R.id.Confirm_Creation_Button)).perform(click());
         onView(withText("Event Created")).check(matches(isDisplayed()));
 
