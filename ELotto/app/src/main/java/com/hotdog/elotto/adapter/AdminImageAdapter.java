@@ -31,7 +31,7 @@ import java.util.List;
  *
  * <p><b>Outstanding Issues:</b> None currently</p>
  *
- * @author Admin Module
+ * @author Tatsat
  * @version 1.0
  */
 public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.ImageViewHolder> {

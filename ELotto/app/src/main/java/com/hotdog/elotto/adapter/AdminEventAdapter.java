@@ -20,14 +20,7 @@ import java.util.Locale;
  * Adapter for displaying events in the Admin's event management RecyclerView.
  * Provides functionality for admins to view event details and delete events.
  *
- * <p>This adapter binds Event data to the admin_event_item layout and handles
- * user interactions through the OnEventActionListener interface.</p>
- *
- * <p>View layer in MVC pattern.</p>
- *
- * <p><b>Outstanding Issues:</b> None currently</p>
- *
- * @author Bhuvnesh Batta
+ * @author Tatsat
  * @version 1.0
  * @since 2025-12-01
  */

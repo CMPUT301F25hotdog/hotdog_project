@@ -12,6 +12,7 @@
         android:orientation="vertical"
         android:gravity="center_horizontal">
 
+        <!-- Top bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -48,16 +49,19 @@
                 android:textAllCaps="false"
                 android:textStyle="bold"
                 android:backgroundTint="@color/main_icon_blue"
-                android:paddingHorizontal="16dp" />
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp" />
         </LinearLayout>
 
+        <!-- Profile picture -->
         <FrameLayout
+            android:id="@+id/profile_image_container"
             android:layout_width="90dp"
             android:layout_height="90dp"
             android:layout_marginBottom="8dp"
             android:foreground="?android:attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true">
+            android:clickable="false"
+            android:focusable="false">
 
             <View
                 android:layout_width="match_parent"
@@ -71,7 +75,8 @@
                 android:layout_gravity="center"
                 android:src="@drawable/account_circle_24px"
                 android:contentDescription="Profile picture"
-                android:tint="#C8C8C8" />
+                android:tint="#C8C8C8"
+                android:enabled="false" />
         </FrameLayout>
 
         <TextView
@@ -82,6 +87,7 @@
             android:textColor="@color/black"
             android:layout_marginBottom="20dp" />
 
+        <!-- Name -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -119,9 +125,12 @@
                 android:layout_height="wrap_content"
                 android:hint="First Last"
                 android:paddingStart="40dp"
-                android:inputType="textPersonName" />
+                android:inputType="textPersonName"
+                android:enabled="false"
+                android:focusable="false" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Email -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -159,9 +168,12 @@
                 android:layout_height="wrap_content"
                 android:hint="example@example.com"
                 android:paddingStart="40dp"
-                android:inputType="textEmailAddress" />
+                android:inputType="textEmailAddress"
+                android:enabled="false"
+                android:focusable="false" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Phone -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -186,9 +198,12 @@
                 android:layout_height="wrap_content"
                 android:hint="(123) 456-7890"
                 android:paddingStart="40dp"
-                android:inputType="phone" />
+                android:inputType="phone"
+                android:enabled="false"
+                android:focusable="false" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Device ID info -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -215,6 +230,7 @@
                 android:textColor="@color/black" />
         </LinearLayout>
 
+        <!-- Save / Delete buttons -->
         <Button
             android:id="@+id/btn_save"
             android:layout_width="match_parent"

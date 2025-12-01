@@ -2,14 +2,13 @@ package com.hotdog.elotto.adapter;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.GradientDrawable;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,24 +18,15 @@ import com.hotdog.elotto.model.Event;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
-import android.graphics.drawable.GradientDrawable;
 
 /**
- * Adapter for displaying Event items in a RecyclerView for the entrant's home screen.
+ * Adapter for displaying Event items in a RecyclerView.
+ * Binds Event data to the event_card xml layout for each item in the list.
+ * The View layer of mvc
  *
- * <p>This adapter binds Event data to the event_card layout and displays event information
- * including name, date, location, entry count, and status badges. Status badges dynamically
- * show the current user's registration status for each event with color-coded indicators.</p>
+ * Outstanding Issues: Still need to implement image loading
  *
- * <p>Supports Base64-encoded event poster images with fallback to placeholder images.</p>
- *
- * <p>View layer component in MVC architecture pattern.</p>
- *
- * <p><b>Outstanding Issues:</b> None currently</p>
- *
- * @author Bhuvnesh Batta
- * @version 1.0
- * @see RecyclerView.Adapter
+ * uses RecyclerView: https://www.geeksforgeeks.org/android/android-recyclerview/
  */
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
@@ -56,25 +46,23 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     private String currentUserId;
 
     /**
-     * Callback interface for handling event item clicks.
-     *
-     * <p>Implementing classes should handle navigation to event details or
-     * other appropriate actions when an event is clicked.</p>
+     * Interface definition for a callback to be invoked when an event is clicked.
+     * Basically a fancy way to scream "Hey, someone touched this!" back to the Fragment.
      */
     public interface OnEventClickListener {
         /**
-         * Called when the user clicks on an event item.
+         * Called when a view has been clicked.
          *
-         * @param event the event that was clicked
+         * @param event The item that was clicked.
          */
         void onEventClick(Event event);
     }
 
     /**
-     * Constructs a new EventAdapter with the specified events and user ID.
+     * Constructor to create a new EventAdapter.
      *
-     * @param eventList the list of events to display
-     * @param currentUserId the ID of the current user for status badge calculation
+     * @param eventList The list of events to display. Hopefully not null or this crashes.
+     * @param currentUserId The ID of the user looking at the phone. Used to color-code their rejection or acceptance.
      */
     public EventAdapter(List<Event> eventList, String currentUserId) {
         this.eventList = eventList;
@@ -82,20 +70,21 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     }
 
     /**
-     * Sets the listener for event item click events.
+     * Sets the listener that catches the clicks.
      *
-     * @param listener the listener to handle event clicks
+     * @param listener The listener that actually does the work when a click happens.
      */
     public void setOnEventClickListener(OnEventClickListener listener) {
         this.listener = listener;
     }
 
     /**
-     * Creates a new ViewHolder by inflating the event card layout.
+     * Inflates the layout XML. This is where the expensive operations happen, so thank goodness
+     * for the ViewHolder pattern.
      *
-     * @param parent the ViewGroup into which the new View will be added
-     * @param viewType the view type of the new View
-     * @return a new EventViewHolder that holds the inflated View
+     * @param parent The ViewGroup into which the new View will be added.
+     * @param viewType The view type of the new View. We only have one type, so this is decorative.
+     * @return A new EventViewHolder that holds the View for each event.
      */
     @NonNull
     @Override
@@ -106,10 +95,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     }
 
     /**
-     * Binds event data to the ViewHolder at the specified position.
+     * Binds the data to the view. This runs constantly when you scroll, so don't put
+     * heavy calculations here unless you like dropping frames.
      *
-     * @param holder the ViewHolder to bind data to
-     * @param position the position of the item in the adapter's data set
+     * @param holder The ViewHolder which should be updated to represent the contents of the item.
+     * @param position The position of the item within the adapter's data set.
      */
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
@@ -243,19 +233,25 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         }
 
         /**
-         * Sets the status badge(s) based on the current user's registration status for the event.
+         * Sets the status badge(s) based on the current user's registration status for
+         * the event.
          *
-         * <p>This method checks the user's presence in various entrant lists and displays
-         * appropriate status badges with color coding:</p>
+         * <p>
+         * This method checks the user's presence in various entrant lists and displays
+         * appropriate status badges with color coding:
+         * </p>
          * <ul>
-         *     <li>ACCEPTED: Green - User has accepted their invitation</li>
-         *     <li>SELECTED: Green with orange "ACTION REQUIRED" badge - User selected but hasn't responded</li>
-         *     <li>WAITLISTED: Orange - Lottery drawn but user not selected</li>
-         *     <li>PENDING: Yellow - User on waitlist, lottery not yet drawn</li>
-         *     <li>CANCELED: Red - User was cancelled from the event</li>
+         * <li>ACCEPTED: Green - User has accepted their invitation</li>
+         * <li>SELECTED: Green with orange "ACTION REQUIRED" badge - User selected but
+         * hasn't responded</li>
+         * <li>WAITLISTED: Orange - Lottery drawn but user not selected</li>
+         * <li>PENDING: Yellow - User on waitlist, lottery not yet drawn</li>
+         * <li>CANCELED: Red - User was cancelled from the event</li>
          * </ul>
          *
-         * <p>If the user has not joined the event, the badge is hidden.</p>
+         * <p>
+         * If the user has not joined the event, the badge is hidden.
+         * </p>
          *
          * @param event the event to check the user's status for
          */

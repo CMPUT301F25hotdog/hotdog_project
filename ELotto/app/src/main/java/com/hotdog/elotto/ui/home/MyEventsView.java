@@ -38,9 +38,9 @@ import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.callback.FirestoreCallback;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.Organizer;
+import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.OrganizerRepository;
-import com.hotdog.elotto.ui.entries.EntriesFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +87,7 @@ public class MyEventsView extends Fragment {
      * Model representing the currently logged-in organizer, including their events.
      */
     private Organizer organizer;
+    private User user;
 
     /**
      * Cover layout that overlays the content when loading or empty states are shown.
@@ -116,7 +117,7 @@ public class MyEventsView extends Fragment {
 
         // Safe to init non-view stuff here
         organizer = new Organizer(requireContext());
-
+        user = new User(requireContext(), () -> {});
         eventAdapter = new EventAdapter(new ArrayList<>(), organizer.getId());
         this.loadEvents();
 
@@ -233,8 +234,11 @@ public class MyEventsView extends Fragment {
 
         createEventButton = view.findViewById(R.id.CreateNewEventButton);
         createEventButton.setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), EventCreationView.class);
-            createEventLauncher.launch(intent);
+            user.atomicReload(() -> {
+                Intent intent = new Intent(requireContext(), EventCreationView.class);
+                intent.putExtra("ORGANIZER_NAME", user.getName()); // now guaranteed loaded
+                createEventLauncher.launch(intent);
+            });
         });
 
         // Initial load

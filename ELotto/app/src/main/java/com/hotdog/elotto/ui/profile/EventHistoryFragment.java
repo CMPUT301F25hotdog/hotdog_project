@@ -49,7 +49,7 @@ import java.util.function.Consumer;
  * @version 1.0
  * @since 2025-11-23
  */
-public class EventHistoryFragment extends Fragment implements EventHistoryAdapter.OnEventClickListener {
+public class EventHistoryFragment extends Fragment {
 
     private static final String TAG = "EventHistoryFragment";
 
@@ -278,59 +278,6 @@ public class EventHistoryFragment extends Fragment implements EventHistoryAdapte
         drawnEventsEmptyText.setVisibility(View.VISIBLE);
         pendingEventsRecyclerView.setVisibility(View.GONE);
         pendingEventsEmptyText.setVisibility(View.VISIBLE);
-    }
-
-    /**
-     * Handle event item clicks to navigate to event details.
-     *
-     * @param event The event that was clicked
-     */
-
-    @Override
-    public void onEventClick(Event event) {
-        Status userStatus = getUserStatusForEvent(event.getId(), currentUser);
-
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("event", event);
-        NavController navController = Navigation.findNavController(requireView());
-
-        // If user is invited and invitation hasn't expired, go to accept/decline screen
-        if (userStatus == Status.Selected && !isInvitationExpired(event.getId())) {
-            // Navigate to AcceptDeclineInvitationFragment
-            navController.navigate(R.id.action_eventHistoryFragment_to_acceptDeclineInvitation, bundle);
-        } else {
-            // Navigate to EventDetailsFragment (default)
-            navController.navigate(R.id.action_eventHistoryFragment_to_eventDetailsFragment, bundle);
-        }
-    }
-
-    /**
-     * Check if the invitation for an event has expired (24 hours passed).
-     *
-     * @param eventId The ID of the event
-     * @return true if invitation expired, false otherwise
-     */
-    private boolean isInvitationExpired(String eventId) {
-        List<User.RegisteredEvent> regEvents = currentUser.getRegEvents();
-
-        if (regEvents != null) {
-            for (User.RegisteredEvent regEvent : regEvents) {
-                if (regEvent.getEventId().equals(eventId)) {
-                    com.google.firebase.Timestamp selectedDate = regEvent.getSelectedDate();
-
-                    if (selectedDate != null) {
-                        long deadlineMillis = selectedDate.toDate().getTime() +
-                                java.util.concurrent.TimeUnit.HOURS.toMillis(24);
-                        long currentMillis = System.currentTimeMillis();
-
-                        return currentMillis > deadlineMillis;
-                    }
-                }
-            }
-        }
-
-
-        return false;
     }
     @Override
     public void onDestroyView() {

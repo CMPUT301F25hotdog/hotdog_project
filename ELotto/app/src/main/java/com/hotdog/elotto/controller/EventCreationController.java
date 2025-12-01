@@ -14,8 +14,10 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.hotdog.elotto.callback.OperationCallback;
+import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.Organizer;
+import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.ui.home.QRCodeView;
 
@@ -36,7 +38,7 @@ import java.util.Date;
  *
  * <p><b>Outstanding Issues:</b> None currently</p>
  *
- * @author Bhuvnesh Batta
+ * @author Ethan Carter
  * @version 1.0
  * @since 2025-11-01
  */
@@ -91,6 +93,7 @@ public class EventCreationController {
         this.repository = repository;
     }
 
+
     /**
      * Encodes an image URI into a Base64 string for storage in Firestore.
      *
@@ -119,7 +122,6 @@ public class EventCreationController {
                     byte[] imageBytes = baos.toByteArray();
                     base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
-
                 } else {
                     base64String = "image_failed_null";
                 }
@@ -130,7 +132,9 @@ public class EventCreationController {
         }
         return base64String;
     }
-
+    public void setTestMode(boolean testMode){
+        this.testMode = testMode;
+    }
     /**
      * Creates a new event and saves it to Firestore.
      *
@@ -155,8 +159,18 @@ public class EventCreationController {
      * @param tagList the list of tags for categorizing the event
      */
     public void SaveEvent(String name, String description, Date dateTime, Date openPeriod,
-                          Date closePeriod, int entrantLimit, int waitListSize,
-                          String location, double price, boolean requireGeo, String bannerUrl,ArrayList<String> tagList) {
+            Date closePeriod, int entrantLimit, int waitListSize,
+            String location, double price, boolean requireGeo, String bannerUrl, ArrayList<String> tagList,String organizerName) {
+        if(testMode){
+            Intent qrIntent = new Intent(context, QRCodeView.class);
+            qrIntent.putExtra("EVENT_NAME", name);
+            qrIntent.putExtra("EVENT_ID", "1728");
+            context.startActivity(qrIntent);
+            if (context instanceof Activity) {
+                ((Activity) context).setResult(Activity.RESULT_OK);
+                ((Activity) context).finish();
+            }
+        }
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
         event.setCreatedAt(new Date());
         event.setUpdatedAt(new Date());
@@ -166,10 +180,20 @@ public class EventCreationController {
         event.setTagList(tagList);
         Organizer org = new Organizer(context);
         event.setOrganizerId(org.getId());
+
+        Date now = new Date();
+        if (closePeriod != null && closePeriod.before(now)) {
+            event.setStatus("CLOSED");
+        }
+
+        event.setOrganizerName(organizerName);
         repository.createEvent(event, new OperationCallback() {
             @Override
             public void onSuccess() {
                 Toast.makeText(context, "Event created successfully!", Toast.LENGTH_SHORT).show();
+
+                User user = new User(context);
+                user.updateType(UserType.Organizer);
 
                 Organizer organizer = new Organizer(context);
                 organizer.addEvent(event.getId());
@@ -189,6 +213,7 @@ public class EventCreationController {
             }
         });
     }
+
 
     /**
      * Updates an existing event in Firestore with new information.
@@ -215,9 +240,9 @@ public class EventCreationController {
      * @param tagList the updated list of tags for the event
      */
     public void UpdateEvent(String eventId, String name, String description, Date dateTime,
-                            Date openPeriod, Date closePeriod, int entrantLimit, int waitListSize,
-                            String location, double price, boolean requireGeo, String bannerUrl,
-                            ArrayList<String> tagList) {
+            Date openPeriod, Date closePeriod, int entrantLimit, int waitListSize,
+            String location, double price, boolean requireGeo, String bannerUrl,
+            ArrayList<String> tagList) {
 
         // Create event object with updated data
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
@@ -230,6 +255,11 @@ public class EventCreationController {
         // Keep the organizer ID (don't change it)
         Organizer org = new Organizer(context);
         event.setOrganizerId(org.getId());
+
+        Date now = new Date();
+        if (closePeriod != null && closePeriod.before(now)) {
+            event.setStatus("CLOSED");
+        }
 
         // Update the event in the database
         repository.updateEvent(eventId, event, new OperationCallback() {
@@ -247,5 +277,4 @@ public class EventCreationController {
             }
         });
     }
-
 }

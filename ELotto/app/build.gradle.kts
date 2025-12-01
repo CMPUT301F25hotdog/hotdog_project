@@ -7,11 +7,9 @@ plugins {
 android {
     namespace = "com.hotdog.elotto"
     compileSdk = 36
-    defaultConfig {
-        vectorDrawables.useSupportLibrary = true
-    }
 
     defaultConfig {
+        vectorDrawables.useSupportLibrary = true
         applicationId = "com.hotdog.elotto"
         minSdk = 26
         targetSdk = 36
@@ -51,6 +49,8 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.core)
     implementation(libs.recyclerview)
+    implementation(libs.play.services.location)
+    implementation(libs.play.services.maps)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.mockito.inline)
     testImplementation(libs.junit.jupiter)
@@ -79,9 +79,10 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
     implementation(libs.zxing.core)
 
-    // GLIDE - Image Loading Library
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    //for qr scanning
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.0")
+
 }
 tasks.withType<Test>{
     useJUnitPlatform()

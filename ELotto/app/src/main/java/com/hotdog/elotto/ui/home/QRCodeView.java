@@ -17,7 +17,6 @@ import com.hotdog.elotto.controller.QRCodeController;
 public class QRCodeView extends AppCompatActivity {
     private TextView eventName;
     private Button downloadButton;
-    private Button shareButton;
     private Button goBackButton;
     private Bitmap qrBitmap;
     private ImageView qrImage;
@@ -30,7 +29,6 @@ public class QRCodeView extends AppCompatActivity {
         setContentView(R.layout.qr_code_activity);
         eventName = findViewById(R.id.qr_code_event_name);
         downloadButton = findViewById(R.id.download_qr_button);
-        shareButton = findViewById(R.id.Share_QR_Button);
         goBackButton = findViewById(R.id.Go_Back_Button);
         qrImage = findViewById(R.id.qr_code);
         String name = getIntent().getStringExtra("EVENT_NAME");

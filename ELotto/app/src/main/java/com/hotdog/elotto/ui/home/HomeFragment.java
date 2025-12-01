@@ -23,6 +23,7 @@ import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.model.Event;
+import com.hotdog.elotto.model.Organizer;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 
@@ -111,6 +112,8 @@ public class HomeFragment extends Fragment {
      * Model representing the current user, including registered event metadata.
      */
     private User currentUser;
+
+    private Organizer organizer;
 
     /**
      * Currently selected interest tags used for filtering the event list.
@@ -202,7 +205,11 @@ public class HomeFragment extends Fragment {
                 NavController navController = NavHostFragment.findNavController(HomeFragment.this);
 
                 // If user is invited and invitation hasn't expired then go to accept/decline screen
-                if (userStatus == Status.Selected && !isInvitationExpired(event.getId())) {
+                if (event.getOrganizerId() != null && event.getOrganizerId().equals(organizer.getId())) {
+                    // Navigate to Organizer View
+                    bundle.putString("eventId", event.getId());
+                    navController.navigate(R.id.action_navigation_home_to_organizerEventEntrantsFragment, bundle);
+                } else if (userStatus == Status.Selected && !isInvitationExpired(event.getId())) {
                     navController.navigate(R.id.action_navigation_home_to_acceptDeclineInvitation, bundle);
                 } else {
                     // default to regular event details screen
@@ -304,8 +311,9 @@ public class HomeFragment extends Fragment {
                             .navigate(R.id.action_navigation_home_to_faqFragment);
                     return true;
 
-                } else if (id == R.id.action_qr) {
-                    Toast.makeText(requireContext(), "Scan QR clicked", Toast.LENGTH_SHORT).show();
+                }else if (id == R.id.action_qr) {
+                    NavHostFragment.findNavController(HomeFragment.this)
+                            .navigate(R.id.action_navigation_home_to_qrScannerFragment);
                     return true;
 
                 } else {
