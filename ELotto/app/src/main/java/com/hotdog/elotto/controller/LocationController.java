@@ -34,7 +34,7 @@ public class LocationController {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
         this.context = context;
     }
-//shoot me
+    //shoot me
     /**
      * Retrieves the current device location using fine location.
      *
