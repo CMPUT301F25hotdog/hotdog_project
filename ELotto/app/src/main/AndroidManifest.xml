@@ -2,7 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -21,6 +27,9 @@
             android:label="Admin Dashboard" />
 
         <!-- MainActivity (Launcher) -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDxn6fdneC5TMijt6eBnGVhchriDv1gjuQ" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -36,11 +45,9 @@
         <activity
             android:name=".ui.home.EventCreationView"
             android:exported="false" />
-
-        <activity android:name=".ui.home.QRCodeView"
-            android:exported="true">
-        </activity>
-
+        <activity
+            android:name=".ui.home.QRCodeView"
+            android:exported="true" />
         <activity
             android:name=".ui.home.MyEventsView"
             android:exported="false" />
@@ -70,7 +77,7 @@
             android:label="Browse Notifications"
             android:parentActivityName=".ui.admin.AdminDashboardActivity" />
 
-        <!-- ADD THIS PROVIDER HERE ↓ -->
+        <!-- FileProvider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

@@ -14,8 +14,10 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.hotdog.elotto.callback.OperationCallback;
+import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.Organizer;
+import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.ui.home.QRCodeView;
 
@@ -25,19 +27,51 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Controller class responsible for managing event creation logic, including
- * data processing, image encoding, and interaction with Firestore and Storage.
+ * Controller for managing event creation and update operations.
+ *
+ * <p>This controller handles the business logic for creating and updating events,
+ * including image encoding, data validation, and interaction with Firebase Firestore
+ * and Storage. Provides methods for encoding poster images to Base64 format and
+ * managing event lifecycle operations.</p>
+ *
+ * <p>Controller layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently</p>
+ *
+ * @author Ethan Carter
+ * @version 1.0
+ * @since 2025-11-01
  */
 public class EventCreationController {
-    private FirebaseFirestore db;
-    private CollectionReference eventsRef;
-    private FirebaseStorage storage;
-    private final Context context;
-    private EventRepository repository;
     /**
-     * Constructs a new EventCreationController.
+     * Firestore database instance for event operations.
+     */
+    private FirebaseFirestore db;
+
+    /**
+     * Reference to the events collection in Firestore.
+     */
+    private CollectionReference eventsRef;
+
+    /**
+     * Firebase Storage instance for image storage operations.
+     */
+    private FirebaseStorage storage;
+
+    /**
+     * Application context for accessing resources and system services.
+     */
+    private final Context context;
+
+    /**
+     * Repository for event data access operations.
+     */
+    private EventRepository repository;
+
+    /**
+     * Constructs a new EventCreationController with default repository.
      *
-     * @param context the current context
+     * @param context the application context
      */
     public EventCreationController(Context context) {
         this.context = context;
@@ -45,16 +79,35 @@ public class EventCreationController {
         eventsRef = db.collection("events");
         this.repository = new EventRepository();
     }
+
+    /**
+     * Constructs a new EventCreationController with dependency injection.
+     *
+     * <p>This constructor is useful for testing with mock repositories.</p>
+     *
+     * @param context the application context
+     * @param repository the EventRepository instance to use
+     */
     public EventCreationController(Context context, EventRepository repository) {
         this.context = context;
         this.repository = repository;
     }
+
+
     /**
-     * Encodes an image Uri into a string to be stored
-     * @param bannerUri     a URI pointing to the banner image selected by the user.
+     * Encodes an image URI into a Base64 string for storage in Firestore.
      *
-     * https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database
-     * used to figure out how to convert images into strings to store
+     * <p>Converts the image to JPEG format with 80% quality compression before
+     * encoding to reduce storage size. Returns fallback strings if encoding fails:</p>
+     * <ul>
+     *     <li>"no_image" - if URI is null</li>
+     *     <li>"image_failed_null" - if input stream is null</li>
+     *     <li>"image_failed_exception" - if encoding throws an exception</li>
+     * </ul>
+     *
+     * @param bannerUri the URI pointing to the banner image selected by the user
+     * @return Base64-encoded image string or fallback error identifier
+     * @see <a href="https://stackoverflow.com/questions/49265931/how-to-add-an-image-to-a-record-in-a-firestore-database">Stack Overflow Reference</a>
      */
     public String EncodeImage(Uri bannerUri) {
         String base64String = "no_image";
@@ -69,7 +122,6 @@ public class EventCreationController {
                     byte[] imageBytes = baos.toByteArray();
                     base64String = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
-
                 } else {
                     base64String = "image_failed_null";
                 }
@@ -80,26 +132,45 @@ public class EventCreationController {
         }
         return base64String;
     }
-
+    public void setTestMode(boolean testMode){
+        this.testMode = testMode;
+    }
     /**
-     * Creates a new event and saves it to FireStore using the EventRepository class, then opens up the QRCode
-     * Screen, also runs updateOrganizer which creates or updates an organizer
+     * Creates a new event and saves it to Firestore.
      *
-     * @param name          the name of the event.
-     * @param description   a brief description of the event.
-     * @param dateTime      the scheduled event date and time.
-     * @param openPeriod    the registration open date.
-     * @param closePeriod   the registration close date.
-     * @param entrantLimit  the maximum number of attendees allowed.
-     * @param waitListSize  the number of users that can be on the waitlist.
-     * @param location      the physical or virtual location of the event.
-     * @param price         the cost to participate in the event.
-     * @param requireGeo    whether the event enforces geolocation verification.
-     * @param bannerUrl     the Base64-encoded image string or fallback identifier.
+     * <p>This method constructs an Event object with the provided parameters, saves it
+     * to Firestore using the EventRepository, adds the event to the organizer's event
+     * list, and navigates to the QR code generation screen upon successful creation.</p>
+     *
+     * <p>On success, displays a success toast, updates the organizer's event list,
+     * launches the QRCodeView activity, and finishes the current activity with RESULT_OK.</p>
+     *
+     * @param name the name of the event
+     * @param description a brief description of the event
+     * @param dateTime the scheduled event date and time
+     * @param openPeriod the registration open date
+     * @param closePeriod the registration close date
+     * @param entrantLimit the maximum number of attendees allowed
+     * @param waitListSize the number of users that can be on the waitlist
+     * @param location the physical or virtual location of the event
+     * @param price the cost to participate in the event
+     * @param requireGeo whether the event enforces geolocation verification
+     * @param bannerUrl the Base64-encoded image string or fallback identifier
+     * @param tagList the list of tags for categorizing the event
      */
     public void SaveEvent(String name, String description, Date dateTime, Date openPeriod,
-                          Date closePeriod, int entrantLimit, int waitListSize,
-                          String location, double price, boolean requireGeo, String bannerUrl,ArrayList<String> tagList) {
+            Date closePeriod, int entrantLimit, int waitListSize,
+            String location, double price, boolean requireGeo, String bannerUrl, ArrayList<String> tagList,String organizerName) {
+        if(testMode){
+            Intent qrIntent = new Intent(context, QRCodeView.class);
+            qrIntent.putExtra("EVENT_NAME", name);
+            qrIntent.putExtra("EVENT_ID", "1728");
+            context.startActivity(qrIntent);
+            if (context instanceof Activity) {
+                ((Activity) context).setResult(Activity.RESULT_OK);
+                ((Activity) context).finish();
+            }
+        }
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
         event.setCreatedAt(new Date());
         event.setUpdatedAt(new Date());
@@ -109,10 +180,20 @@ public class EventCreationController {
         event.setTagList(tagList);
         Organizer org = new Organizer(context);
         event.setOrganizerId(org.getId());
+
+        Date now = new Date();
+        if (closePeriod != null && closePeriod.before(now)) {
+            event.setStatus("CLOSED");
+        }
+
+        event.setOrganizerName(organizerName);
         repository.createEvent(event, new OperationCallback() {
             @Override
             public void onSuccess() {
                 Toast.makeText(context, "Event created successfully!", Toast.LENGTH_SHORT).show();
+
+                User user = new User(context);
+                user.updateType(UserType.Organizer);
 
                 Organizer organizer = new Organizer(context);
                 organizer.addEvent(event.getId());
@@ -132,27 +213,36 @@ public class EventCreationController {
             }
         });
     }
+
+
     /**
-     * Updates an existing event in the database
+     * Updates an existing event in Firestore with new information.
      *
-     * @param eventId the ID of the event to update
-     * @param name the name of the event
-     * @param description a brief description of the event
-     * @param dateTime the scheduled event date and time
-     * @param openPeriod the registration open date
-     * @param closePeriod the registration close date
-     * @param entrantLimit the maximum number of attendees allowed
-     * @param waitListSize the number of users that can be on the waitlist
-     * @param location the physical or virtual location of the event
-     * @param price the cost to participate in the event
+     * <p>This method constructs an Event object with the updated parameters and saves
+     * it to Firestore using the EventRepository. The organizer ID is preserved from
+     * the current organizer context.</p>
+     *
+     * <p>On success, displays a success toast and finishes the current activity. On
+     * failure, displays an error toast with the error message.</p>
+     *
+     * @param eventId the unique identifier of the event to update
+     * @param name the updated name of the event
+     * @param description the updated description of the event
+     * @param dateTime the updated scheduled event date and time
+     * @param openPeriod the updated registration open date
+     * @param closePeriod the updated registration close date
+     * @param entrantLimit the updated maximum number of attendees allowed
+     * @param waitListSize the updated number of users that can be on the waitlist
+     * @param location the updated physical or virtual location of the event
+     * @param price the updated cost to participate in the event
      * @param requireGeo whether the event enforces geolocation verification
-     * @param bannerUrl the Base64-encoded image string or fallback identifier
-     * @param tagList the list of tags for the event
+     * @param bannerUrl the updated Base64-encoded image string or fallback identifier
+     * @param tagList the updated list of tags for the event
      */
     public void UpdateEvent(String eventId, String name, String description, Date dateTime,
-                            Date openPeriod, Date closePeriod, int entrantLimit, int waitListSize,
-                            String location, double price, boolean requireGeo, String bannerUrl,
-                            ArrayList<String> tagList) {
+            Date openPeriod, Date closePeriod, int entrantLimit, int waitListSize,
+            String location, double price, boolean requireGeo, String bannerUrl,
+            ArrayList<String> tagList) {
 
         // Create event object with updated data
         Event event = new Event(name, description, location, dateTime, openPeriod, closePeriod, entrantLimit, "todo");
@@ -165,6 +255,11 @@ public class EventCreationController {
         // Keep the organizer ID (don't change it)
         Organizer org = new Organizer(context);
         event.setOrganizerId(org.getId());
+
+        Date now = new Date();
+        if (closePeriod != null && closePeriod.before(now)) {
+            event.setStatus("CLOSED");
+        }
 
         // Update the event in the database
         repository.updateEvent(eventId, event, new OperationCallback() {
@@ -182,5 +277,4 @@ public class EventCreationController {
             }
         });
     }
-
 }

@@ -33,8 +33,27 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Admin Browse Notifications Activity.
- * Allows admin to view all notifications sent to users.
+ * Activity for administrators to browse and manage all system notifications.
+ *
+ * <p>This activity provides administrators with the ability to view all notifications
+ * sent to users across the system, search/filter notifications by message, title, or
+ * event ID, view detailed notification information, and delete notifications. Access
+ * is restricted to users with Administrator privileges.</p>
+ *
+ * <p>Features include:</p>
+ * <ul>
+ *     <li>View all notifications from all users in the system</li>
+ *     <li>Real-time search filtering across message, title, and event ID</li>
+ *     <li>Notification details dialog showing comprehensive information</li>
+ *     <li>Notification deletion with confirmation dialog</li>
+ *     <li>Automatic sorting by timestamp (newest first)</li>
+ *     <li>Total notification count display</li>
+ *     <li>Loading indicators and empty state handling</li>
+ * </ul>
+ *
+ * <p>View layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently</p>
  *
  * @author Admin Module
  * @version 1.0
@@ -44,17 +63,65 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
 
     private static final String TAG = "AdminBrowseNotifications";
 
+    /**
+     * RecyclerView for displaying the list of notifications.
+     */
     private RecyclerView recyclerViewNotifications;
+
+    /**
+     * EditText for search/filter input.
+     */
     private EditText etSearchNotifications;
-    private TextView tvTotalNotifications, tvNoNotifications;
+
+    /**
+     * TextView displaying the total number of notifications.
+     */
+    private TextView tvTotalNotifications;
+
+    /**
+     * TextView displayed when no notifications are found or match the search query.
+     */
+    private TextView tvNoNotifications;
+
+    /**
+     * ProgressBar shown during loading operations.
+     */
     private ProgressBar progressBar;
+
+    /**
+     * ImageView button for navigating back.
+     */
     private ImageView btnBack;
 
+    /**
+     * Adapter for binding notification data to the RecyclerView.
+     */
     private AdminNotificationAdapter adapter;
+
+    /**
+     * Firestore database instance for notification operations.
+     */
     private FirebaseFirestore db;
+
+    /**
+     * Complete list of all notifications loaded from Firestore.
+     */
     private List<Notification> allNotifications = new ArrayList<>();
+
+    /**
+     * Filtered list of notifications based on search query.
+     */
     private List<Notification> filteredNotifications = new ArrayList<>();
 
+    /**
+     * Called when the activity is starting.
+     *
+     * <p>Verifies that the current user has Administrator privileges before
+     * initializing the activity. If access is denied, displays a toast message
+     * and finishes the activity.</p>
+     *
+     * @param savedInstanceState the saved instance state Bundle
+     */
     @SuppressLint("HardwareIds")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +153,12 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
         });
     }
 
+    /**
+     * Initializes all view components and the Firestore database instance.
+     *
+     * <p>Binds UI elements by their IDs and creates a Firestore instance for
+     * notification data access.</p>
+     */
     private void initializeViews() {
         recyclerViewNotifications = findViewById(R.id.rv_admin_notifications);
         etSearchNotifications = findViewById(R.id.et_search_notifications);
@@ -97,16 +170,31 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
         db = FirebaseFirestore.getInstance();
     }
 
+    /**
+     * Sets up the back button click listener to finish the activity.
+     */
     private void setupBackButton() {
         btnBack.setOnClickListener(v -> finish());
     }
 
+    /**
+     * Sets up the RecyclerView with adapter and layout manager.
+     *
+     * <p>Creates an AdminNotificationAdapter with the filtered notifications list
+     * and sets this activity as the action listener for handling notification actions.</p>
+     */
     private void setupRecyclerView() {
         adapter = new AdminNotificationAdapter(filteredNotifications, this);
         recyclerViewNotifications.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewNotifications.setAdapter(adapter);
     }
 
+    /**
+     * Sets up the search functionality with real-time text filtering.
+     *
+     * <p>Adds a TextWatcher to the search EditText that filters notifications as
+     * the user types, providing instant search results.</p>
+     */
     private void setupSearch() {
         etSearchNotifications.addTextChangedListener(new TextWatcher() {
             @Override
@@ -124,6 +212,18 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
         });
     }
 
+    /**
+     * Loads all notifications from all users in the Firestore database.
+     *
+     * <p>This method queries the notifications collection, parses notification arrays
+     * from each user document, and constructs Notification objects with proper error
+     * handling for malformed data. Notifications are automatically sorted by timestamp
+     * in descending order (newest first).</p>
+     *
+     * <p>Handles multiple field name variations for backward compatibility (e.g., both
+     * "isRead" and "read" fields). Includes optional fields like eventTitle and
+     * eventImageUrl if present.</p>
+     */
     private void loadNotifications() {
         progressBar.setVisibility(View.VISIBLE);
         tvNoNotifications.setVisibility(View.GONE);
@@ -141,8 +241,7 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
                         String userId = doc.getId();
                         try {
                             // The field "notifications" is an array of maps
-                            List<Map<String, Object>> notificationsList = (List<Map<String, Object>>) doc
-                                    .get("notifications");
+                            List<Map<String, Object>> notificationsList = (List<Map<String, Object>>) doc.get("notifications");
 
                             if (notificationsList != null) {
                                 for (Map<String, Object> notifMap : notificationsList) {
@@ -202,6 +301,15 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
                 });
     }
 
+    /**
+     * Filters notifications based on the search query.
+     *
+     * <p>Performs a case-insensitive search across notification message, title, and
+     * event ID fields. If the query is empty, displays all notifications. Updates
+     * the UI with the filtered results.</p>
+     *
+     * @param query the search query string
+     */
     private void filterNotifications(String query) {
         filteredNotifications.clear();
 
@@ -224,6 +332,12 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
         updateUI();
     }
 
+    /**
+     * Updates the UI based on current filtered notifications data.
+     *
+     * <p>Updates the total notifications count, shows/hides the "no notifications"
+     * message appropriately, and notifies the adapter of data changes.</p>
+     */
     private void updateUI() {
         tvTotalNotifications.setText("Total Notifications: " + filteredNotifications.size());
 
@@ -238,6 +352,14 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
         adapter.notifyDataSetChanged();
     }
 
+    /**
+     * Handles the notification click action.
+     *
+     * <p>Displays an AlertDialog with comprehensive notification details including
+     * event ID, message, user ID, read/unread status, and formatted timestamp.</p>
+     *
+     * @param notification the notification that was clicked
+     */
     @Override
     public void onNotificationClick(Notification notification) {
         // Show notification details dialog
@@ -259,6 +381,14 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
         builder.show();
     }
 
+    /**
+     * Handles the delete notification action.
+     *
+     * <p>Shows a confirmation dialog before proceeding with deletion to prevent
+     * accidental deletions.</p>
+     *
+     * @param notification the notification to delete
+     */
     @Override
     public void onDeleteNotification(Notification notification) {
         // Show confirmation dialog
@@ -270,6 +400,19 @@ public class AdminBrowseNotificationsActivity extends AppCompatActivity
                 .show();
     }
 
+    /**
+     * Deletes a notification from the user's notification array in Firestore.
+     *
+     * <p>This method removes a specific notification from the notifications array
+     * field in the user's notification document using Firestore's arrayRemove
+     * operation. The entire notification object (as a map) is removed from the array.</p>
+     *
+     * <p>Validates that the notification has both a user ID and UUID before attempting
+     * deletion. Shows a progress bar during the operation and displays appropriate
+     * toast messages for success or failure.</p>
+     *
+     * @param notification the notification to delete from Firestore
+     */
     private void deleteNotification(Notification notification) {
         if (notification.getUserId() == null || notification.getUuid() == null) {
             Toast.makeText(this, "Error: Missing User ID or Notification UUID", Toast.LENGTH_SHORT).show();

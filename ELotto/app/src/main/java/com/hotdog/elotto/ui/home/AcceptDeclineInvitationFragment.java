@@ -42,7 +42,27 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * Fragment for accepting or declining event invitations.
+ * Fragment for accepting or declining event invitations with RSVP deadline.
+ *
+ * <p>This fragment displays comprehensive event details for a selected invitation
+ * and provides users with options to accept or decline. Features a real-time countdown
+ * timer showing the remaining time to respond (24 hours from selection). Automatically
+ * declines the invitation and disables buttons when the deadline expires.</p>
+ *
+ * <p>Features include:</p>
+ * <ul>
+ *     <li>Event details display (title, image, date, time, location, description)</li>
+ *     <li>Real-time countdown timer (24-hour RSVP deadline)</li>
+ *     <li>Accept button with confirmation dialog</li>
+ *     <li>Decline button with confirmation dialog</li>
+ *     <li>Automatic decline and button disabling on deadline expiration</li>
+ *     <li>Base64 event image decoding with fallback placeholder</li>
+ *     <li>Status updates in both User and Event documents</li>
+ * </ul>
+ *
+ * <p>View layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently</p>
  *
  * @author Ethan Carter
  * @version 1.0
@@ -51,24 +71,100 @@ import java.util.function.Consumer;
 public class AcceptDeclineInvitationFragment extends Fragment {
 
     private static final String TAG = "AcceptDeclineInvitation";
+
+    /**
+     * RSVP deadline duration in hours (24 hours from selection time).
+     */
     private static final long RSVP_DEADLINE_HOURS = 24;
+
+    /**
+     * Button for navigating back to the previous screen.
+     */
     private ImageButton backButton;
+
+    /**
+     * TextView displaying the event title.
+     */
     private TextView eventTitleTextView;
+
+    /**
+     * ImageView displaying the event poster image.
+     */
     private ImageView eventImageView;
+
+    /**
+     * TextView displaying the event date.
+     */
     private TextView eventDateTextView;
+
+    /**
+     * TextView displaying the event time.
+     */
     private TextView eventTimeTextView;
+
+    /**
+     * TextView displaying the event location.
+     */
     private TextView eventLocationTextView;
+
+    /**
+     * TextView displaying the countdown timer showing time remaining to RSVP.
+     */
     private TextView countdownTextView;
+
+    /**
+     * TextView displaying the event description.
+     */
     private TextView eventDescriptionTextView;
+
+    /**
+     * Button for declining the invitation.
+     */
     private Button declineButton;
+
+    /**
+     * Button for accepting the invitation.
+     */
     private Button acceptButton;
+
+    /**
+     * The event object for which the invitation is being handled.
+     */
     private Event event;
+
+    /**
+     * The current user's ID.
+     */
     private String currentUserId;
+
+    /**
+     * Repository for event data access operations.
+     */
     private EventRepository eventRepository;
+
+    /**
+     * Repository for user data access operations.
+     */
     private UserRepository userRepository;
+
+    /**
+     * Handler for posting countdown timer updates on the main thread.
+     */
     private Handler countdownHandler;
+
+    /**
+     * Runnable for the countdown timer that updates every second.
+     */
     private Runnable countdownRunnable;
 
+    /**
+     * Creates and returns the view hierarchy associated with the fragment.
+     *
+     * @param inflater the LayoutInflater object that can be used to inflate views
+     * @param container the parent view that the fragment's UI should be attached to
+     * @param savedInstanceState the previously saved state of the fragment
+     * @return the root View of the fragment's layout
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -76,6 +172,15 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_accept_decline_invitation, container, false);
     }
 
+    /**
+     * Called immediately after onCreateView has returned.
+     *
+     * <p>Initializes all views, repositories, loads the current user, loads event
+     * data from arguments, and sets up button click listeners.</p>
+     *
+     * @param view the View returned by onCreateView
+     * @param savedInstanceState the previously saved state of the fragment
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -87,6 +192,14 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         setupListeners();
     }
 
+    /**
+     * Initializes all view components and the countdown handler.
+     *
+     * <p>Binds UI elements by their IDs and creates a Handler for the main looper
+     * to handle countdown timer updates.</p>
+     *
+     * @param view the root view of the fragment
+     */
     private void initializeViews(View view) {
         backButton = view.findViewById(R.id.backButton);
         eventTitleTextView = view.findViewById(R.id.eventTitleTextView);
@@ -102,11 +215,23 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         countdownHandler = new Handler(Looper.getMainLooper());
     }
 
+    /**
+     * Initializes repository instances for data access.
+     *
+     * <p>Creates a new EventRepository instance and obtains the singleton
+     * UserRepository instance.</p>
+     */
     private void initializeRepositories() {
         eventRepository = new EventRepository();
         userRepository = UserRepository.getInstance();
     }
 
+    /**
+     * Loads the current user and stores their ID.
+     *
+     * <p>Creates a User instance with a callback to extract and store the
+     * current user's device ID for subsequent operations.</p>
+     */
     private void loadCurrentUser() {
         new User(requireContext(), new Consumer<User>() {
             @Override
@@ -116,6 +241,13 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         });
     }
 
+    /**
+     * Loads event data from fragment arguments.
+     *
+     * <p>Retrieves the Event object passed through navigation arguments, displays
+     * the event details, and checks the invitation status to start the countdown
+     * timer. If no event is found, shows an error and navigates back.</p>
+     */
     private void loadEventData() {
         // Get event from arguments
         if (getArguments() != null) {
@@ -131,6 +263,13 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         }
     }
 
+    /**
+     * Displays all event details in the UI.
+     *
+     * <p>Populates TextViews with event information including title, date (formatted
+     * as "EEEE, MMMM d"), time (formatted as "HH:mm"), location, and description.
+     * Calls loadEventImage to handle the poster image display.</p>
+     */
     private void displayEventDetails() {
         // Set event title
         eventTitleTextView.setText(event.getName());
@@ -158,6 +297,18 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         eventDescriptionTextView.setText(event.getDescription());
     }
 
+    /**
+     * Loads and displays the event poster image.
+     *
+     * <p>Handles three scenarios:</p>
+     * <ol>
+     *     <li>No image/failed image: Shows placeholder (image_24px)</li>
+     *     <li>Base64 image: Decodes and displays with CENTER_CROP scaling</li>
+     *     <li>Decode error: Shows placeholder and logs exception</li>
+     * </ol>
+     *
+     * <p>Recognizes special values: "no_image" and strings starting with "image_failed_"</p>
+     */
     private void loadEventImage() {
         String posterImageUrl = event.getPosterImageUrl();
 
@@ -189,6 +340,14 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         }
     }
 
+    /**
+     * Checks the invitation status and starts the countdown timer.
+     *
+     * <p>Loads the user from Firestore, finds the registered event using binary
+     * search, retrieves the selectedDate timestamp, and starts the countdown timer
+     * based on that timestamp. If selectedDate is null, uses the current time as
+     * fallback. Navigates back if the event is not found in registrations.</p>
+     */
     private void checkInvitationStatus() {
         // Load user to get selectedDate
         userRepository.getUserById(currentUserId, new FirestoreCallback<User>() {
@@ -225,6 +384,14 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         });
     }
 
+    /**
+     * Starts the countdown timer that updates every second.
+     *
+     * <p>Creates and posts a Runnable that calls updateCountdown every 1000ms
+     * to display the remaining time to respond to the invitation.</p>
+     *
+     * @param selectedDate the timestamp when the user was selected for the event
+     */
     private void startCountdownTimer(Timestamp selectedDate) {
         countdownRunnable = new Runnable() {
             @Override
@@ -236,6 +403,15 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         countdownHandler.post(countdownRunnable);
     }
 
+    /**
+     * Updates the countdown display with remaining time.
+     *
+     * <p>Calculates the deadline as 24 hours from selectedDate, computes the
+     * remaining time, and displays it in "Xh Ym left to RSVP" format. If the
+     * deadline has passed, calls handleExpiredInvitation.</p>
+     *
+     * @param selectedDate the timestamp when the user was selected for the event
+     */
     private void updateCountdown(Timestamp selectedDate) {
         // Calculate deadline (24 hours from selectedDate)
         long deadlineMillis = selectedDate.toDate().getTime() +
@@ -256,6 +432,13 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         }
     }
 
+    /**
+     * Handles expired invitations by disabling buttons and auto-declining.
+     *
+     * <p>Updates the countdown text to "Invitation expired", disables both accept
+     * and decline buttons, and calls autoDeclineUser to automatically move the user
+     * to declined status.</p>
+     */
     private void handleExpiredInvitation() {
         countdownTextView.setText("Invitation expired");
 
@@ -266,6 +449,13 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         autoDeclineUser();
     }
 
+    /**
+     * Automatically declines the user when the RSVP deadline expires.
+     *
+     * <p>Loads the user, updates their status to Declined for the event, saves the
+     * change to Firestore, and then moves the user to the cancelled list in the
+     * event document.</p>
+     */
     private void autoDeclineUser() {
         // Move user to Declined status and cancelled list
         userRepository.getUserById(currentUserId, new FirestoreCallback<User>() {
@@ -300,6 +490,12 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         });
     }
 
+    /**
+     * Sets up click listeners for all interactive buttons.
+     *
+     * <p>Configures the back button to navigate back, accept button to show
+     * confirmation dialog, and decline button to show confirmation dialog.</p>
+     */
     private void setupListeners() {
         backButton.setOnClickListener(v -> navigateBack());
 
@@ -308,6 +504,12 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         declineButton.setOnClickListener(v -> showDeclineConfirmation());
     }
 
+    /**
+     * Shows a confirmation dialog for accepting the invitation.
+     *
+     * <p>Displays an AlertDialog asking the user to confirm acceptance. On positive
+     * response, calls acceptInvitation to process the acceptance.</p>
+     */
     private void showAcceptConfirmation() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Accept Invitation")
@@ -317,6 +519,13 @@ public class AcceptDeclineInvitationFragment extends Fragment {
                 .show();
     }
 
+    /**
+     * Shows a confirmation dialog for declining the invitation.
+     *
+     * <p>Displays an AlertDialog asking the user to confirm decline with a warning
+     * that the action cannot be undone. On positive response, calls declineInvitation
+     * to process the decline.</p>
+     */
     private void showDeclineConfirmation() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Decline Invitation")
@@ -326,6 +535,13 @@ public class AcceptDeclineInvitationFragment extends Fragment {
                 .show();
     }
 
+    /**
+     * Processes the invitation acceptance.
+     *
+     * <p>Loads the user, updates their status to Accepted for the event, saves the
+     * change to Firestore, and calls moveUserToAcceptedList to update the event's
+     * accepted list. Shows error toasts if any operation fails.</p>
+     */
     private void acceptInvitation() {
         // Update user status to Accepted
         userRepository.getUserById(currentUserId, new FirestoreCallback<User>() {
@@ -361,6 +577,13 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         });
     }
 
+    /**
+     * Moves the user to the accepted list in the event document.
+     *
+     * <p>Calls the EventRepository to move the user from the selected list to the
+     * accepted list. Shows a success toast and navigates back on completion, or
+     * shows an error toast on failure.</p>
+     */
     private void moveUserToAcceptedList() {
         List<String> userIds = new ArrayList<>();
         userIds.add(currentUserId);
@@ -380,6 +603,13 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         });
     }
 
+    /**
+     * Processes the invitation decline.
+     *
+     * <p>Loads the user, updates their status to Declined for the event, saves the
+     * change to Firestore, and calls moveUserToCancelledList to update the event's
+     * cancelled list. Shows error toasts if any operation fails.</p>
+     */
     private void declineInvitation() {
         // Update user status to Declined
         userRepository.getUserById(currentUserId, new FirestoreCallback<User>() {
@@ -415,6 +645,13 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         });
     }
 
+    /**
+     * Moves the user to the cancelled list in the event document.
+     *
+     * <p>Calls the EventRepository to move the user from the selected list to the
+     * cancelled list. Shows a success toast and navigates back on completion, or
+     * shows an error toast on failure.</p>
+     */
     private void moveUserToCancelledList() {
         List<String> userIds = new ArrayList<>();
         userIds.add(currentUserId);
@@ -434,11 +671,20 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         });
     }
 
+    /**
+     * Navigates back to the previous screen using the Navigation Controller.
+     */
     private void navigateBack() {
         NavController navController = NavHostFragment.findNavController(this);
         navController.navigateUp();
     }
 
+    /**
+     * Called when the view previously created by onCreateView has been detached from the fragment.
+     *
+     * <p>Removes the countdown runnable from the handler to prevent memory leaks and
+     * stop the timer from continuing to update after the view is destroyed.</p>
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

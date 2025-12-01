@@ -8,41 +8,81 @@ import java.util.Locale;
 import java.util.UUID;
 
 /**
- * Represents a single notification entity within the application.
- * <p>
- * This class acts as a data transfer object for alerts sent to users. It holds
- * everything from the message content to the timestamp, essentially serving as
- * the digital tap on the shoulder that users will likely swipe away immediately.
- * </p>
+ * Model class representing a notification sent to a user.
+ *
+ * <p>Notifications are associated with events and stored in the user's notification
+ * collection in Firestore. Each notification contains a title, message, timestamp,
+ * read/unread status, and references to the associated event and user.</p>
+ *
+ * <p>Model layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently</p>
+ *
+ * @author Layne Pitman
+ * @version 1.0
+ * @since 2025-11-26
  */
 public class Notification {
+    /**
+     * Unique identifier for the notification, generated using UUID.
+     */
     private String uuid;
+
+    /**
+     * Timestamp when the notification was created.
+     */
     private Timestamp timestamp;
+
+    /**
+     * The title/subject of the notification.
+     */
     private String title;
+
+    /**
+     * The detailed message content of the notification.
+     */
     private String message;
+
+    /**
+     * Flag indicating whether the notification has been read by the user.
+     */
     private boolean isRead;
+
+    /**
+     * The ID of the event associated with this notification.
+     */
     private String eventId;
+
+    /**
+     * The title of the event associated with this notification.
+     */
     private String eventTitle;
+
+    /**
+     * The URL or Base64 string of the event's poster image.
+     */
     private String eventImageUrl;
+
+    /**
+     * The ID of the user who received this notification.
+     */
     private String userId;
 
     /**
-     * Default constructor required for calls to DataSnapshot.getValue(Notification.class).
-     * <p>
-     * Do not delete this, or Firebase will silently fail and I will watch you from inside your walls.
-     * </p>
+     * Default constructor required for Firestore serialization.
      */
     public Notification() {
     }
 
     /**
-     * Constructs a new Notification with the essential details.
-     * Automatically generates a unique ID and sets the timestamp to "now",
-     * because we assume you aren't sending notifications from the future.
+     * Constructs a new Notification with the specified title, message, and event ID.
      *
-     * @param title   The headline of the notification.
-     * @param message The body text explaining why we are bothering the user.
-     * @param eventId The ID of the event associated with this notification.
+     * <p>Automatically generates a UUID, sets the current timestamp, and marks
+     * the notification as unread.</p>
+     *
+     * @param title the notification title
+     * @param message the notification message content
+     * @param eventId the ID of the associated event
      */
     public Notification(String title, String message, String eventId) {
         this.uuid = UUID.randomUUID().toString();
@@ -54,38 +94,36 @@ public class Notification {
     }
 
     /**
-     * Gets the unique identifier for this notification.
+     * Gets the unique identifier of the notification.
      *
-     * @return The UUID string.
+     * @return the UUID string
      */
     public String getUuid() {
         return uuid;
     }
 
     /**
-     * Sets the unique identifier. usually handled by the constructor,
-     * but exposed here in case we need to manually override reality.
+     * Sets the unique identifier of the notification.
      *
-     * @param uuid The new UUID.
+     * @param uuid the UUID string to set
      */
     public void setUuid(String uuid) {
         this.uuid = uuid;
     }
 
     /**
-     * Gets the time this notification was created.
+     * Gets the timestamp when the notification was created.
      *
-     * @return The Firebase Timestamp object.
+     * @return the Firestore Timestamp
      */
     public Timestamp getTimestamp() {
         return timestamp;
     }
 
     /**
-     * Sets the timestamp. useful if you need to backdate a notification
-     * to make it look like you sent it on time.
+     * Sets the timestamp when the notification was created.
      *
-     * @param timestamp The new timestamp.
+     * @param timestamp the Firestore Timestamp to set
      */
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
@@ -94,7 +132,7 @@ public class Notification {
     /**
      * Gets the notification title.
      *
-     * @return The title string.
+     * @return the title string
      */
     public String getTitle() {
         return title;
@@ -103,127 +141,127 @@ public class Notification {
     /**
      * Sets the notification title.
      *
-     * @param title The new title.
+     * @param title the title string to set
      */
     public void setTitle(String title) {
         this.title = title;
     }
 
     /**
-     * Gets the detailed message body.
+     * Gets the notification message content.
      *
-     * @return The message string.
+     * @return the message string
      */
     public String getMessage() {
         return message;
     }
 
     /**
-     * Sets the message body.
+     * Sets the notification message content.
      *
-     * @param message The new message content.
+     * @param message the message string to set
      */
     public void setMessage(String message) {
         this.message = message;
     }
 
     /**
-     * Checks if the user has seen this notification.
+     * Checks if the notification has been read.
      *
-     * @return true if read, false if they are ignoring us.
+     * @return true if read, false if unread
      */
     public boolean isRead() {
         return isRead;
     }
 
     /**
-     * Updates the read status of the notification.
+     * Sets the read status of the notification.
      *
-     * @param read The new read status.
+     * @param read true to mark as read, false to mark as unread
      */
     public void setRead(boolean read) {
         isRead = read;
     }
 
     /**
-     * Gets the ID of the event.
+     * Gets the ID of the associated event.
      *
-     * @return The event ID string.
+     * @return the event ID string
      */
     public String getEventId() {
         return eventId;
     }
 
     /**
-     * Sets the related event ID.
+     * Sets the ID of the associated event.
      *
-     * @param eventId The new event ID.
+     * @param eventId the event ID string to set
      */
     public void setEventId(String eventId) {
         this.eventId = eventId;
     }
 
     /**
-     * Gets the title of the related event.
+     * Gets the title of the associated event.
      *
-     * @return The event title.
+     * @return the event title string
      */
     public String getEventTitle() {
         return eventTitle;
     }
 
     /**
-     * Sets the event title.
+     * Sets the title of the associated event.
      *
-     * @param eventTitle The title of the event.
+     * @param eventTitle the event title string to set
      */
     public void setEventTitle(String eventTitle) {
         this.eventTitle = eventTitle;
     }
 
     /**
-     * Gets the URL for the event image.
+     * Gets the URL or Base64 string of the event's poster image.
      *
-     * @return The image URL string.
+     * @return the event image URL string
      */
     public String getEventImageUrl() {
         return eventImageUrl;
     }
 
     /**
-     * Sets the event image URL.
+     * Sets the URL or Base64 string of the event's poster image.
      *
-     * @param eventImageUrl The URL to the image resource.
+     * @param eventImageUrl the event image URL string to set
      */
     public void setEventImageUrl(String eventImageUrl) {
         this.eventImageUrl = eventImageUrl;
     }
 
     /**
-     * Gets the ID of the user receiving this notification.
+     * Gets the ID of the user who received this notification.
      *
-     * @return The user ID.
+     * @return the user ID string
      */
     public String getUserId() {
         return userId;
     }
 
     /**
-     * Sets the target user ID.
+     * Sets the ID of the user who received this notification.
      *
-     * @param userId The ID of the user to annoy.
+     * @param userId the user ID string to set
      */
     public void setUserId(String userId) {
         this.userId = userId;
     }
 
     /**
-     * Helper method to convert the machine timestamp into human time minutes.
-     * <p>
-     * Because apparently "1698234823" isn't a very user-friendly date format.
-     * </p>
+     * Gets a formatted timestamp string for display purposes.
      *
-     * @return A formatted date string like "Nov 25 at 2:30 PM" or "Unknown time" if null.
+     * <p>Returns the timestamp in the format "MMM dd 'at' h:mm a" (e.g., "Nov 26 at 3:45 PM").
+     * If the timestamp is null, returns "Unknown time".</p>
+     *
+     * @return formatted timestamp string
      */
     public String getFormattedTimestamp() {
         if (timestamp != null) {
@@ -235,12 +273,12 @@ public class Notification {
     }
 
     /**
-     * Helper to get a truncated version of the User ID.
-     * <p>
-     * For tiny buttcracks of space and debugging
-     * </p>
+     * Gets a shortened version of the user ID for display purposes.
      *
-     * @return The first 8 characters of the ID followed by dots, or the full ID if it's short.
+     * <p>If the user ID is longer than 8 characters, returns the first 8 characters
+     * followed by "...". Otherwise, returns the full user ID.</p>
+     *
+     * @return shortened user ID string
      */
     public String getShortUserId() {
         if (userId != null && userId.length() > 8) {

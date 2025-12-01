@@ -17,34 +17,58 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Adapter for displaying entrant information in a RecyclerView.
- * Shows entrant name, status text, and cancel button (when applicable).
+ * Adapter for displaying entrant information in the Organizer's event management interface.
+ *
+ * <p>This adapter dynamically displays different content based on the current tab
+ * (waiting, selected, accepted, cancelled). It shows entrant names, status-specific
+ * text, and conditionally displays cancel buttons for entrant management.</p>
  *
  * <p>Uses the item_organizer_entrant.xml layout for each item.</p>
  *
- * <p>Displays different content based on which tab is active (waiting, selected, accepted, cancelled).</p>
+ * <p>View layer component in MVC architecture pattern.</p>
  *
- * <p>View layer in MVC pattern.</p>
+ * <p><b>Outstanding Issues:</b> None currently</p>
  *
- * @author [Your Name]
+ * @author Bhuvnesh Batta
  * @version 2.0
  * @since 2025-11-25
  */
 public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantViewHolder> {
 
+    /**
+     * The list of entrants to display in the RecyclerView.
+     */
     private List<EntrantInfo> entrantList;
+
+    /**
+     * The current active tab, determines how entrant items are displayed.
+     * Valid values: "waiting", "selected", "accepted", "cancelled"
+     */
     private String currentTab = "waiting"; // Track which tab we're on
+
+    /**
+     * Listener for handling cancel button clicks.
+     */
     private OnCancelClickListener cancelClickListener;
 
     /**
-     * Interface for cancel button clicks.
+     * Callback interface for handling cancel button clicks.
+     *
+     * <p>Implementing classes should handle the business logic for cancelling
+     * entrants from the event.</p>
      */
     public interface OnCancelClickListener {
+        /**
+         * Called when the organizer clicks to cancel an entrant.
+         *
+         * @param entrantInfo the entrant to be cancelled
+         * @param position the position of the entrant in the list
+         */
         void onCancelClick(EntrantInfo entrantInfo, int position);
     }
 
     /**
-     * Constructor for the adapter.
+     * Constructs a new EntrantAdapter with the specified list of entrants.
      *
      * @param entrantList the initial list of entrants to display
      */
@@ -53,7 +77,10 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
     }
 
     /**
-     * Sets the current tab to determine how items should be displayed.
+     * Sets the current active tab to determine how items should be displayed.
+     *
+     * <p>Calling this method triggers a full refresh of all items in the RecyclerView
+     * to update their display based on the new tab context.</p>
      *
      * @param tab the current tab ("waiting", "selected", "accepted", "cancelled")
      */
@@ -63,7 +90,7 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
     }
 
     /**
-     * Sets the listener for cancel button clicks.
+     * Sets the listener for cancel button click events.
      *
      * @param listener the listener to handle cancel clicks
      */
@@ -71,6 +98,13 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
         this.cancelClickListener = listener;
     }
 
+    /**
+     * Creates a new ViewHolder by inflating the organizer entrant item layout.
+     *
+     * @param parent the ViewGroup into which the new View will be added
+     * @param viewType the view type of the new View
+     * @return a new EntrantViewHolder that holds the inflated View
+     */
     @NonNull
     @Override
     public EntrantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -79,21 +113,32 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
         return new EntrantViewHolder(view);
     }
 
+    /**
+     * Binds entrant data to the ViewHolder at the specified position.
+     *
+     * @param holder the ViewHolder to bind data to
+     * @param position the position of the item in the adapter's data set
+     */
     @Override
     public void onBindViewHolder(@NonNull EntrantViewHolder holder, int position) {
         EntrantInfo entrantInfo = entrantList.get(position);
         holder.bind(entrantInfo, currentTab, position, cancelClickListener);
     }
 
+    /**
+     * Returns the total number of entrants in the adapter.
+     *
+     * @return the size of the entrant list, or 0 if the list is null
+     */
     @Override
     public int getItemCount() {
         return entrantList != null ? entrantList.size() : 0;
     }
 
     /**
-     * Updates the adapter with a new list of entrants.
+     * Updates the adapter with a new list of entrants and refreshes the display.
      *
-     * @param newEntrants the new list of entrants
+     * @param newEntrants the new list of entrants to display
      */
     public void updateList(List<EntrantInfo> newEntrants) {
         this.entrantList = newEntrants;
@@ -101,13 +146,21 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
     }
 
     /**
-     * ViewHolder class for entrant items.
+     * ViewHolder class for individual entrant items in the organizer's entrant list.
+     *
+     * <p>Displays entrant name and status-specific information based on the current
+     * tab. Conditionally shows cancel button for entrant management.</p>
      */
     public static class EntrantViewHolder extends RecyclerView.ViewHolder {
         private final TextView nameTextView;
         private final TextView statusTextView;
         private final Button cancelButton;
 
+        /**
+         * Constructs a new EntrantViewHolder and initializes all view references.
+         *
+         * @param itemView the root view of the entrant item layout
+         */
         public EntrantViewHolder(@NonNull View itemView) {
             super(itemView);
             nameTextView = itemView.findViewById(R.id.entrantName);
@@ -116,7 +169,18 @@ public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantV
         }
 
         /**
-         * Binds entrant data to the view.
+         * Binds entrant data to the view components based on the current tab context.
+         *
+         * <p>This method adjusts the display based on the current tab:</p>
+         * <ul>
+         *     <li>Waiting tab: Shows "Joined [date]", hides cancel button</li>
+         *     <li>Selected tab: Shows "Pending Response", shows cancel button</li>
+         *     <li>Accepted tab: Shows "Accepted", shows cancel button</li>
+         *     <li>Cancelled tab: Shows "Cancelled", hides cancel button</li>
+         * </ul>
+         *
+         * <p>If the joined date is null in the waiting tab, displays "Joined Recently"
+         * as a fallback.</p>
          *
          * @param entrantInfo the entrant information to display
          * @param currentTab the current active tab

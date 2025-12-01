@@ -7,6 +7,7 @@ import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+
 import com.google.firebase.firestore.*;
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.model.User;
@@ -32,10 +33,6 @@ public class ProfileFragment extends Fragment {
     boolean isEditing = false;
     String currentUserId;
 
-    /**
-     * Sets up the Profile screen: binds UI, loads user data,
-     * and connects buttons for edit, save, and delete actions.
-     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_profile, container, false);
@@ -47,6 +44,7 @@ public class ProfileFragment extends Fragment {
         deviceIdText = v.findViewById(R.id.device_id_text);
         btnSave = v.findViewById(R.id.btn_save);
         btnDelete = v.findViewById(R.id.btn_delete);
+        btnEdit = v.findViewById(R.id.btn_edit);
         backButton = v.findViewById(R.id.btn_back);
         btnEdit = v.findViewById(R.id.btn_edit);
         btnAdmin = v.findViewById(R.id.btn_admin_dashboard);
@@ -56,7 +54,12 @@ public class ProfileFragment extends Fragment {
 
         loadUserData();
 
-        btnSave.setOnClickListener(s -> updateUserInfo());
+        // BOTTOM save button (actual saving)
+        btnSave.setOnClickListener(s -> {
+            updateUserInfo();
+            setEditingMode(false);
+        });
+
         btnDelete.setOnClickListener(d -> {
             new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                     .setTitle("Delete Account?")
@@ -73,38 +76,48 @@ public class ProfileFragment extends Fragment {
 
         btnEdit.setOnClickListener(e -> {
             if (!isEditing) {
-                setEnabled(true);
-                isEditing = true;
-                btnEdit.setText("Save");
-            } else {
-                updateUserInfo();
-                setEnabled(false);
-                isEditing = false;
-                btnEdit.setText("Edit");
+                setEditingMode(true);
             }
         });
 
-        setEnabled(false);
+        // start view-mode
+        setEditingMode(false);
+
         return v;
     }
 
     /**
-     * Enables or disables input fields for editing.
-     * Used to toggle between view and edit mode.
+     * Enable/disable editing mode: fields focusable + edit button disabled while editing.
      */
-    void setEnabled(boolean b) {
-        inputName.setEnabled(b);
-        inputEmail.setEnabled(b);
-        inputPhone.setEnabled(b);
+    void setEditingMode(boolean enable) {
+        isEditing = enable;
+
+        setEditable(inputName, enable);
+        setEditable(inputEmail, enable);
+        setEditable(inputPhone, enable);
+
+        if (enable) {
+            btnEdit.setEnabled(false);   // goes "hard"
+            btnEdit.setAlpha(0.4f);
+        } else {
+            btnEdit.setEnabled(true);
+            btnEdit.setAlpha(1f);
+        }
+    }
+
+    private void setEditable(EditText field, boolean enable) {
+        field.setEnabled(enable);
+        field.setFocusable(enable);
+        field.setFocusableInTouchMode(enable);
     }
 
     /**
-     * Fetches the current user’s data from Firestore and displays it.
-     * If no record found, shows a short error message.
+     * Load user data.
      */
     void loadUserData() {
         currentUser = new User(requireContext());
         currentUserId = currentUser.getId();
+
         if (currentUserId == null || currentUserId.isEmpty()) {
             Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
             return;
@@ -133,17 +146,18 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Updates the user’s Firestore data (name, email, phone).
-     * Validates input before saving and merges data without overwriting.
+     * Save user changes.
      */
     void updateUserInfo() {
         if (currentUserId == null || currentUserId.isEmpty()) {
             Toast.makeText(getContext(), "Missing user id", Toast.LENGTH_SHORT).show();
             return;
         }
+
         String n = inputName.getText().toString().trim();
         String e = inputEmail.getText().toString().trim();
         String p = inputPhone.getText().toString().trim();
+
         if (TextUtils.isEmpty(n) || TextUtils.isEmpty(e)) {
             Toast.makeText(getContext(), "Fill name and email", Toast.LENGTH_SHORT).show();
             return;
@@ -161,14 +175,14 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Deletes the user’s Firestore record after confirmation.
-     * Ends the activity once the user is deleted.
+     * Remove account from Firestore.
      */
     void deleteUserAccount() {
         if (currentUserId == null || currentUserId.isEmpty()) {
             Toast.makeText(getContext(), "Missing id", Toast.LENGTH_SHORT).show();
             return;
         }
+
         db.collection("users").document(currentUserId).delete()
                 .addOnSuccessListener(x -> {
                     Toast.makeText(getContext(), "Deleted", Toast.LENGTH_SHORT).show();

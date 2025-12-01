@@ -288,7 +288,7 @@ public class  EventHistoryUnitTest {
     public void testStatusToString() {
         // Verify Status enum can be converted to string
         assertEquals("Pending", Status.Pending.toString());
-        assertEquals("Invited", Status.Selected.toString());
+        assertEquals("Selected", Status.Selected.toString());
         assertEquals("Waitlisted", Status.Waitlisted.toString());
         assertEquals("Accepted", Status.Accepted.toString());
         assertEquals("Declined", Status.Declined.toString());

@@ -27,8 +27,25 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Admin Browse Events Activity.
- * Implements US 03.04.01 (Browse events) and US 03.01.01 (Remove events).
+ * Activity for administrators to browse and manage events in the system.
+ *
+ * <p>This activity provides administrators with the ability to view all events,
+ * search/filter events by name, description, or location, view detailed event
+ * information, and delete events from the system. Access is restricted to users
+ * with Administrator privileges.</p>
+ *
+ * <p>Features include:</p>
+ * <ul>
+ *     <li>Real-time search filtering across event name, description, and location</li>
+ *     <li>Event details dialog showing comprehensive event information</li>
+ *     <li>Event deletion with confirmation dialog</li>
+ *     <li>Total event count display</li>
+ *     <li>Loading indicators and empty state handling</li>
+ * </ul>
+ *
+ * <p>View layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently</p>
  *
  * @author Admin Module
  * @version 1.0
@@ -38,16 +55,60 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
     // Device ID check disabled for testing
     // private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
 
+    /**
+     * RecyclerView for displaying the list of events.
+     */
     private RecyclerView recyclerViewEvents;
+
+    /**
+     * EditText for search/filter input.
+     */
     private EditText etSearchEvents;
-    private TextView tvTotalEvents, tvNoEvents;
+
+    /**
+     * TextView displaying the total number of events.
+     */
+    private TextView tvTotalEvents;
+
+    /**
+     * TextView displayed when no events are found or match the search query.
+     */
+    private TextView tvNoEvents;
+
+    /**
+     * ProgressBar shown during loading operations.
+     */
     private ProgressBar progressBar;
 
+    /**
+     * Adapter for binding event data to the RecyclerView.
+     */
     private AdminEventAdapter adapter;
+
+    /**
+     * Repository for event data access operations.
+     */
     private EventRepository eventRepository;
+
+    /**
+     * Complete list of all events loaded from Firestore.
+     */
     private List<Event> allEvents = new ArrayList<>();
+
+    /**
+     * Filtered list of events based on search query.
+     */
     private List<Event> filteredEvents = new ArrayList<>();
 
+    /**
+     * Called when the activity is starting.
+     *
+     * <p>Verifies that the current user has Administrator privileges before
+     * initializing the activity. If access is denied, displays a toast message
+     * and finishes the activity.</p>
+     *
+     * @param savedInstanceState the saved instance state Bundle
+     */
     @SuppressLint("HardwareIds")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +144,12 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         // }
     }
 
+    /**
+     * Initializes all view components and repositories.
+     *
+     * <p>Binds UI elements by their IDs and creates a new EventRepository instance
+     * for data access operations.</p>
+     */
     private void initializeViews() {
         recyclerViewEvents = findViewById(R.id.rv_admin_events);
         etSearchEvents = findViewById(R.id.et_search_events);
@@ -93,12 +160,24 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         eventRepository = new EventRepository();
     }
 
+    /**
+     * Sets up the RecyclerView with adapter and layout manager.
+     *
+     * <p>Creates an AdminEventAdapter with the filtered events list and sets this
+     * activity as the action listener for handling view and delete operations.</p>
+     */
     private void setupRecyclerView() {
         adapter = new AdminEventAdapter(filteredEvents, this);
         recyclerViewEvents.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewEvents.setAdapter(adapter);
     }
 
+    /**
+     * Sets up the search functionality with real-time text filtering.
+     *
+     * <p>Adds a TextWatcher to the search EditText that filters events as the
+     * user types, providing instant search results.</p>
+     */
     private void setupSearch() {
         etSearchEvents.addTextChangedListener(new TextWatcher() {
             @Override
@@ -116,6 +195,12 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         });
     }
 
+    /**
+     * Loads all events from Firestore.
+     *
+     * <p>Shows a progress bar during loading and updates the UI with the loaded
+     * events on success. Displays an error message if loading fails.</p>
+     */
     private void loadEvents() {
         progressBar.setVisibility(View.VISIBLE);
         tvNoEvents.setVisibility(View.GONE);
@@ -142,6 +227,15 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         });
     }
 
+    /**
+     * Filters events based on the search query.
+     *
+     * <p>Performs a case-insensitive search across event name, description, and
+     * location fields. If the query is empty, displays all events. Updates the
+     * UI with the filtered results.</p>
+     *
+     * @param query the search query string
+     */
     private void filterEvents(String query) {
         filteredEvents.clear();
 
@@ -166,6 +260,12 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         updateUI();
     }
 
+    /**
+     * Updates the UI based on current event data.
+     *
+     * <p>Updates the total events count, shows/hides the "no events" message
+     * appropriately, and notifies the adapter of data changes.</p>
+     */
     private void updateUI() {
         tvTotalEvents.setText("Total Events: " + allEvents.size());
 
@@ -179,6 +279,15 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         adapter.notifyDataSetChanged();
     }
 
+    /**
+     * Handles the view details action for an event.
+     *
+     * <p>Displays an AlertDialog with comprehensive event information including
+     * description, location, organizer ID, max entrants, status, waitlist count,
+     * and accepted count.</p>
+     *
+     * @param event the event to display details for
+     */
     @Override
     public void onViewDetails(Event event) {
         // Show event details dialog
@@ -200,6 +309,14 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
         builder.show();
     }
 
+    /**
+     * Handles the delete event action.
+     *
+     * <p>Shows a confirmation dialog before proceeding with deletion to prevent
+     * accidental deletions. The dialog warns that the action cannot be undone.</p>
+     *
+     * @param event the event to delete
+     */
     @Override
     public void onDeleteEvent(Event event) {
         // Show confirmation dialog
@@ -212,6 +329,15 @@ public class AdminBrowseEventsActivity extends AppCompatActivity implements Admi
                 .show();
     }
 
+    /**
+     * Deletes an event from Firestore after confirmation.
+     *
+     * <p>Shows a progress bar during deletion, removes the event from both the
+     * all events and filtered events lists on success, and updates the UI. Displays
+     * appropriate toast messages for success or failure.</p>
+     *
+     * @param event the event to delete
+     */
     private void deleteEvent(Event event) {
         progressBar.setVisibility(View.VISIBLE);
 

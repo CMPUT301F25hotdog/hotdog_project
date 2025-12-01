@@ -12,6 +12,7 @@
     <color name="dark_grey">#A9A9A9</color>
 
 
+    <color name="error_red">#FF0000</color>
     <color name="thumb_blue">#2460d1</color>
     <color name="thumb_grey">#CECCCC</color>
     <color name="track_blue">#91AEE4</color>
@@ -19,7 +20,6 @@
     <color name="main_icon_blue">#2460d1</color>
     <color name="background_light_grey">#ECEFF1</color>
     <color name="success_green">#68c151</color>
-    <color name="error_red">#D32F2F</color>
     <color name="waitlist_orange">#FF9800</color>
     <color name="pending_yellow">#FFD500</color>
     <color name="border_grey">#E0E0E0</color>

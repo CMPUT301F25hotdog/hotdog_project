@@ -1,5 +1,7 @@
 package com.hotdog.elotto.ui.home;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -15,6 +17,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -23,8 +27,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.GeoPoint;
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.callback.OperationCallback;
+import com.hotdog.elotto.controller.LocationController;
 import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
@@ -41,48 +47,161 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 /**
- * EventDetailsFragment displays detailed information about a selected event.
- * Also allows the user to join and leave a waiting list for an event
+ * Fragment for displaying detailed information about an event and managing waitlist participation.
  *
+ * <p>This fragment provides comprehensive event details including date, time, location, description,
+ * and poster image. Users can join or leave the event waitlist with confirmation dialogs and
+ * rollback error handling. The UI dynamically updates based on the user's registration status
+ * (pending, selected, accepted, waitlisted, cancelled) and whether the lottery has been drawn.</p>
  *
- * Outstanding Issues:
- * - Lottery drawn date needs to be added to Event model
+ * <p>Features include:</p>
+ * <ul>
+ *     <li>Event details display (title, date, time, location, description, entries count)</li>
+ *     <li>Registration period and lottery drawn date information</li>
+ *     <li>Base64 event poster image decoding with fallback placeholder</li>
+ *     <li>Dynamic UI based on user status and lottery state</li>
+ *     <li>Join waitlist functionality with optimistic updates and rollback</li>
+ *     <li>Leave waitlist functionality with confirmation dialogs</li>
+ *     <li>Special waitlisted state display after lottery draw (red badge and info card)</li>
+ *     <li>Status-specific action buttons (Enter Lottery, Leave Waitlist, Cancel Acceptance)</li>
+ *     <li>Error handling with toast notifications</li>
+ * </ul>
+ *
+ * <p>View layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> Lottery drawn date needs to be added to Event model</p>
+ *
+ * @author Bhuvnesh
+ * @version 1.0
+ * @since 2025-11-01
  */
 public class EventDetailsFragment extends Fragment {
 
+    /**
+     * The event being displayed in this fragment.
+     */
     private Event event;
+
+    /**
+     * The currently logged-in user viewing the event.
+     */
     private User currentUser;
 
+    /**
+     * Button for navigating back to the previous screen.
+     */
     private ImageButton backButton;
+
+    /**
+     * ImageView displaying the event poster image.
+     */
     private ImageView eventImageView;
+
+    /**
+     * TextView displaying the event title.
+     */
     private TextView eventTitleTextView;
+
+    /**
+     * TextView displaying the event date.
+     */
     private TextView eventDateTextView;
+
+    /**
+     * TextView displaying the event time.
+     */
     private TextView eventTimeTextView;
+
+    /**
+     * TextView displaying the event location.
+     */
     private TextView eventLocationTextView;
+
+    /**
+     * TextView displaying the current entries count vs max entries.
+     */
     private TextView entriesCountTextView;
+
+    /**
+     * TextView label for registration end section.
+     */
     private TextView registrationEndTextView;
+
+    /**
+     * TextView displaying the registration end date.
+     */
     private TextView registrationEndDateTextView;
+
+    /**
+     * TextView label for lottery drawn section.
+     */
     private TextView lotteryDrawnTextView;
+
+    /**
+     * TextView displaying the lottery drawn date.
+     */
     private TextView lotteryDrawnDateTextView;
+
+    /**
+     * TextView displaying the event description.
+     */
     private TextView eventDescriptionTextView;
+
+    /**
+     * Button for entering the lottery (joining the waitlist).
+     */
     private Button enterLotteryButton;
+
+    /**
+     * Layout container for the waitlisted badge display.
+     */
     private LinearLayout waitlistedBadgeLayout;
+
+    /**
+     * CardView containing information for waitlisted users.
+     */
     private androidx.cardview.widget.CardView waitlistedInfoCard;
+
+    /**
+     * Button for leaving the waitlist.
+     */
     private MaterialButton leaveWaitlistButton;
+
+    /**
+     * Button displayed when no action is available (status-dependent).
+     */
     private MaterialButton noActionButton;
-    private TextView infoCardMessageTextView;  // ADD THIS LINE
 
-    private TextView infoCardHeaderTextView;  // ADD THIS (optional, for header)
+    /**
+     * TextView displaying the message in the info card.
+     */
+    private TextView infoCardMessageTextView;
 
-    private androidx.cardview.widget.CardView registrationDatesCard;  // ADD THIS
+    /**
+     * TextView displaying the header in the info card.
+     */
+    private TextView infoCardHeaderTextView;
 
-    private androidx.cardview.widget.CardView aboutCard;  // ADD THIS
+    /**
+     * CardView containing registration dates information.
+     */
+    private androidx.cardview.widget.CardView registrationDatesCard;
 
-    // For initializing views
+    /**
+     * CardView containing the about/description section.
+     */
+    private androidx.cardview.widget.CardView aboutCard;
+
+    /**
+     * Reference to the root view for UI updates.
+     */
     private View viewRef;
 
-    // For state consistency
+    /**
+     * Current user status for the event (PENDING, SELECTED, ACCEPTED, WAITLISTED, CANCELLED, or null).
+     */
     private String status;
+    private boolean locationGranted = false;
 
 
     public static EventDetailsFragment newInstance(Event event) {
@@ -93,11 +212,29 @@ public class EventDetailsFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * Called to do initial creation of the fragment.
+     *
+     * <p>Retrieves the event object from arguments if present.</p>
+     *
+     * @param savedInstanceState the previously saved state of the fragment
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             event = (Event) getArguments().getSerializable("event");
+        }
+
+
+        currentUser = new User(requireContext());
+        if(event.isGeolocationRequired()){
+            new android.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Location Required")
+                    .setMessage("This event requires location sharing to be enabled to join the waitlist.")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                    .show();
         }
     }
 
@@ -120,6 +257,11 @@ public class EventDetailsFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Initializes all view components by binding them to their IDs.
+     *
+     * @param view the root view of the fragment
+     */
     private void initializeViews(View view) {
         backButton = view.findViewById(R.id.backButton);
         eventImageView = view.findViewById(R.id.eventImageView);
@@ -139,16 +281,41 @@ public class EventDetailsFragment extends Fragment {
         leaveWaitlistButton = view.findViewById(R.id.leaveWaitlistButton);
         noActionButton = view.findViewById(R.id.noActionButton);
         infoCardMessageTextView = view.findViewById(R.id.infoCardMessageTextView);
-        infoCardHeaderTextView = view.findViewById(R.id.infoCardHeaderTextView);  // ADD THIS (optional)
-        registrationDatesCard = view.findViewById(R.id.registrationDatesCard);  // ADD THIS
-        aboutCard = view.findViewById(R.id.aboutCard);  // ADD THIS
+        infoCardHeaderTextView = view.findViewById(R.id.infoCardHeaderTextView);
+        registrationDatesCard = view.findViewById(R.id.registrationDatesCard);
+        aboutCard = view.findViewById(R.id.aboutCard);
     }
 
+    /**
+     * Populates all event data into the UI components.
+     *
+     * <p>Displays event title, date (formatted as "EEEE, MMMM dd"), time (formatted as
+     * "HH:mm - 17:30"), location, entries count, registration end date, lottery drawn
+     * date (currently hardcoded), and description. Loads the event poster image and
+     * updates UI based on user status.</p>
+     *
+     * @param user the current user viewing the event
+     */
     private void populateEventData(User user) {
         if (event == null)
             return;
 
         status = getUserStatus(user);
+        List<String> entrantIds = event.getWaitlistEntrantIds();
+        if (user.findRegEvent(event.getId()) && !entrantIds.contains(user.getId())) {
+            user.removeRegEvent(event.getId());
+        } else if (!user.findRegEvent(event.getId()) && entrantIds.contains(user.getId())) {
+            entrantIds.remove(user.getId());
+            event.setWaitlistEntrantIds(entrantIds);
+            EventRepository eventRepo = new EventRepository();
+            eventRepo.updateEvent(event, new OperationCallback() {
+                @Override
+                public void onSuccess() {}
+
+                @Override
+                public void onError(String errorMessage) {}
+            });
+        }
 
         // Set title
         eventTitleTextView.setText(event.getName());
@@ -194,9 +361,21 @@ public class EventDetailsFragment extends Fragment {
         loadEventImage();
 
         // Update button state based on user's registration status
-        updateUIBasedOnStatus(user);  // ADD THIS LINE
+        updateUIBasedOnStatus(user);
     }
 
+    /**
+     * Loads and displays the event poster image.
+     *
+     * <p>Handles three scenarios:</p>
+     * <ol>
+     *     <li>No image/failed image: Shows placeholder (image_24px)</li>
+     *     <li>Base64 image: Decodes and displays with CENTER_CROP scaling</li>
+     *     <li>Decode error: Shows placeholder and logs exception</li>
+     * </ol>
+     *
+     * <p>Recognizes special values: "no_image" and strings starting with "image_failed_"</p>
+     */
     private void loadEventImage() {
         String posterImageUrl = event.getPosterImageUrl();
 
@@ -232,18 +411,24 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * Updates the UI based on the user's registration status
-     * This method combines logic from updateButtonState() and handles all states
+     * Updates the UI based on the user's registration status.
      *
-     * States handled:
-     * 1. Not registered + registration open → "Enter Lottery" (enabled)
-     * 2. Not registered + registration closed → "Registration Closed" (disabled)
-     * 3. Not registered + waitlist full → "Lottery Full" (disabled)
-     * 4. Pending (before lottery drawn) → "Leave Waitlist" (blue/gray, enabled)
-     * 5. Waitlisted (after lottery, not selected) → Red badge + info + red button (US 01.05.01)
-     * 6. Selected → Hide all buttons (friend's screen handles this)
-     * 7. Accepted → Hide all buttons
-     * 8. Cancelled → Allow rejoin if possible
+     * <p>This method handles all possible states:</p>
+     * <ul>
+     *     <li>Not registered + registration open → "Enter Lottery" (enabled)</li>
+     *     <li>Not registered + registration closed → "Registration Closed" (disabled)</li>
+     *     <li>Not registered + waitlist full → "Lottery Full" (disabled)</li>
+     *     <li>Pending (before lottery drawn) → "Leave Waitlist" (enabled)</li>
+     *     <li>Waitlisted (after lottery, not selected) → Red badge + info card + red button</li>
+     *     <li>Selected → Hide all buttons</li>
+     *     <li>Accepted → Hide all buttons</li>
+     *     <li>Cancelled → Display info message with disabled button</li>
+     * </ul>
+     *
+     * <p>For waitlisted state specifically, hides registration dates and about cards while
+     * showing a red badge and informational card explaining the waitlist status.</p>
+     *
+     * @param user the current user viewing the event
      */
     private void updateUIBasedOnStatus(User user) {
         if (event == null || user == null) return;
@@ -258,8 +443,8 @@ public class EventDetailsFragment extends Fragment {
         enterLotteryButton.setVisibility(View.VISIBLE);
 
         // Show cards by default (will be hidden in waitlisted state)
-        registrationDatesCard.setVisibility(View.VISIBLE);  // ADD THIS
-        aboutCard.setVisibility(View.VISIBLE);  // ADD THIS
+        registrationDatesCard.setVisibility(View.VISIBLE);
+        aboutCard.setVisibility(View.VISIBLE);
 
         buttonState(status);
         if ("PENDING".equals(status)) {
@@ -271,36 +456,38 @@ public class EventDetailsFragment extends Fragment {
                 // Show red badge, info card, and red "Leave Waiting List" button
                 waitlistedBadgeLayout.setVisibility(View.VISIBLE);
                 waitlistedInfoCard.setVisibility(View.VISIBLE);
-                infoCardMessageTextView.setText("You weren't selected in the initial lottery draw, but you're still on the waiting list. Good news! You could still be selected if any chosen participants decline their invitation. If a spot opens up, you will be notified immediately if you get selected");  // ADD THIS
+                infoCardMessageTextView.setText("You weren't selected in the initial lottery draw, but you're still on the waiting list. Good news! You could still be selected if any chosen participants decline their invitation. If a spot opens up, you will be notified immediately if you get selected");
 
                 // Hide registration dates and about section
-                registrationDatesCard.setVisibility(View.GONE);  // ADD THIS
-                aboutCard.setVisibility(View.GONE);  // ADD THIS
+                registrationDatesCard.setVisibility(View.GONE);
+                aboutCard.setVisibility(View.GONE);
 
             }
         } else if ("CANCELLED".equals(status)) {
             // ========== CANCELLED ==========
             // User was cancelled - show info card and disabled button
             waitlistedInfoCard.setVisibility(View.VISIBLE);
-            infoCardHeaderTextView.setText("Event Status");  // ADD THIS (if you added the header ID)
-            infoCardMessageTextView.setText("You were cancelled for this event and cannot rejoin.");  // ADD THIS
+            infoCardHeaderTextView.setText("Event Status");
+            infoCardMessageTextView.setText("You were cancelled for this event and cannot rejoin.");
         }
     }
 
+    /**
+     * Sets up click listeners for interactive UI elements.
+     *
+     * <p>Configures the back button to navigate up, the enter lottery button to toggle
+     * between joining and leaving the waitlist based on registration status, and the
+     * leave waitlist button to remove the user from the waitlist.</p>
+     *
+     * @param user the current user viewing the event
+     */
     private void setupListeners(User user) {
         backButton.setOnClickListener(v -> {
             NavController navController = NavHostFragment.findNavController(EventDetailsFragment.this);
             navController.navigateUp();
         });
         enterLotteryButton.setOnClickListener(v -> {
-            List<String> registeredEvents = user.getRegEventIds();
-            boolean isRegistered = registeredEvents.contains(event.getId());
-
-            if (isRegistered) {
-                leaveWaitlist();
-            } else {
-                joinWaitlist();
-            }
+            joinWaitlistBack();
         });
 
         leaveWaitlistButton.setOnClickListener(v -> {
@@ -309,14 +496,35 @@ public class EventDetailsFragment extends Fragment {
 
     }
 
+    private boolean locationPermission() {
+        return ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private final ActivityResultLauncher<String> locationPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(), isGranted -> {
+                locationGranted = isGranted;
+                joinWaitlist();
+            });
+
+    private void joinWaitlistBack() {
+        locationGranted = locationPermission();
+        if (event.isGeolocationRequired()) {
+            if (!locationPermission()) {
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+                return;
+            }
+        }
+        joinWaitlist();
+    }
+
     private void joinWaitlist() {
         if (event == null || currentUser == null) {
             Toast.makeText(getContext(), "Error: Unable to join waitlist", Toast.LENGTH_SHORT).show();
             return;
         }
-
         // Checks if already registered
-        if (currentUser.getRegEvents().contains(event.getId())) {
+        if (currentUser.findRegEvent(event.getId())) {
             Toast.makeText(getContext(),
                     "You're already registered for this event",
                     Toast.LENGTH_SHORT).show();
@@ -324,50 +532,101 @@ public class EventDetailsFragment extends Fragment {
         }
 
         buttonState("LOADING");
+        String userId = currentUser.getId();
 
         try {
-            // Add event to user's registered events
+            if (event.isGeolocationRequired() && locationGranted) {
+                LocationController locationController = new LocationController(getContext());
+                locationController.getLatLon(new LocationController.LocationCallBack() {
+                    @Override
+                    public void onLocationReady(double lat, double lon) {
+                        if (Double.isNaN(lat) || Double.isNaN(lon)) {
+                            enterLotteryButton.setEnabled(true);
+                            enterLotteryButton.setText("Enter Lottery");
+                            Toast.makeText(getContext(), "Location required to join waitlist", Toast.LENGTH_SHORT)
+                                    .show();
+                            return;
+                        }
 
-            String userId = currentUser.getId();
+                        event.setEntrantLocations(userId, new GeoPoint(lat, lon));
 
-            List<String> waitlistIds = event.getWaitlistEntrantIds();
-            if (waitlistIds == null) {
-                waitlistIds = new ArrayList<>();
+                        List<String> waitlistIds = event.getWaitlistEntrantIds();
+                        if (waitlistIds == null) {
+                            waitlistIds = new ArrayList<>();
+                        }
+                        if (!waitlistIds.contains(userId)) {
+                            waitlistIds.add(userId);
+                        }
+                        event.setWaitlistEntrantIds(waitlistIds);
+
+                        EventRepository eventRepository = new EventRepository();
+                        eventRepository.updateEvent(event, new OperationCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(getContext(),
+                                        "Successfully joined waitlist for " + event.getName(),
+                                        Toast.LENGTH_SHORT).show();
+                                // Only add reg event if it successfully added to firestore
+                                currentUser.addRegEvent(event.getId());
+                                updateUIBasedOnStatus(currentUser);
+
+                                int currentEntries = event.getCurrentWaitlistCount();
+                                int maxEntries = event.getMaxEntrants();
+                                entriesCountTextView.setText(currentEntries + " of " + maxEntries);
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                showDialogPerStatus("ERROR JOIN");
+                                updateUIBasedOnStatus(null);
+                            }
+                        });
+                    }
+                });
             }
-            Log.e("WEINER", Arrays.toString(waitlistIds.toArray()));
-            if (!waitlistIds.contains(userId)) {
-                waitlistIds.add(userId);
+            else if(event.isGeolocationRequired()) {
+                Toast.makeText(getContext(),
+                        "Geolocation is required. Please allow location access when prompted to join this event. " + event.getName(),
+                        Toast.LENGTH_SHORT).show();
+                updateUIBasedOnStatus(null);
+                buttonState(null);
+            } else {
+                // Non-geolocation events
+                List<String> waitlistIds = event.getWaitlistEntrantIds();
+                if (waitlistIds == null) {
+                    waitlistIds = new ArrayList<>();
+                }
+                if (!waitlistIds.contains(userId)) {
+                    waitlistIds.add(userId);
+                }
+                event.setWaitlistEntrantIds(waitlistIds);
+
+                EventRepository eventRepository = new EventRepository();
+                eventRepository.updateEvent(event, new OperationCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Toast.makeText(getContext(),
+                                "Successfully joined waitlist for " + event.getName(),
+                                Toast.LENGTH_SHORT).show();
+                        // Only add reg event if it successfully added to firestore
+                        currentUser.addRegEvent(event.getId());
+                        updateUIBasedOnStatus(currentUser); // ADD THIS LINE
+
+                        int currentEntries = event.getCurrentWaitlistCount();
+                        int maxEntries = event.getMaxEntrants();
+                        entriesCountTextView.setText(currentEntries + " of " + maxEntries);
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        Toast.makeText(getContext(),
+                                "Error joining waitlist: " + errorMessage,
+                                Toast.LENGTH_SHORT).show();
+                        buttonState(null);
+                        showDialogPerStatus("ERROR JOIN");
+                    }
+                });
             }
-            event.setWaitlistEntrantIds(waitlistIds);
-
-            EventRepository eventRepository = new EventRepository();
-            eventRepository.updateEvent(event, new OperationCallback() {
-                @Override
-                public void onSuccess() {
-                    Toast.makeText(getContext(),
-                            "Successfully joined waitlist for " + event.getName(),
-                            Toast.LENGTH_SHORT).show();
-                    // Only add reg event if it successfully added to firestore
-                    currentUser.addRegEvent(event.getId());
-                    updateUIBasedOnStatus(currentUser);  // ADD THIS LINE
-
-
-                    int currentEntries = event.getCurrentWaitlistCount();
-                    int maxEntries = event.getMaxEntrants();
-                    entriesCountTextView.setText(currentEntries + " of " + maxEntries);
-                }
-
-                @Override
-                public void onError(String errorMessage) {
-                    // Rollback: Remove event from user's registered events
-                    currentUser.removeRegEvent(event.getId());
-
-                    showDialogPerStatus("ERROR JOIN");
-
-                    status = getUserStatus(currentUser);
-                    buttonState(status);
-                }
-            });
 
         } catch (Exception e) {
             // Rollback
@@ -380,6 +639,15 @@ public class EventDetailsFragment extends Fragment {
         }
     }
 
+
+    /**
+     * Initiates the waitlist leave process by showing a confirmation dialog.
+     *
+     * <p>
+     * Gets the current user status and displays an appropriate confirmation
+     * dialog or error message based on that status.
+     * </p>
+     */
     private void leaveWaitlist() {
         if (event == null || currentUser == null) {
             showDialogPerStatus("ERROR LEAVE");
@@ -391,6 +659,21 @@ public class EventDetailsFragment extends Fragment {
         showDialogPerStatus(status);
     }
 
+    /**
+     * Performs the actual waitlist leave operation with optimistic updates and rollback.
+     *
+     * <p>This method:</p>
+     * <ol>
+     *     <li>Disables buttons to prevent double-clicks</li>
+     *     <li>Removes event from user's registered events</li>
+     *     <li>Removes user ID from event's waitlist</li>
+     *     <li>Updates event in Firestore</li>
+     *     <li>On success: updates UI and shows success message</li>
+     *     <li>On error: rolls back changes and displays error message</li>
+     * </ol>
+     *
+     * <p>Shows loading state during operation and toast messages for success/failure.</p>
+     */
     private void performLeaveWaitlist() {
         // Disable all buttons to prevent double-clicks
         buttonState("LOADING");
@@ -410,6 +693,10 @@ public class EventDetailsFragment extends Fragment {
             List<String> waitlistIds = event.getWaitlistEntrantIds();
             if (waitlistIds != null) {
                 waitlistIds.remove(userId);
+            }
+
+            if (event.getEntrantLocations() != null) {
+                event.getEntrantLocations().remove(userId);
             }
 
             EventRepository eventRepository = new EventRepository();
@@ -447,8 +734,12 @@ public class EventDetailsFragment extends Fragment {
 
 
     /**
-     * Checks if the lottery has been drawn for this event
-     * @return true if lottery was drawn, false otherwise
+     * Checks if the lottery has been drawn for this event.
+     *
+     * <p>Determines if the lottery has been drawn by checking if there are any
+     * selected entrants in the event's selected list.</p>
+     *
+     * @return true if lottery was drawn (selected list is not empty), false otherwise
      */
     private boolean hasLotteryBeenDrawn() {
         if (event == null) return false;
@@ -460,8 +751,20 @@ public class EventDetailsFragment extends Fragment {
     }
 
     /**
-     * Gets the user's registration status for this event
-     * @return "PENDING", "SELECTED", "ACCEPTED", "CANCELLED", or null if not registered
+     * Gets the user's registration status for this event.
+     *
+     * <p>Checks the event's various entrant lists in priority order to determine status:</p>
+     * <ol>
+     *     <li>ACCEPTED - user is in accepted list</li>
+     *     <li>SELECTED - user is in selected list</li>
+     *     <li>CANCELLED - user is in cancelled list</li>
+     *     <li>WAITLISTED - user is in waitlist and lottery has been drawn</li>
+     *     <li>PENDING - user is in waitlist but lottery not yet drawn</li>
+     *     <li>null - user is not registered</li>
+     * </ol>
+     *
+     * @param user the user to check status for
+     * @return status string ("PENDING", "SELECTED", "ACCEPTED", "WAITLISTED", "CANCELLED"), or null if not registered
      */
     private String getUserStatus(User user) {
         if (event == null || user == null) return null;
@@ -498,6 +801,22 @@ public class EventDetailsFragment extends Fragment {
         return null; // Not registered
     }
 
+    /**
+     * Updates button visibility and text based on the current status.
+     *
+     * <p>Controls which buttons are visible and what text they display for each status:</p>
+     * <ul>
+     *     <li>PENDING: Shows "Leave Waitlist" button</li>
+     *     <li>SELECTED: Shows disabled "Already Selected" button</li>
+     *     <li>ACCEPTED: Shows "Cancel Acceptance" button</li>
+     *     <li>CANCELLED: Shows disabled "Event Already Drawn" button</li>
+     *     <li>LOADING: Shows disabled "Loading..." button</li>
+     *     <li>NULL: Shows "Enter Lottery" button</li>
+     *     <li>WAITLISTED: Shows disabled "Event Already Drawn" button</li>
+     * </ul>
+     *
+     * @param status the current user status string
+     */
     private void buttonState(String status) {
         if(status == null) status="NULL";
         switch (status) {
@@ -545,6 +864,25 @@ public class EventDetailsFragment extends Fragment {
         }
     }
 
+    /**
+     * Displays appropriate dialogs or toast messages based on the current status.
+     *
+     * <p>Shows status-specific dialogs or toasts:</p>
+     * <ul>
+     *     <li>PENDING: Confirmation dialog for leaving waitlist</li>
+     *     <li>SELECTED: Notice that user is already selected</li>
+     *     <li>ACCEPTED: Confirmation dialog for canceling acceptance (irreversible warning)</li>
+     *     <li>CANCELLED: Notice that user already canceled</li>
+     *     <li>NULL: Success toast for joining event</li>
+     *     <li>ERROR JOIN: Error toast for join failure</li>
+     *     <li>ERROR LEAVE: Error toast for leave failure</li>
+     * </ul>
+     *
+     * <p>Dialogs include positive/negative buttons where appropriate, with the positive
+     * button calling performLeaveWaitlist() for destructive actions.</p>
+     *
+     * @param status the current status or error state string
+     */
     private void showDialogPerStatus(String status) {
         if(status == null) status="NULL";
         switch (status) {

@@ -27,9 +27,27 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Admin Browse Profiles Activity.
- * Implements US 03.05.01 (Browse profiles), US 03.02.01 (Remove profiles),
- * and US 03.07.01 (Remove organizers).
+ * Activity for administrators to browse and manage user profiles.
+ *
+ * <p>This activity provides administrators with the ability to view all user profiles,
+ * search/filter profiles by name, email, or device ID, view detailed user information,
+ * delete user profiles, and revoke organizer privileges from users. Access is restricted
+ * to users with Administrator privileges.</p>
+ *
+ * <p>Features include:</p>
+ * <ul>
+ *     <li>View all user profiles in the system</li>
+ *     <li>Real-time search filtering across name, email, and device ID</li>
+ *     <li>User details dialog showing comprehensive profile information</li>
+ *     <li>Profile deletion with confirmation dialog and cascade deletion for organizers</li>
+ *     <li>Organizer privilege revocation with automatic user type update</li>
+ *     <li>Total profile count display</li>
+ *     <li>Loading indicators and empty state handling</li>
+ * </ul>
+ *
+ * <p>View layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently</p>
  *
  * @author Admin Module
  * @version 1.0
@@ -40,17 +58,65 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
     // Device ID check disabled for testing
     // private static final String ADMIN_DEVICE_ID = "ded8763e1984cbfc";
 
+    /**
+     * RecyclerView for displaying the list of user profiles.
+     */
     private RecyclerView recyclerViewProfiles;
+
+    /**
+     * EditText for search/filter input.
+     */
     private EditText etSearchProfiles;
-    private TextView tvTotalProfiles, tvNoProfiles;
+
+    /**
+     * TextView displaying the total number of profiles.
+     */
+    private TextView tvTotalProfiles;
+
+    /**
+     * TextView displayed when no profiles are found or match the search query.
+     */
+    private TextView tvNoProfiles;
+
+    /**
+     * ProgressBar shown during loading operations.
+     */
     private ProgressBar progressBar;
 
+    /**
+     * Adapter for binding user profile data to the RecyclerView.
+     */
     private AdminProfileAdapter adapter;
+
+    /**
+     * Repository for user data access operations.
+     */
     private UserRepository userRepository;
+
+    /**
+     * Repository for organizer data access operations.
+     */
     private OrganizerRepository organizerRepository;
+
+    /**
+     * Complete list of all users loaded from Firestore.
+     */
     private List<User> allUsers = new ArrayList<>();
+
+    /**
+     * Filtered list of users based on search query.
+     */
     private List<User> filteredUsers = new ArrayList<>();
 
+    /**
+     * Called when the activity is starting.
+     *
+     * <p>Verifies that the current user has Administrator privileges before
+     * initializing the activity. If access is denied, displays a toast message
+     * and finishes the activity.</p>
+     *
+     * @param savedInstanceState the saved instance state Bundle
+     */
     @SuppressLint("HardwareIds")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,19 +141,14 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
             }
         });
 
-
-        // DEVICE ID CHECK REMOVED FOR TESTING
-        // String deviceId = Settings.Secure.getString(getContentResolver(),
-        // Settings.Secure.ANDROID_ID);
-        // if (!ADMIN_DEVICE_ID.equals(deviceId)) {
-        // Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
-        // finish();
-        // return;
-        // }
-
-
     }
 
+    /**
+     * Initializes all view components and repositories.
+     *
+     * <p>Binds UI elements by their IDs and obtains singleton instances of
+     * UserRepository and OrganizerRepository for data operations.</p>
+     */
     private void initializeViews() {
         recyclerViewProfiles = findViewById(R.id.rv_admin_profiles);
         etSearchProfiles = findViewById(R.id.et_search_profiles);
@@ -99,12 +160,24 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
         organizerRepository = OrganizerRepository.getInstance();
     }
 
+    /**
+     * Sets up the RecyclerView with adapter and layout manager.
+     *
+     * <p>Creates an AdminProfileAdapter with the filtered users list and sets
+     * this activity as the action listener for handling profile actions.</p>
+     */
     private void setupRecyclerView() {
         adapter = new AdminProfileAdapter(filteredUsers, this);
         recyclerViewProfiles.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewProfiles.setAdapter(adapter);
     }
 
+    /**
+     * Sets up the search functionality with real-time text filtering.
+     *
+     * <p>Adds a TextWatcher to the search EditText that filters profiles as the
+     * user types, providing instant search results.</p>
+     */
     private void setupSearch() {
         etSearchProfiles.addTextChangedListener(new TextWatcher() {
             @Override
@@ -122,6 +195,12 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
         });
     }
 
+    /**
+     * Loads all user profiles from Firestore.
+     *
+     * <p>Shows a progress bar during loading and updates the UI with the loaded
+     * profiles on success. Displays an error message if loading fails.</p>
+     */
     private void loadProfiles() {
         progressBar.setVisibility(View.VISIBLE);
         tvNoProfiles.setVisibility(View.GONE);
@@ -148,6 +227,15 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
         });
     }
 
+    /**
+     * Filters user profiles based on the search query.
+     *
+     * <p>Performs a case-insensitive search across user name, email, and device ID
+     * fields. If the query is empty, displays all profiles. Updates the UI with
+     * the filtered results.</p>
+     *
+     * @param query the search query string
+     */
     private void filterProfiles(String query) {
         filteredUsers.clear();
 
@@ -167,6 +255,12 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
         updateUI();
     }
 
+    /**
+     * Updates the UI based on current user profile data.
+     *
+     * <p>Updates the total profiles count, shows/hides the "no profiles" message
+     * appropriately, and notifies the adapter of data changes.</p>
+     */
     private void updateUI() {
         tvTotalProfiles.setText("Total Profiles: " + allUsers.size());
 
@@ -180,6 +274,14 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
         adapter.notifyDataSetChanged();
     }
 
+    /**
+     * Handles the view details action for a user profile.
+     *
+     * <p>Displays an AlertDialog with comprehensive user information including
+     * device ID, name, email, phone, user type, and number of registered events.</p>
+     *
+     * @param user the user whose details should be displayed
+     */
     @Override
     public void onViewDetails(User user) {
         // Show user details dialog
@@ -199,6 +301,15 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
         builder.show();
     }
 
+    /**
+     * Handles the delete profile action for a user.
+     *
+     * <p>Shows a confirmation dialog before proceeding with deletion. The dialog
+     * message adapts based on the user's type (Organizer, Entrant, etc.). Warns
+     * that the action cannot be undone.</p>
+     *
+     * @param user the user profile to delete
+     */
     @Override
     public void onDeleteProfile(User user) {
         String userTypeText = user.getType() != null ? user.getType().toString() : "User";
@@ -213,6 +324,15 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
                 .show();
     }
 
+    /**
+     * Handles the revoke organizer action for a user.
+     *
+     * <p>Shows a confirmation dialog before proceeding with revoking organizer
+     * privileges. This operation will remove the user from the organizers collection
+     * and change their user type to Entrant.</p>
+     *
+     * @param user the user whose organizer privileges should be revoked
+     */
     @Override
     public void onRevokeOrganizer(User user) {
         // Show confirmation dialog for revoking organizer status (US 03.07.01)
@@ -224,6 +344,18 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
                 .show();
     }
 
+    /**
+     * Deletes a user profile after confirmation, with cascade deletion for organizers.
+     *
+     * <p>If the user is an organizer, first deletes the organizer document from the
+     * organizers collection before deleting the user profile. This ensures proper
+     * cleanup of organizer-specific data.</p>
+     *
+     * <p>Shows a progress bar during the operation and displays appropriate toast
+     * messages for success or failure.</p>
+     *
+     * @param user the user profile to delete
+     */
     private void deleteProfile(User user) {
         progressBar.setVisibility(View.VISIBLE);
 
@@ -247,6 +379,14 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
         }
     }
 
+    /**
+     * Deletes the user profile from the users collection in Firestore.
+     *
+     * <p>Removes the user from both local data structures and the RecyclerView on
+     * success. Updates the UI and displays appropriate toast messages.</p>
+     *
+     * @param user the user profile to delete
+     */
     private void deleteUserProfile(User user) {
         userRepository.deleteUser(user.getId(), new com.hotdog.elotto.callback.OperationCallback() {
             @Override
@@ -268,6 +408,20 @@ public class AdminBrowseProfilesActivity extends AppCompatActivity
         });
     }
 
+    /**
+     * Revokes organizer privileges from a user.
+     *
+     * <p>This method performs two operations:</p>
+     * <ol>
+     *     <li>Deletes the user's organizer document from the organizers collection</li>
+     *     <li>Updates the user's type from Organizer to Entrant in the users collection</li>
+     * </ol>
+     *
+     * <p>Shows a progress bar during the operation and displays appropriate toast
+     * messages for success or failure. Updates the UI to reflect the user's new type.</p>
+     *
+     * @param user the user whose organizer privileges should be revoked
+     */
     private void revokeOrganizerStatus(User user) {
         progressBar.setVisibility(View.VISIBLE);
 
