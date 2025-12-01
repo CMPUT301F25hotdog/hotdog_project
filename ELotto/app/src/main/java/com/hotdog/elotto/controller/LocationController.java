@@ -63,7 +63,7 @@ public class LocationController {
      * @param curLocation the Task that will provide a location
      * @param callback    the callback invoked with latitude/longitude data or null if failed
      */
-    public void convertToCoord(Task<Location> curLocation, CoordCallback callback){
+    public static void convertToCoord(Task<Location> curLocation, CoordCallback callback){
         curLocation.addOnSuccessListener(location-> {
             if (location != null) {
                 double lat = location.getLatitude();
