@@ -15,11 +15,13 @@
 
 ## **Project Description**
 
-The **Event Lottery System Application** is an Android app designed to ensure **fair and accessible registration** for high-demand community events. Instead of first-come-first-served signups, the app uses a **lottery-based system** to give everyone an equal opportunity to join events.  
+The Event Lottery System Application is an Android application designed to provide fair and accessible registration for high-demand community events. Rather than relying on traditional first-come-first-served signups, the application implements a lottery-based selection system to ensure equitable participation opportunities for all users.
 
-Organizers can create events, define registration periods, and let entrants join waiting lists. When the registration period closes, the system randomly selects participants and notifies them. Entrants can then **accept or decline invitations**, and replacements are automatically drawn if someone opts out.  
+Event organizers can create and manage events, establish registration periods, and allow entrants to join waiting lists. Upon closure of the registration period, the system employs a randomized selection algorithm to choose participants and deliver automated notifications. 
 
-This app emphasizes **fairness, accessibility, and transparency** in event registration while allowing **organizers, entrants, and admins** to interact within a unified platform.
+Selected entrants may then accept or decline their invitations, with the system automatically conducting replacement draws to fill any declined positions.
+
+Administrators maintain system oversight with capabilities to browse and manage all events, user profiles, images, and notifications, ensuring platform integrity and compliance with community standards while facilitating seamless interaction among organizers, entrants, and administrators within a unified platform.
 
 ---
 
@@ -35,7 +37,7 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
   Entrants can scan promotional QR codes to view event details and join waiting lists instantly.
 
 - **Notification System:**  
-  Automatic notifications are sent when entrants are selected (“won the lottery”) or not selected (“not drawn”). Organizers can also send updates to waiting, selected, or canceled entrants.
+  Automatic notifications are sent when entrants are selected ("won the lottery") or not selected ("not drawn"). Organizers can also send updates to waiting, selected, or canceled entrants.
 
 - **Profile Management:**  
   Entrants can maintain personal profiles with editable information and a history of past lottery results.
@@ -51,12 +53,32 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 ---
 
+## **Tech Stack**
+
+### **Development Environment**
+- **IDE:** Android Studio
+- **Language:** Java
+- **Target SDK:** API 36
+
+### **Architecture & Design**
+- **Architecture Pattern:** MVC (Model-View-Controller)
+- **Design Tools:** Figma (UI/UX mockups)
+- **Modeling:** UML (Unified Modeling Language) for system design
+- **UI Layout:** XML layouts with Material Design components
+
+### **Testing**
+- **Unit Testing:** JUnit 5
+- **UI Testing:** Espresso
+
+---
+
 ## **Setup Instructions**
 
 1. **Clone the Repository**
-   ```bash
+```bash
    git clone https://github.com/CMPUT301F25hotdog/hotdog_project.git
-   
+```
+
 2. **Open the Project in Android Studio**
 - Open the cloned directory in Android Studio.
 - Ensure all Gradle dependencies are synced successfully.
@@ -83,7 +105,7 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 4. [CRC Cards](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/CRC-Cards)
 
-- Documents the core classes, their responsibilities, and collaborators used in the system’s design.
+- Documents the core classes, their responsibilities, and collaborators used in the system's design.
 
 5. [Story Board](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Story-Board)
 
@@ -93,7 +115,10 @@ This app emphasizes **fairness, accessibility, and transparency** in event regis
 
 - Contains weekly meeting logs, action items, decisions, assigned tasks, and progress tracking for each sprint.
 
-7. UML_Diagram  : https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/UML_Diagram
+7. [UML Diagram](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/UML_Diagram)
+   
+- Unified Modeling Language diagram documenting class structures, relationships, and system architecture.
 
-- UML Diagram till part 3 
-
+8. [Project Demo Video](https://youtu.be/YOUR_VIDEO_ID_HERE)
+   
+- Comprehensive video demonstration of application features and functionality.
