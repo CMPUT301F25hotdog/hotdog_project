@@ -170,7 +170,7 @@ public class EventDetailsFragment extends Fragment {
         eventLocationTextView.setText(event.getLocation());
 
         // Set entries count
-        int currentEntries = event.getCurrentWaitlistCount();
+        int currentEntries = event.getCurrentAcceptedCount();
         int maxEntries = event.getMaxEntrants();
         entriesCountTextView.setText(currentEntries + " of " + maxEntries);
 

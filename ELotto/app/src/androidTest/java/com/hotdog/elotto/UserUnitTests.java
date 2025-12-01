@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.test.core.app.ApplicationProvider;
 
 import com.hotdog.elotto.helpers.Status;
+import com.hotdog.elotto.helpers.UserStatus;
 import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.model.*;
 
@@ -112,7 +113,7 @@ public class UserUnitTests {
         Assertions.assertNull(u.getType());
         Assertions.assertEquals(List.of(), u.getRegEvents());
         Assertions.assertEquals("", u.getId());
-        Assertions.assertFalse(u.exists());
+        Assertions.assertFalse(u.exists()== UserStatus.Existent);
     }
 
     // Test firebase updates work
@@ -120,23 +121,28 @@ public class UserUnitTests {
     void setNameEmailPhoneType_changeState() {
         Context ctx = ApplicationProvider.getApplicationContext();
         // Creates the super user
-        User u = new User(ctx, true);
-        // Update the shit
-        u.updateName("Alice");
-        u.updateEmail("a@b.c");
-        u.updatePhone("123");
-        u.updateType(UserType.Organizer);
+        User u = new User(ctx, (user) -> {
+            // Update the shit
+            user.updateName("Alice");
+            user.updateEmail("a@b.c");
+            user.updatePhone("123");
+            user.updateType(UserType.Organizer);
 
-        // POV CMPUT 175 Comments: Clear the super user with clearSuperUserBefore();
-        clearSuperUserBefore();
+            // POV CMPUT 175 Comments: Clear the super user with clearSuperUserBefore();
+            clearSuperUserBefore();
 
-        // Try grabbin that new information (grabbin those balls)
-        User balls = new User(ctx, true);
+            // Try grabbin that new information (grabbin those balls)
+            User ball = new User(ctx, (balls) -> {
+                Assertions.assertEquals("Alice", balls.getName());
+                Assertions.assertEquals("a@b.c", balls.getEmail());
+                Assertions.assertEquals("123", balls.getPhone());
+                Assertions.assertEquals(UserType.Organizer, balls.getType());
+            });
 
-        Assertions.assertEquals("Alice", balls.getName());
-        Assertions.assertEquals("a@b.c", balls.getEmail());
-        Assertions.assertEquals("123", balls.getPhone());
-        Assertions.assertEquals(UserType.Organizer, balls.getType());
+
+        });
+
+
     }
 
 //    @Test

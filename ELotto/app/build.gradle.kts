@@ -52,7 +52,6 @@ dependencies {
     implementation(libs.core)
     implementation(libs.recyclerview)
     testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.mockito.junit)
     testImplementation(libs.mockito.inline)
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.android.test.runner)

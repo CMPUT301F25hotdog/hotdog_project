@@ -422,7 +422,7 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         eventRepository.moveEntrantsToCancelled(event.getId(), userIds, new OperationCallback() {
             @Override
             public void onSuccess() {
-                Toast.makeText(getContext(), "Invitation declined", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Invitation declined", Toast.LENGTH_SHORT).show();
                 navigateBack();
             }
 

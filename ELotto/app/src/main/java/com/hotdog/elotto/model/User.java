@@ -9,6 +9,7 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 import com.hotdog.elotto.callback.FirestoreCallback;
+import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.controller.UserController;
 import com.hotdog.elotto.helpers.Status;
 import com.hotdog.elotto.helpers.UserStatus;
@@ -618,8 +619,8 @@ public class User {
         this.regEvents.addAll(0, oldUser.getRegEvents());
         this.sort();
         // If the user was a higher position then replace the current one
-        if (oldUser.type.type.ordinal() > this.type.type.ordinal()) this.type=oldUser.type;
-        this.status=oldUser.status;
+        if (oldUser.type.type.ordinal() > this.type.type.ordinal()) this.type = oldUser.type;
+        this.status = oldUser.status;
         oldUser.setRegEvents(null);
         oldUser.setEmail(null);
         oldUser.setName(null);
@@ -627,6 +628,5 @@ public class User {
         oldUser.setType(null);
         this.updateUser();
     }
-
 }
 

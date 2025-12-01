@@ -3,6 +3,7 @@ package com.hotdog.elotto.adapter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -156,6 +157,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             boolean userInWaitlist = false;
             boolean userSelected = false;
             boolean userAccepted = false;
+            boolean userCanceled = false;
 
             // Assume secondary status isn't needed
             eventStatusTextView2.setVisibility(View.GONE);
@@ -172,8 +174,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 userAccepted = event.getAcceptedEntrantIds().contains(currentUserId);
             }
 
+            if(event.getCancelledEntrantIds() != null) {
+                userCanceled = event.getCancelledEntrantIds().contains(currentUserId);
+            }
+
             // If user hasn't joined we can hide the badge
-            if (!userInWaitlist && !userSelected && !userAccepted) {
+            if (!userInWaitlist && !userSelected && !userAccepted && !userCanceled) {
                 eventStatusTextView.setVisibility(View.GONE);
                 return;
             }
@@ -202,12 +208,15 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 if (event.getSelectedEntrantIds() != null && !event.getSelectedEntrantIds().isEmpty()) {
                     // Lottery drawn but user not selected
                     statusText = "WAITLISTED";
-                    backgroundColor = itemView.getContext().getColor(R.color.error_red);
+                    backgroundColor = itemView.getContext().getColor(R.color.waitlist_orange);
                 } else {
                     // Lottery not drawn yet
                     statusText = "PENDING";
                     backgroundColor = itemView.getContext().getColor(R.color.pending_yellow);
                 }
+            } else if(userCanceled) {
+                statusText = "CANCELED";
+                backgroundColor = itemView.getContext().getColor(R.color.error_red);
             } else {
                 // show pending otherwise
                 statusText = "PENDING";
