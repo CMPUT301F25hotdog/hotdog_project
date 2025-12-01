@@ -4,48 +4,36 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.hotdog.elotto.databinding.ActivityMainBinding;
 import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.model.Organizer;
-import com.hotdog.elotto.ui.home.EventCreationView;
 import com.hotdog.elotto.model.User;
-import com.hotdog.elotto.ui.home.MyEventsView;
-import com.hotdog.elotto.ui.home.OrganizerEventEntrantsFragment;
-
-import java.util.Arrays;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
 
-    /**
-     * Launcher to launch the login activity if the user has never logged in on this device before.
-     */
     private final ActivityResultLauncher<Intent> loginLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result.getResultCode() == RESULT_OK) {
-                            initAfterLogin(); // The user now exists and we can continue
+                            initAfterLogin();
                         } else {
-                            // What to do if the user cancelled, whatever we want here
+                            // user cancelled login, handle if needed
                         }
                     });
 
-    /**
-     * The current user of this app session.
-     */
     private User curUser;
-
     private ActivityMainBinding binding;
 
     @Override
@@ -55,23 +43,19 @@ public class MainActivity extends AppCompatActivity {
         curUser = new User(getApplicationContext(), true);
 
         Log.d("USER NAME", curUser.getName());
-        Log.d("CUR USER", ""+curUser);
+        Log.d("CUR USER", "" + curUser);
 
         if (!curUser.exists()) {
-            // Either simple finish() or clear the task so back won’t escape login
             loginLauncher.launch(new Intent(this, LoginActivity.class));
         } else {
             initAfterLogin();
         }
-
-        return;
     }
 
     private void initAfterLogin() {
-        // Make sure user object is up to date with any new information
         curUser.reload(true);
 
-        if(curUser.getType()==UserType.Organizer){
+        if (curUser.getType() == UserType.Organizer) {
             Organizer org = new Organizer(getApplicationContext());
         }
 
@@ -80,24 +64,32 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Hide the action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
-        // Setup bottom navigation
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
+        NavHostFragment navHostFragment =
+                (NavHostFragment) getSupportFragmentManager()
+                        .findFragmentById(R.id.nav_host_fragment_activity_main);
+        NavController navController = navHostFragment.getNavController();
+
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.navigation_home,
+                R.id.eventHistoryFragment,
+                R.id.navigation_calendar,
+                R.id.navigation_my_events
+        ).build();
+
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
+    }
 
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-            OrganizerEventEntrantsFragment fragment = OrganizerEventEntrantsFragment.newInstance("testEvent001");
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment_activity_main, fragment)
-                    .addToBackStack(null)
-                    .commit();
-        }, 2000); // Wait 2 seconds then launch
-
-
-        // TEMPORARY: Auto-launch organizer screen for testing
+    @Override
+    public boolean onSupportNavigateUp() {
+        NavHostFragment navHostFragment =
+                (NavHostFragment) getSupportFragmentManager()
+                        .findFragmentById(R.id.nav_host_fragment_activity_main);
+        NavController navController = navHostFragment.getNavController();
+        return navController.navigateUp() || super.onSupportNavigateUp();
     }
 }

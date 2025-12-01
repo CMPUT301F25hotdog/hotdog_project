@@ -9,12 +9,12 @@
     <color name="white">#FFFFFFFF</color>
     <color name="form_outline">#E3E3E3</color>
     <color name="form_icon">#9E9E9E</color>
-
+    <color name="pending_yellow">#FFF59D</color>
+    <color name="error_red">#EF5350</color>
 
     <color name="main_icon_blue">#2460d1</color>
     <color name="background_light_grey">#ECEFF1</color>
     <color name="success_green">#68c151</color>
-    <color name="error_red">#D32F2F</color>
     <color name="waitlist_orange">#FF9800</color>
     <color name="border_grey">#E0E0E0</color>
     <color name="light_blue_background">#CDE4F6</color>

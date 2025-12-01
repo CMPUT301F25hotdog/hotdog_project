@@ -8,7 +8,6 @@
     android:fitsSystemWindows="true">
 
 
-    <!-- Top app bar background -->
     <View
         android:id="@+id/top_bar_bg"
         android:layout_width="0dp"
@@ -18,7 +17,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Back button -->
     <ImageButton
         android:id="@+id/btn_back"
         android:layout_width="40dp"
@@ -32,7 +30,6 @@
         app:layout_constraintBottom_toBottomOf="@id/top_bar_bg"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Title -->
     <TextView
         android:id="@+id/tv_title"
         android:layout_width="wrap_content"
@@ -47,7 +44,6 @@
         app:layout_constraintEnd_toEndOf="@id/top_bar_bg"
         app:layout_constraintHorizontal_bias="0.5"/>
 
-    <!-- Hint just under bar -->
     <TextView
         android:id="@+id/tv_hint"
         android:layout_width="0dp"
@@ -62,7 +58,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Scanner view -->
     <com.journeyapps.barcodescanner.DecoratedBarcodeView
         android:id="@+id/barcode_scanner"
         android:layout_width="0dp"
@@ -78,7 +73,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Bottom status / helper text -->
     <TextView
         android:id="@+id/tv_status"
         android:layout_width="0dp"
