@@ -65,6 +65,7 @@
     <string name="about">About</string>
     <string name="enter_lottery">Enter Lottery</string>
     <string name="inboxTitle">Inbox</string>
+    <string name="MyEventsEmptyString">No events to show, you can create your first event by pressing the plus button in the bottom left!</string>
     <string-array name="tag_options">
         <item>Music</item>
         <item>Sports</item>

@@ -404,6 +404,7 @@
     <!-- Floating Enter Lottery Button -->
     <Button
         android:id="@+id/enterLotteryButton"
+        style="@style/BlueButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
@@ -414,22 +415,42 @@
         android:textColor="@color/white"
         android:background="@drawable/button_primary_background"
         android:paddingTop="16dp"
-        android:paddingBottom="16dp" />
+        android:paddingBottom="16dp"
+        android:visibility="gone"/>
 
     <!-- Leave Waiting List Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/leaveWaitlistButton"
+        style="@style/RedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
         android:layout_gravity="bottom"
-        android:text="Leave Waiting List"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="@color/white"
-        android:background="@drawable/button_primary_background"
+        android:layout_margin="16dp"
+        android:background="@drawable/button_leave_background"
         android:paddingTop="16dp"
         android:paddingBottom="16dp"
-        android:visibility="gone" />
+        android:text="Leave Waiting List"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="visible" />
+
+    <!-- No Action List Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/noActionButton"
+        style="@style/GreyButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="16dp"
+        android:background="@drawable/no_action_button_background"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:text="Loading..."
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:clickable="false"
+        android:focusable="false"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

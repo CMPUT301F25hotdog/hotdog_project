@@ -25,4 +25,5 @@
     <color name="light_blue_background">#CDE4F6</color>
     <color name="light_orange_background">#FACFB3</color>
     <color name="gray">#CECCCC</color>
+    <color name="darker_grey">#878787</color>
 </resources>

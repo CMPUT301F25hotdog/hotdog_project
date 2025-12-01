@@ -31,7 +31,7 @@ public class UserController {
 
     Executor updateThread = Executors.newSingleThreadExecutor();
     CountDownLatch updateLatch = new CountDownLatch(1);
-    Boolean doUpdate = false;
+    Boolean doUpdate = true;
     Boolean updateSuccess = false;
 
     /**
@@ -57,7 +57,7 @@ public class UserController {
      */
     private void attemptUpdate() {
         while (!updateSuccess) {// If the user was never able to be properly fetched, we retry to make sure we aren't overriding data.
-            if (this.user.exists() == UserStatus.Error)
+            if (this.user.exists() == UserStatus.Error) {
                 UserRepository.getInstance().getUserById(user.getId(), new FirestoreCallback<User>() {
                     @Override
                     public void onSuccess(User result) {
@@ -81,15 +81,18 @@ public class UserController {
                         updateLatch.countDown();
                     }
                 });
-            try {
-                updateLatch.await();
-            } catch (InterruptedException e) {
-                // If we are interrupted before getting our result we play it safe
-                updateSuccess = false;
-                continue;
+                // Wait for result of user fetch
+                try {
+                    updateLatch.await();
+                } catch (InterruptedException e) {
+                    // If we are interrupted before getting our result we play it safe
+                    updateSuccess = false;
+                    continue;
+                }
             }
 
             // If we hit an error and can't confirm whether the user existed or not, we return
+            // Assume we are updating
             if (!doUpdate) return;
             updateLatch = new CountDownLatch(1);
             UserRepository.getInstance().updateUser(user, new OperationCallback() {
@@ -115,6 +118,7 @@ public class UserController {
                     updateSuccess = false;
                 }
             });
+            // Again wait for confirmation of update
             try {
                 updateLatch.await();
             } catch (InterruptedException e) {
