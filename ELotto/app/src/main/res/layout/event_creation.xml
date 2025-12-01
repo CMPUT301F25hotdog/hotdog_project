@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:id="@+id/header"
@@ -80,28 +81,32 @@
                 android:scaleType="fitCenter"
                 app:srcCompat="@drawable/baseline_image_24" />
 
-            <TextView
-                android:id="@+id/Event_Name_Header"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/EventNameLayout"
+                style="@style/Widget.Elotto.TextInputLayout"
+                android:layout_marginTop="20dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginTop="25sp"
-                android:text="@string/event_name"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:layout_marginHorizontal="15dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/track_blue"
+                app:boxStrokeWidth="2dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxCornerRadiusTopStart="4dp"
+                app:boxCornerRadiusTopEnd="4dp"
+                app:boxCornerRadiusBottomStart="4dp"
+                app:boxCornerRadiusBottomEnd="4dp">
 
-            <EditText
-                android:id="@+id/Event_Name_Input"
-                android:layout_width="match_parent"
-                android:layout_height="48sp"
-                android:layout_marginLeft="15sp"
-                android:layout_marginRight="15sp"
-                android:background="@android:drawable/editbox_background"
-                android:gravity="top|start"
-                android:hint="@string/event_name_input"
-                android:padding="12dp"
-                android:textColor="#000000"
-                android:textSize="16sp" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/EventNameInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:hint="Event Name"
+                    android:padding="16dp"
+                    android:textSize="16sp"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
                 android:id="@+id/description_header"
@@ -126,49 +131,65 @@
                 android:textColor="#000000"
                 android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/Event_Location_Header"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/EventAddressLayout"
+                style="@style/Widget.Elotto.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginTop="25sp"
-                android:text="Event Location"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:layout_marginTop="20dp"
+                android:layout_marginHorizontal="15dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/track_blue"
+                app:boxStrokeWidth="2dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxCornerRadiusTopStart="4dp"
+                app:boxCornerRadiusTopEnd="4dp"
+                app:boxCornerRadiusBottomStart="4dp"
+                app:boxCornerRadiusBottomEnd="4dp">
 
-            <EditText
-                android:id="@+id/Event_Location_Input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginRight="15sp"
-                android:background="@android:drawable/editbox_background"
-                android:ems="10"
-                android:hint="Address"
-                android:inputType="text"
-                android:textSize="16sp" />
+                <AutoCompleteTextView
+                    android:id="@+id/EventAddressInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPostalAddress"
+                    android:maxLines="1"
+                    android:imeOptions="actionDone"
+                    android:completionThreshold="1"
+                    android:textSize="16sp"
+                    android:padding="16dp"
+                    android:hint="Event Address"/>
 
-            <TextView
-                android:id="@+id/Event_Price_Header"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginTop="25sp"
-                android:text="Event Price"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <EditText
-                android:id="@+id/Event_Price_Input"
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/EventPriceLayout"
+                style="@style/Widget.Elotto.TextInputLayout"
+                android:layout_marginTop="20dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginRight="15sp"
-                android:background="@android:drawable/editbox_background"
-                android:ems="10"
-                android:hint="[e.g., $20.00]"
-                android:inputType="text"
-                android:textSize="16sp" />
+                android:layout_marginHorizontal="15dp"
+                app:prefixText="$"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/track_blue"
+                app:boxStrokeWidth="2dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxCornerRadiusTopStart="4dp"
+                app:boxCornerRadiusTopEnd="4dp"
+                app:boxCornerRadiusBottomStart="4dp"
+                app:boxCornerRadiusBottomEnd="4dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/EventPriceInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:hint="Event Price"
+                    android:padding="16dp"
+                    android:textSize="16sp"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
                 android:id="@+id/Event_Date_Time"
@@ -180,58 +201,79 @@
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15sp"
                 android:layout_marginRight="15sp"
                 android:orientation="horizontal">
-
-                <EditText
-                    android:id="@+id/Date_Input"
-                    android:layout_width="150sp"
-                    android:layout_height="wrap_content"
-                    android:background="@android:drawable/editbox_background"
-                    android:ems="10"
-                    android:gravity="top|start"
-                    android:hint="@string/mm_dd_yy"
-                    android:inputType="date"
-                    android:padding="12dp"
-                    android:textColor="#000000"
-                    android:textSize="16sp" />
-
-                <ImageView
-                    android:id="@+id/imageView5"
-                    android:layout_width="44dp"
-                    android:layout_height="match_parent"
-                    app:srcCompat="@drawable/outline_calendar_today_24" />
-
-                <View
-                    android:id="@+id/view"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/EventDateLayout"
+                    style="@style/Widget.Elotto.TextInputLayout"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <EditText
-                    android:id="@+id/Time_Input"
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:background="@android:drawable/editbox_background"
-                    android:ems="10"
-                    android:gravity="top|start"
-                    android:hint="@string/time"
-                    android:inputType="time"
-                    android:padding="12dp"
-                    android:paddingLeft="10sp"
-                    android:textColor="#000000"
-                    android:textSize="16sp" />
-
-                <ImageView
-                    android:id="@+id/imageView6"
-                    android:layout_width="44dp"
                     android:layout_height="match_parent"
-                    app:srcCompat="@drawable/baseline_access_time_24" />
-            </LinearLayout>
+                    android:layout_marginEnd="10dp"
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@drawable/outline_calendar_today_24"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/EventTimeLayout"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:boxBackgroundMode="outline"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/track_blue"
+                    app:boxStrokeWidth="2dp"
+                    app:boxStrokeWidthFocused="2dp"
+                    app:boxCornerRadiusTopStart="4dp"
+                    app:boxCornerRadiusTopEnd="4dp"
+                    app:boxCornerRadiusBottomStart="4dp"
+                    app:boxCornerRadiusBottomEnd="4dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/EventDateInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:hint="Date"
+                        android:padding="16dp"
+                        android:textSize="16sp"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/EventTimeLayout"
+                    style="@style/Widget.Elotto.TextInputLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@drawable/baseline_access_time_24"
+                    app:layout_constraintStart_toEndOf="@id/EventDateLayout"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:boxBackgroundMode="outline"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/track_blue"
+                    app:boxStrokeWidth="2dp"
+                    app:boxStrokeWidthFocused="2dp"
+                    app:boxCornerRadiusTopStart="4dp"
+                    app:boxCornerRadiusTopEnd="4dp"
+                    app:boxCornerRadiusBottomStart="4dp"
+                    app:boxCornerRadiusBottomEnd="4dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/EventTimeInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:hint="Time"
+                        android:padding="16dp"
+                        android:textSize="16sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
                 android:id="@+id/Registration_Period_Header"
@@ -244,6 +286,7 @@
                 android:textSize="16sp" />
 
             <LinearLayout
+                android:id="@+id/EventRegistrationContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginStart="15sp"
@@ -254,152 +297,153 @@
                 android:orientation="vertical"
                 android:padding="10dp">
 
-                <TextView
-                    android:id="@+id/Open_Period_Header"
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/EventOpensLayout"
+                    style="@style/Widget.Elotto.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="5sp"
-                    android:text="@string/opens"
-                    android:textColor="@color/black" />
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@drawable/outline_calendar_today_24"
+                    android:layout_marginBottom="10dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/track_blue"
+                    app:boxStrokeWidth="2dp"
+                    app:boxStrokeWidthFocused="2dp"
+                    app:boxCornerRadiusTopStart="4dp"
+                    app:boxCornerRadiusTopEnd="4dp"
+                    app:boxCornerRadiusBottomStart="4dp"
+                    app:boxCornerRadiusBottomEnd="4dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <EditText
-                        android:id="@+id/Open_Period_Input"
-                        android:layout_width="130dp"
-                        android:layout_height="34dp"
-                        android:background="@android:drawable/editbox_background"
-                        android:ems="10"
-                        android:gravity="top|start"
-                        android:hint="@string/mm_dd_yy"
-                        android:inputType="text"
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/EventOpensSelector"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:hint="Select Opening Date"
+                        android:padding="16dp"
                         android:textSize="16sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                    <ImageView
-                        android:id="@+id/imageView7"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="start"
-                        android:layout_weight="1"
-                        android:scaleType="fitStart"
-                        app:srcCompat="@drawable/outline_calendar_today_24" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/Close_Period_Header"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/EventClosesLayout"
+                    style="@style/Widget.Elotto.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="40sp"
-                    android:text="Closes"
-                    android:textColor="@color/black" />
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@drawable/outline_calendar_today_24"
+                    android:layout_marginTop="10dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/track_blue"
+                    app:boxStrokeWidth="2dp"
+                    app:boxStrokeWidthFocused="2dp"
+                    app:boxCornerRadiusTopStart="4dp"
+                    app:boxCornerRadiusTopEnd="4dp"
+                    app:boxCornerRadiusBottomStart="4dp"
+                    app:boxCornerRadiusBottomEnd="4dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
-
-                    <EditText
-                        android:id="@+id/Close_Period_Input"
-                        android:layout_width="130dp"
-                        android:layout_height="34dp"
-                        android:background="@android:drawable/editbox_background"
-                        android:ems="10"
-                        android:gravity="top|start"
-                        android:hint="@string/mm_dd_yy"
-                        android:inputType="text"
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/EventClosesSelector"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:hint="Select Closing Date"
+                        android:padding="16dp"
                         android:textSize="16sp" />
-
-                    <ImageView
-                        android:id="@+id/imageView9"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:scaleType="fitStart"
-                        app:srcCompat="@drawable/outline_calendar_today_24" />
-                </LinearLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/textView8"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/MaxEntrantLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginTop="25sp"
-                android:text="@string/maximum_entrants"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
+                style="@style/Widget.Elotto.TextInputLayout"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/EventRegistrationContainer"
+                android:layout_margin="20dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/track_blue"
+                app:boxStrokeWidth="2dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxCornerRadiusTopStart="4dp"
+                app:boxCornerRadiusTopEnd="4dp"
+                app:boxCornerRadiusBottomStart="4dp"
+                app:boxCornerRadiusBottomEnd="4dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/MaxEntrantInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Max Entrants"
+                    android:inputType="number"
+                    android:padding="16dp"
+                    android:textSize="16sp"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <EditText
-                android:id="@+id/Entrant_Limit_Input"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginRight="15sp"
-                android:background="@android:drawable/editbox_background"
-                android:ems="10"
-                android:gravity="top|start"
-                android:hint="@string/entrant_limit"
-                android:inputType="number"
-                android:padding="12dp"
-                android:paddingLeft="10sp"
-                android:textSize="16sp" />
+                android:orientation="vertical">
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_marginHorizontal="20dp"
+                    android:text="(optional)"
+                    android:textColor="@color/dark_grey"
+                    />
+                <Button
+                    android:id="@+id/Tag_Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:drawable/editbox_background"
+                    android:ems="10"
+                    android:text="Select Event Tags"
+                    android:textAlignment="center"
+                    android:textSize="16sp"
+                    android:padding="10dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="15dp"/>
+            </LinearLayout>
 
-            <TextView
-                android:id="@+id/TagHeader"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/WaitlistSizeLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginTop="25sp"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:text="Event Tags" />
-
-            <EditText
-                android:id="@+id/Tag_Input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginRight="15sp"
-                android:background="@android:drawable/editbox_background"
-                android:ems="10"
-                android:gravity="top|start"
-                android:hint="Enter Tags Then Press Enter"
-                android:inputType="text"
-                android:padding="12dp"
-                android:paddingLeft="10sp"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/waitListSizeHeader"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginTop="25sp"
-                android:text="@string/wait_list_size_optional"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
-
-            <EditText
-                android:id="@+id/Waitlist_Size_Input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="15sp"
-                android:layout_marginRight="15sp"
-                android:background="@android:drawable/editbox_background"
-                android:ems="10"
-                android:gravity="top|start"
-                android:hint="@string/leave_empty_for_unlimited"
-                android:inputType="number"
-                android:textSize="16sp" />
+                style="@style/Widget.Elotto.TextInputLayout"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/Tag_Button"
+                app:layout_constraintBottom_toTopOf="@id/Geolocation_Toggle"
+                android:layout_margin="20dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/track_blue"
+                app:boxStrokeWidth="2dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:boxCornerRadiusTopStart="4dp"
+                app:boxCornerRadiusTopEnd="4dp"
+                app:boxCornerRadiusBottomStart="4dp"
+                app:boxCornerRadiusBottomEnd="4dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/WaitlistSizeInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Waitlist Size (Optional)"
+                    android:inputType="number"
+                    android:padding="16dp"
+                    android:textSize="16sp"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="25sp"
+                android:layout_margin="20dp"
                 android:orientation="vertical">
 
                 <androidx.appcompat.widget.SwitchCompat
@@ -419,6 +463,22 @@
                     android:layout_marginBottom="25sp"
                     android:text="@string/require_entrants_to_share_their_location" />
             </LinearLayout>
+
+            <!-- Delete Event Button (only visible in Edit mode) -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/Delete_Event_Button"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginBottom="15dp"
+                android:background="@drawable/rounded_rectangle"
+                android:backgroundTint="#FF0000"
+                android:text="Delete Event"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:visibility="gone" />
 
         </LinearLayout>
     </ScrollView>

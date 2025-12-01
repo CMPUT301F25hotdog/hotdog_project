@@ -9,8 +9,10 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 import com.hotdog.elotto.callback.FirestoreCallback;
+import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.controller.UserController;
 import com.hotdog.elotto.helpers.Status;
+import com.hotdog.elotto.helpers.UserStatus;
 import com.hotdog.elotto.helpers.UserType;
 import com.hotdog.elotto.repository.UserRepository;
 
@@ -22,6 +24,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 /**
 * A class containing all common information for a User.
@@ -48,6 +51,7 @@ public class User {
      */
     public static class RegisteredEvent implements Comparable<RegisteredEvent> {
         private Timestamp registeredDate;
+        private Timestamp selectedDate;
         private Status status;
         private String eventId;
 
@@ -68,28 +72,69 @@ public class User {
             return eventId.compareTo(o.eventId);
         }
 
+        /**
+         * Sets the date the user registered
+         * @param registeredDate Date the user registered
+         */
         public void setRegisteredDate(Timestamp registeredDate) {
             this.registeredDate = registeredDate;
         }
 
+        /**
+         * Sets this events ID
+         * @param eventId The event id...
+         */
         public void setEventId(String eventId) {
             this.eventId = eventId;
         }
 
+        /**
+         * Set the status of the user with relation to this event
+         * @param status The status to set
+         */
         public void setStatus(Status status) {
             this.status = status;
         }
 
+
+        /**
+         * Gets the user status with relation to this event
+         * @return The user status (Status enum type)
+         */
         public Status getStatus() {
             return status;
         }
 
+        /**
+         * Gets the ID of the event this object refers to
+         * @return Id of that event
+         */
         public String getEventId() {
             return eventId;
         }
 
+        /**
+         * Gets the date the user registered for the event
+         * @return Date of user registration
+         */
         public Timestamp getRegisteredDate() {
             return registeredDate;
+        }
+
+        /**
+         * Gets the date that the user was selected to participate in the event
+         * @return The date the user was selected to participate in the event
+         */
+        public Timestamp getSelectedDate(){
+            return selectedDate;
+        }
+
+        /**
+         * Sets the date that the user was selected to participate in the event
+         * @param selectedDate The date that the user was selected to participate in the event
+         */
+        public void setSelectedDate(Timestamp selectedDate){
+            this.selectedDate = selectedDate;
         }
     }
 
@@ -132,36 +177,60 @@ public class User {
     private class AtomicUserCallback implements FirestoreCallback<User> {
 
         private final AtomicReference<User> userRef = new AtomicReference<>();
-        private final CountDownLatch gate = new CountDownLatch(1);
+        private final AtomicReference<Consumer<User>> consumer=new AtomicReference<>(null);
+        private final  AtomicReference<Runnable> runnable=new AtomicReference<>(null);
+
+        /**
+         * Creates a new AtomicUserCallback instance with the calling user object set, and a task that takes in the returned user for callback.
+         * @param superUser The User object that the callbacks are meant to check.
+         * @param task The action to be completed on BOTH a successful and unsuccessful User read. This <b>can</b> block it's thread since it will be running in a separate thread.
+         */
+        public AtomicUserCallback(User superUser, Consumer<User> task) {
+            userRef.set(superUser);
+            this.consumer.set(task);
+        }
+
+        /**
+         * Creates a new AtomicUserCallback instance with the calling user object set, and a task with no params for callback.
+         * @param superUser The User object that the callbacks are meant to check.
+         * @param task The action to be completed on BOTH a successful and unsuccessful User read. This <b>can</b> block it's thread since it will be running in a separate thread.
+         */
+        public AtomicUserCallback(User superUser, Runnable task) {
+            userRef.set(superUser);
+            this.runnable.set(task);
+        }
 
         /**
          * Creates a new AtomicUserCallback instance with the calling user object set.
-         * @param superUser The User object that the callbacks are meant to check.
+         * @param superUser The User object that the callbacks are meant to check for existing User.
          */
-        public AtomicUserCallback(User superUser) {userRef.set(superUser);}
-
-        public void onSuccess(User user) {
-            // Set the info to the returned user value
-            this.userRef.get().setUser(user);
-            this.userRef.get().exists=true;
-            this.gate.countDown();
-        }
-
-        public void onError(String errorMessage) {
-            Log.d("USER_REPO", errorMessage);
-            this.userRef.get().exists=false;
-            this.gate.countDown();
+        public AtomicUserCallback(User superUser) {
+            userRef.set(superUser);
         }
 
         /**
-         * Used to block this thread until the callbacks have finished (so either a success or fail)
+         * Obvi just the thing that is run on a successful fetch
+         * @param user The user reference that we get from firestore
          */
-        public void await() {
-            try {
-                this.gate.await();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+        public void onSuccess(User user) {
+            // Set the info to the returned user value
+            this.userRef.get().setUser(user);
+            this.userRef.get().status=UserStatus.Existent;
+            if(this.consumer.get() != null) this.consumer.get().accept(this.userRef.get());
+            if(this.runnable.get() != null) this.runnable.get().run();
+        }
+
+        /**
+         * Obvi just the thing that is run on a not successful fetch
+         * @param errorMessage The explanation of what killed itself
+         */
+        public void onError(String errorMessage) {
+            Log.d("USER_REPO", errorMessage);
+            // Signals whether the firestore db has an instance of this user.
+            this.userRef.get().status=errorMessage.toLowerCase().contains("not found") ? UserStatus.Nonexistent : UserStatus.Error;
+            // Upon getting nothing back or an error, we just assume that the current user instance is new.
+            if(this.consumer.get() != null) this.consumer.get().accept(this.userRef.get());
+            if(this.runnable.get() != null) this.runnable.get().run();
         }
     }
 
@@ -183,7 +252,7 @@ public class User {
 
     // Repo control
     @Exclude
-    private boolean exists;
+    private UserStatus status;
 
     /**
      * Nested class container for UserType to allow for multiple references to be value changed by one.
@@ -231,10 +300,68 @@ public class User {
      * <p><b>WARNING:</b> This <b>cannot</b> be used to get any other user than the current phone user, and updating the info of a user object created with this constructor will update the current phone user no matter what!</p>
     *
     * @param context The context of the caller to resolve device ID.
-     * @param atomic Specify whether this User creation will block the main thread until we have fetched the data.
+     * @param atomic A parameterized consumer task to be performed on <b>any</b> return of the user. This <b>can</b> block it's thread since it will be running in a thread separate from the main thread.
     */
     @SuppressLint("HardwareIds")
-    public User(Context context, boolean atomic) {
+    public User(Context context, Consumer<User> atomic) {
+        // Get deviceId
+        this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        if(SuperUser!=null) {
+            this.setUser(SuperUser);
+            this.controller=SuperUser.controller;
+            Log.d("SUPER USER", "SU Name: " + SuperUser.getName() + "SU Email: " + SuperUser.getEmail() + "SU Phone: " + SuperUser.getPhone());
+            atomic.accept(SuperUser);
+            return;
+        }
+
+        SuperUser=this;
+
+        // Create new controller
+        this.controller = new UserController(this);
+
+        final AtomicUserCallback atomicCallback = new AtomicUserCallback(this, atomic);
+        UserRepository.getInstance().getUserById(this.deviceId, atomicCallback);
+    }
+
+    /**
+     * Class Constructor that will <b>ALWAYS</b> get the user of this phone.
+     * If atomic is true, then the main thread will not run until either a result or error has returned.
+     * <p><b>WARNING:</b> This <b>cannot</b> be used to get any other user than the current phone user, and updating the info of a user object created with this constructor will update the current phone user no matter what!</p>
+     *
+     * @param context The context of the caller to resolve device ID.
+     * @param atomic A runnable task to be performed on <b>any</b> return of the user. This <b>can</b> block it's thread since it will be running in a thread separate from the main thread.
+     */
+    @SuppressLint("HardwareIds")
+    public User(Context context, Runnable atomic) {
+        // Get deviceId
+        this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        if(SuperUser!=null) {
+            this.setUser(SuperUser);
+            this.controller=SuperUser.controller;
+            Log.d("SUPER USER", "SU Name: " + SuperUser.getName() + "SU Email: " + SuperUser.getEmail() + "SU Phone: " + SuperUser.getPhone());
+            atomic.run();
+            return;
+        }
+
+        SuperUser=this;
+
+        // Create new controller
+        this.controller = new UserController(this);
+
+        final AtomicUserCallback atomicCallback = new AtomicUserCallback(this, atomic);
+        UserRepository.getInstance().getUserById(this.deviceId, atomicCallback);
+    }
+
+    /**
+     * Class Constructor that will <b>ALWAYS</b> get the user of this phone.
+     * <p><b>WARNING:</b> This <b>cannot</b> be used to get any other user than the current phone user, and updating the info of a user object created with this constructor will update the current user no matter what!</p>
+     *
+     * @param context The context of the caller to resolve device ID.
+     */
+    @SuppressLint("HardwareIds")
+    public User(Context context) {
         // Get deviceId
         this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 
@@ -251,16 +378,8 @@ public class User {
         this.controller = new UserController(this);
 
         final AtomicUserCallback atomicCallback = new AtomicUserCallback(this);
-
-        if(atomic) {
-            ExecutorService bgExec = Executors.newSingleThreadExecutor();
-            bgExec.execute(() -> {
-                UserRepository.getInstance().getUserById(this.deviceId, atomicCallback, bgExec);
-            });
-            atomicCallback.await();
-        } else {
-            UserRepository.getInstance().getUserById(this.deviceId, atomicCallback);
-        }
+        // No need to be on another thread since no actions are needed to be performed in the callback
+        UserRepository.getInstance().getUserById(this.deviceId, atomicCallback);
     }
 
     /**
@@ -269,7 +388,7 @@ public class User {
      * @param user The user object to grab info from.
      */
     private void setUser(User user) {
-        this.exists=user.exists;
+        this.status=user.status;
         this.name=user.name;
         this.email=user.email;
         this.phone=user.phone;
@@ -419,6 +538,20 @@ public class User {
     }
 
     /**
+     * Gets a single RegisteredEvent object from the regEvents instead of pulling and reading through the whole damn list
+     * @param eventId Id of the event... wow
+     * @return The RegisteredEvent object associated with that id, or null if something failed really really bad somehow
+     */
+    public RegisteredEvent getSingleRegEvent(String eventId) {
+        int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
+        if(index<0) {
+            return null;
+        }
+
+        return this.regEvents.get(index);
+    }
+
+    /**
      * Remove an event from this users registered events based on the event ID.
      * @param eventId ID of the event you wish to remove.
      * @return True if the event is found and subsequently removed, false if the event could not be found.
@@ -429,6 +562,7 @@ public class User {
             return false;
         }
         this.regEvents.remove(index);
+        this.controller.updateUser();
         return true;
     }
 
@@ -451,6 +585,8 @@ public class User {
         int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
         if(index<0) throw new NoSuchFieldException("No such event ID " + eventId + " in this Users registered events.");
         this.regEvents.get(index).status=status;
+        if(status == Status.Selected) this.regEvents.get(index).selectedDate=Timestamp.now();
+        this.updateUser();
     }
 
     /**
@@ -470,11 +606,11 @@ public class User {
     }
 
     /**
-     * Checks whether the User exists already in the repo or not.
-     * @return True if the user is in the db False otherwise.
+     * Checks whether the User exists already in the repo or not, or if there was an error in retrieving it.
+     * @return UserStatus based on the return of the user repo fetch.
      */
-    public boolean exists() {
-        return this.exists;
+    public UserStatus exists() {
+        return this.status;
     }
 
     /**
@@ -489,6 +625,7 @@ public class User {
      * Updates the user information in the firebase. To be used after every user information change.
      */
     private void updateUser() {
+        if(controller == null) controller = new UserController(this);
         controller.updateUser();
     }
 
@@ -497,35 +634,45 @@ public class User {
      * NOTE: This should never be able to overwrite any unsaved changes since all changes are immediately pushed to firebase when using the given methods.
      * WARNING: THIS WILL VERY LIKELY RETURN BEFORE A RESULT IS RECEIVED: USE atomicReload() IF YOU NEED THE RESULT BEFORE CONTINUING.
      */
-    public void reload(boolean atomic) {
+    public void reload() {
         AtomicUserCallback atomicCallback = new AtomicUserCallback(this);
-        if(atomic) {
-            ExecutorService bgExec = Executors.newSingleThreadExecutor();
-            bgExec.execute(() -> {
-                UserRepository.getInstance().getUserById(this.deviceId, atomicCallback, bgExec);
-            });
-            atomicCallback.await();
-        } else {
-            UserRepository.getInstance().getUserById(this.deviceId, atomicCallback);
-        }
+        UserRepository.getInstance().getUserById(this.deviceId, atomicCallback);
     }
 
     /**
      * Reloads this User data in case it has been changed within the lifetime of this User object, but await this fetch to finish or fail before continuing on the main thread.
      * NOTE: This should never be able to overwrite any unsaved changes since all changes are immediately pushed to firebase when using the given methods.
-     * WARNING: THIS WILL BLOCK THE MAIN THREAD UNTIL A RESULT IS RECEIVED
+     * WARNING: THIS WILL NOT BLOCK THE MAIN THREAD. ANY MANDATORY ACTIONS NEEDED AFTER A VALUE IS RETURNED SHOULD BE PLACED IN task.
+     * @param task Action(s) to be performed upon BOTH a successful and unsuccessful reload.
      */
-    public void atomicReload() {
-        final AtomicUserCallback atomicCallback = new AtomicUserCallback(this);
+    public void atomicReload(Runnable task) {
+        final AtomicUserCallback atomicCallback = new AtomicUserCallback(this, task);
         ExecutorService bgExec = Executors.newSingleThreadExecutor();
         bgExec.execute(() -> {
             UserRepository.getInstance().getUserById(this.deviceId, atomicCallback, bgExec);
         });
-        atomicCallback.await();
     }
     public String getDeviceId() {
         return deviceId;
     }
 
+    /**
+     * This method will merge the data of two different User instances.
+     * @param oldUser The old user whose data shall be merged into the new or overwritten.
+     * <b>WARNING:</b> This will update <b>only</b> this user. oldUser will be <b>nullified</b>.
+     */
+    public void Merge(User oldUser) {
+        this.regEvents.addAll(0, oldUser.getRegEvents());
+        this.sort();
+        // If the user was a higher position then replace the current one
+        if (oldUser.type.type.ordinal() > this.type.type.ordinal()) this.type = oldUser.type;
+        this.status = oldUser.status;
+        oldUser.setRegEvents(null);
+        oldUser.setEmail(null);
+        oldUser.setName(null);
+        oldUser.setPhone(null);
+        oldUser.setType(null);
+        this.updateUser();
+    }
 }
 

@@ -11,6 +11,7 @@ import com.hotdog.elotto.callback.FirestoreCallback;
 import com.hotdog.elotto.callback.FirestoreListCallback;
 import com.hotdog.elotto.callback.OperationCallback;
 import com.hotdog.elotto.controller.OrganizerController;
+import com.hotdog.elotto.helpers.UserStatus;
 import com.hotdog.elotto.repository.EventRepository;
 import com.hotdog.elotto.repository.OrganizerRepository;
 import com.hotdog.elotto.repository.UserRepository;
@@ -24,6 +25,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import javax.security.auth.callback.Callback;
 
@@ -37,36 +39,45 @@ public class Organizer {
     private class AtomicOrgCallback implements FirestoreCallback<Organizer> {
 
         private final AtomicReference<Organizer> orgRef = new AtomicReference<>();
-        private final CountDownLatch gate = new CountDownLatch(1);
+        private Consumer<Organizer> consumer=null;
+        private Runnable runnable=null;
+
+        /**
+         * Creates a new AtomicOrgCallback instance with the calling organizer object set, and a task that takes in the returned organizer for callback.
+         * @param superOrg The User object that the callbacks are meant to check.
+         * @param task The action to be completed on BOTH a successful and unsuccessful User read. This <b>can</b> block it's thread since it will be running in a separate thread.
+         */
+        public AtomicOrgCallback(Organizer superOrg, Consumer<Organizer> task) {orgRef.set(superOrg); this.consumer=task;}
+
+        /**
+         * Creates a new AtomicOrgCallback instance with the calling organizer object set, and a task with no params for callback.
+         * @param superOrg
+         * @param task
+         */
+        public AtomicOrgCallback(Organizer superOrg, Runnable task) {orgRef.set(superOrg); this.runnable=task;}
 
         /**
          * Creates a new AtomicOrgCallback instance with the calling organizer object set.
-         * @param SuperOrg The Organizer object that the callbacks are meant to check.
+         * @param superOrg The Organizer object that the callbacks are meant to check for existing Organizer.
          */
-        public AtomicOrgCallback(Organizer SuperOrg) {
-            orgRef.set(SuperOrg);}
+        public AtomicOrgCallback(Organizer superOrg) {orgRef.set(superOrg);}
 
         public void onSuccess(Organizer org) {
             // Set the info to the returned user value
             this.orgRef.get().setOrg(org);
-            this.gate.countDown();
+            this.orgRef.get().status= UserStatus.Existent;
+            if(this.consumer != null) this.consumer.accept(org);
+            if(this.runnable != null) this.runnable.run();
         }
+
 
         public void onError(String errorMessage) {
-            Log.d("ORGANIZER REPO", errorMessage);
-            this.orgRef.get().updateOrganizer();
-            this.gate.countDown();
-        }
-
-        /**
-         * Used to block this thread until the callbacks have finished (so either a success or fail)
-         */
-        public void await() {
-            try {
-                this.gate.await();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            Log.d("USER_REPO", errorMessage);
+            // Signals whether the firestore db has an instance of this user.
+            this.orgRef.get().status=errorMessage.toLowerCase().contains("not found") ? UserStatus.Nonexistent : UserStatus.Error;
+            // Upon getting nothing back or an error, we just assume that the current user instance is new.
+            if(this.consumer != null) this.consumer.accept(orgRef.get());
+            if(this.runnable != null) this.runnable.run();
         }
     }
     @Exclude
@@ -77,6 +88,8 @@ public class Organizer {
     private OrganizerController controller;
     @DocumentId
     private final String deviceId;
+    @Exclude
+    private UserStatus status;
 
     private List<String> myEvents = new ArrayList<>();
 
@@ -84,20 +97,19 @@ public class Organizer {
     @SuppressLint("HardwareIds")
     public Organizer(Context context) {
         // Get deviceId
-        this.deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         if(SuperOrg!=null) {
+            this.deviceId= SuperOrg.deviceId;
             this.setOrg(SuperOrg);
             this.controller = SuperOrg.controller;
             return;
         }
         SuperOrg=this;
-        this.user=new User(context, true);
+        this.user=new User(context);
         this.controller=new OrganizerController(this);
+        this.deviceId=this.user.getDeviceId();
 
         AtomicOrgCallback atomicCallback = new AtomicOrgCallback(this);
-        ExecutorService bgExec = Executors.newSingleThreadExecutor();
-        bgExec.execute(() -> OrganizerRepository.getInstance().getOrganizerById(this.deviceId, atomicCallback, bgExec));
-        atomicCallback.await();
+        OrganizerRepository.getInstance().getOrganizerById(this.deviceId, atomicCallback);
     }
     public Organizer() {
         this.deviceId = null;
@@ -245,5 +257,27 @@ public class Organizer {
      */
     public void updateOrganizer() {
         this.controller.updateOrganizer();
+    }
+
+    /**
+     * Checks whether the Organizer exists already in the repo or not, or if there was an error in retrieving it.
+     * @return UserStatus based on the return of the organizer repo fetch.
+     */
+    public UserStatus exists() {
+        return this.status;
+    }
+
+    /**
+     * Merges two organizers, losing and nullifying the oldOrg.
+     * @param oldOrg The organizer instance to be merged into this one.
+     */
+    public void Merge(Organizer oldOrg) {
+        this.myEvents.addAll(0, oldOrg.myEvents);
+        this.status=oldOrg.status;
+        oldOrg.user = null;
+        oldOrg.myEvents=null;
+        oldOrg.status=null;
+        oldOrg.controller=null;
+        this.updateOrganizer();
     }
 }

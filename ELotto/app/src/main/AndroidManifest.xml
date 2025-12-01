@@ -18,6 +18,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ELotto">
 
+        <!-- ADMIN DASHBOARD (Accessible via Profile) -->
+        <activity
+            android:name=".ui.admin.AdminDashboardActivity"
+            android:exported="false"
+            android:label="Admin Dashboard" />
+
+        <!-- MainActivity (Launcher) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -29,6 +36,7 @@
         </activity>
 
         <activity android:name=".LoginActivity"/>
+
         <activity
             android:name=".ui.home.EventCreationView"
             android:exported="false" />
@@ -38,6 +46,31 @@
         <activity
             android:name=".ui.home.MyEventsView"
             android:exported="false" />
+
+        <!-- Other Admin Activities -->
+        <activity
+            android:name=".ui.admin.AdminBrowseEventsActivity"
+            android:exported="false"
+            android:label="Browse Events"
+            android:parentActivityName=".ui.admin.AdminDashboardActivity" />
+
+        <activity
+            android:name=".ui.admin.AdminBrowseProfilesActivity"
+            android:exported="false"
+            android:label="Browse Profiles"
+            android:parentActivityName=".ui.admin.AdminDashboardActivity" />
+
+        <activity
+            android:name=".ui.admin.AdminBrowseImagesActivity"
+            android:exported="false"
+            android:label="Browse Images"
+            android:parentActivityName=".ui.admin.AdminDashboardActivity" />
+
+        <activity
+            android:name=".ui.admin.AdminBrowseNotificationsActivity"
+            android:exported="false"
+            android:label="Browse Notifications"
+            android:parentActivityName=".ui.admin.AdminDashboardActivity" />
 
         <!-- FileProvider -->
         <provider

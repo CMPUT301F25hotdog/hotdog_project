@@ -11,17 +11,22 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.google.firebase.firestore.*;
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.model.User;
-
+import com.hotdog.elotto.helpers.UserType;
+import com.hotdog.elotto.ui.admin.AdminDashboardActivity;
+import android.content.Intent;
 import java.util.*;
 
 /**
- * Profile screen — View + Edit basic user info.
+ * Handles the Profile screen — lets user view, edit, and delete profile info
+ * stored in Firestore.
+ * Connects text fields with Firestore and updates data in real time.
+ * Also shows a confirmation before deleting the account.
  */
 public class ProfileFragment extends Fragment {
 
     EditText inputName, inputEmail, inputPhone;
     TextView deviceIdText;
-    Button btnSave, btnDelete, btnEdit;
+    Button btnSave, btnDelete, btnEdit, btnAdmin;
     ImageButton backButton;
     FirebaseFirestore db;
     User currentUser;
@@ -41,12 +46,11 @@ public class ProfileFragment extends Fragment {
         btnDelete = v.findViewById(R.id.btn_delete);
         btnEdit = v.findViewById(R.id.btn_edit);
         backButton = v.findViewById(R.id.btn_back);
+        btnEdit = v.findViewById(R.id.btn_edit);
+        btnAdmin = v.findViewById(R.id.btn_admin_dashboard);
 
-        if (backButton != null) {
-            backButton.setOnClickListener(
-                    b -> NavHostFragment.findNavController(this).popBackStack()
-            );
-        }
+        if (backButton != null)
+            backButton.setOnClickListener(b -> NavHostFragment.findNavController(this).popBackStack());
 
         loadUserData();
 
@@ -65,7 +69,11 @@ public class ProfileFragment extends Fragment {
                     .show();
         });
 
-        // TOP edit button (toggles edit mode, NO saving)
+        btnAdmin.setOnClickListener(a -> {
+            Intent intent = new Intent(getActivity(), AdminDashboardActivity.class);
+            startActivity(intent);
+        });
+
         btnEdit.setOnClickListener(e -> {
             if (!isEditing) {
                 setEditingMode(true);
@@ -107,7 +115,7 @@ public class ProfileFragment extends Fragment {
      * Load user data.
      */
     void loadUserData() {
-        currentUser = new User(requireContext(), true);
+        currentUser = new User(requireContext());
         currentUserId = currentUser.getId();
 
         if (currentUserId == null || currentUserId.isEmpty()) {
@@ -121,13 +129,20 @@ public class ProfileFragment extends Fragment {
                         inputName.setText(doc.getString("name"));
                         inputEmail.setText(doc.getString("email"));
                         inputPhone.setText(doc.getString("phone"));
+                        inputPhone.setText(doc.getString("phone"));
                         deviceIdText.setText("Device ID: " + currentUserId);
+
+                        if (currentUser.getType() == UserType.Administrator) {
+                            btnAdmin.setVisibility(View.VISIBLE);
+                        } else {
+                            btnAdmin.setVisibility(View.GONE);
+                        }
                     } else {
                         Toast.makeText(getContext(), "No data", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Fail " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(
+                        e -> Toast.makeText(getContext(), "Fail " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     /**
@@ -153,12 +168,10 @@ public class ProfileFragment extends Fragment {
         data.put("email", e);
         data.put("phone", p);
 
-        db.collection("users").document(currentUserId)
-                .set(data, SetOptions.merge())
-                .addOnSuccessListener(x ->
-                        Toast.makeText(getContext(), "Updated", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(er ->
-                        Toast.makeText(getContext(), "Fail " + er.getMessage(), Toast.LENGTH_SHORT).show());
+        db.collection("users").document(currentUserId).set(data, SetOptions.merge())
+                .addOnSuccessListener(x -> Toast.makeText(getContext(), "Updated", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(
+                        er -> Toast.makeText(getContext(), "Fail " + er.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     /**
@@ -175,7 +188,7 @@ public class ProfileFragment extends Fragment {
                     Toast.makeText(getContext(), "Deleted", Toast.LENGTH_SHORT).show();
                     requireActivity().finish();
                 })
-                .addOnFailureListener(er ->
-                        Toast.makeText(getContext(), "Fail " + er.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(
+                        er -> Toast.makeText(getContext(), "Fail " + er.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }
