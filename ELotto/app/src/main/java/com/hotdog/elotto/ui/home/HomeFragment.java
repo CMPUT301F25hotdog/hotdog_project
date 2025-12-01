@@ -135,17 +135,11 @@ public class HomeFragment extends Fragment {
             return null;
         }
 
-        List<User.RegisteredEvent> regEvents = currentUser.getRegEvents();
-
-        if (regEvents != null) {
-            for (User.RegisteredEvent regEvent : regEvents) {
-                if (regEvent.getEventId().equals(eventId)) {
-                    return regEvent.getStatus();
-                }
-            }
+        User.RegisteredEvent event = currentUser.getSingleRegEvent(eventId);
+        if (event == null) {
+            return null;
         }
-
-        return null;
+        return event.getStatus();
     }
 
     /**
@@ -162,18 +156,16 @@ public class HomeFragment extends Fragment {
         List<User.RegisteredEvent> regEvents = currentUser.getRegEvents();
 
         if (regEvents != null) {
-            for (User.RegisteredEvent regEvent : regEvents) {
-                if (regEvent.getEventId().equals(eventId)) {
-                    com.google.firebase.Timestamp selectedDate = regEvent.getSelectedDate();
+            User.RegisteredEvent regEvent = currentUser.getSingleRegEvent(eventId);
+            if (regEvent == null) return false;
+            com.google.firebase.Timestamp selectedDate = regEvent.getSelectedDate();
 
-                    if (selectedDate != null) {
-                        long deadlineMillis = selectedDate.toDate().getTime() +
-                                java.util.concurrent.TimeUnit.HOURS.toMillis(24);
-                        long currentMillis = System.currentTimeMillis();
+            if (selectedDate != null) {
+                long deadlineMillis = selectedDate.toDate().getTime() +
+                        java.util.concurrent.TimeUnit.HOURS.toMillis(24);
+                long currentMillis = System.currentTimeMillis();
 
-                        return currentMillis > deadlineMillis;
-                    }
-                }
+                return currentMillis > deadlineMillis;
             }
         }
 

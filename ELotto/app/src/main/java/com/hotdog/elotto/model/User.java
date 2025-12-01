@@ -495,6 +495,15 @@ public class User {
         return ret;
     }
 
+    public RegisteredEvent getSingleRegEvent(String eventId) {
+        int index = Collections.binarySearch(this.regEvents, new RegisteredEvent(eventId));
+        if(index<0) {
+            return null;
+        }
+
+        return this.regEvents.get(index);
+    }
+
     /**
      * Remove an event from this users registered events based on the event ID.
      * @param eventId ID of the event you wish to remove.
@@ -569,6 +578,7 @@ public class User {
      * Updates the user information in the firebase. To be used after every user information change.
      */
     private void updateUser() {
+        if(controller == null) controller = new UserController(this);
         controller.updateUser();
     }
 
