@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Controller class responsible for managing event creation logic, including
- * data processing, image encoding, and interaction with Firestore and Storage.
+ * Controller class responsible for managing location logic, including
+ * finding and converting current location of the user.
  */
 public class    EventCreationController {
     private FirebaseFirestore db;

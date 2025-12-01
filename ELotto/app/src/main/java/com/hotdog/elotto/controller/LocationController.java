@@ -17,6 +17,10 @@ import com.google.android.gms.location.Priority;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Controller class responsible for managing event creation logic, including
+ * data processing, image encoding, and interaction with Firestore and Storage.
+ */
 public class LocationController {
     //https://stackoverflow.com/questions/64951824/how-to-get-current-location-with-android-studio used for a majority of the methods
     private final FusedLocationProviderClient fusedLocationProviderClient;
@@ -47,7 +51,7 @@ public class LocationController {
     /**
      * Callback interface for receiving coordinate results returning as a list of 2 doubles.
      */
-    public interface CoordCallback{
+    public interface CoordCallBack{
         void onCoordReady(List<Double> coords);
     }
     /**
@@ -62,7 +66,7 @@ public class LocationController {
      * @param curLocation the Task that will provide a location
      * @param callback    the callback invoked with latitude/longitude data or null if failed
      */
-    public static void convertToCoord(Task<Location> curLocation, CoordCallback callback){
+    public static void convertToCoord(Task<Location> curLocation, CoordCallBack callback){
         curLocation.addOnSuccessListener(location-> {
             if (location != null) {
                 double lat = location.getLatitude();

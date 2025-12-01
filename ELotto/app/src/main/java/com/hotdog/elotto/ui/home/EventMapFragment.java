@@ -25,7 +25,9 @@
     import com.hotdog.elotto.model.Event;
 
     import java.util.Map;
-
+    /**
+     * Fragment responsible showing a map of all entrant locations to the user
+     */
     public class EventMapFragment extends Fragment implements OnMapReadyCallback {
         //https://developers.google.com/maps/documentation/android-sdk/map#maps_android_map_fragment-java
         //used for most of the class
