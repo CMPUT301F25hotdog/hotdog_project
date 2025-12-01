@@ -21,8 +21,15 @@ import com.hotdog.elotto.model.Event;
 import java.util.List;
 
 /**
- * Adapter for displaying event poster images in admin browse screen.
- * Supports both Firebase Storage URLs and Base64-encoded images.
+ * Adapter for displaying event poster images in the Admin's image management interface.
+ *
+ * <p>This adapter handles both Firebase Storage URLs and Base64-encoded images,
+ * providing admins with the ability to browse and delete event poster images.
+ * Uses Glide for efficient image loading and caching from Firebase Storage.</p>
+ *
+ * <p>View layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently</p>
  *
  * @author Admin Module
  * @version 1.0
@@ -30,18 +37,50 @@ import java.util.List;
 public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.ImageViewHolder> {
 
     private static final String TAG = "AdminImageAdapter";
+
+    /**
+     * The list of events whose poster images are being displayed.
+     */
     private final List<Event> events;
+
+    /**
+     * Listener for handling image deletion actions.
+     */
     private final OnImageActionListener listener;
 
+    /**
+     * Callback interface for handling image deletion actions.
+     *
+     * <p>Implementing classes should handle the business logic for deleting
+     * event poster images from Firebase Storage or local storage.</p>
+     */
     public interface OnImageActionListener {
+        /**
+         * Called when the administrator clicks to delete an event's poster image.
+         *
+         * @param event the event whose poster image should be deleted
+         */
         void onDeleteImage(Event event);
     }
 
+    /**
+     * Constructs a new AdminImageAdapter with the specified events and action listener.
+     *
+     * @param events the list of events with poster images to display
+     * @param listener the callback listener for handling image deletion
+     */
     public AdminImageAdapter(List<Event> events, OnImageActionListener listener) {
         this.events = events;
         this.listener = listener;
     }
 
+    /**
+     * Creates a new ViewHolder by inflating the admin image item layout.
+     *
+     * @param parent the ViewGroup into which the new View will be added
+     * @param viewType the view type of the new View
+     * @return a new ImageViewHolder that holds the inflated View
+     */
     @NonNull
     @Override
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -49,22 +88,45 @@ public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.Im
         return new ImageViewHolder(view);
     }
 
+    /**
+     * Binds event image data to the ViewHolder at the specified position.
+     *
+     * @param holder the ViewHolder to bind data to
+     * @param position the position of the item in the adapter's data set
+     */
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         Event event = events.get(position);
         holder.bind(event, listener);
     }
 
+    /**
+     * Returns the total number of events in the adapter.
+     *
+     * @return the size of the events list
+     */
     @Override
     public int getItemCount() {
         return events.size();
     }
 
+    /**
+     * ViewHolder class for individual event poster image items.
+     *
+     * <p>Handles displaying event poster images from either Firebase Storage URLs
+     * or Base64-encoded strings, with fallback to placeholder images when data
+     * is unavailable or fails to load.</p>
+     */
     public static class ImageViewHolder extends RecyclerView.ViewHolder {
         private final ImageView ivPoster;
         private final TextView tvEventName;
         private final ImageView ivDelete;
 
+        /**
+         * Constructs a new ImageViewHolder and initializes all view references.
+         *
+         * @param itemView the root view of the image item layout
+         */
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
             ivPoster = itemView.findViewById(R.id.iv_poster);
@@ -72,6 +134,22 @@ public class AdminImageAdapter extends RecyclerView.Adapter<AdminImageAdapter.Im
             ivDelete = itemView.findViewById(R.id.iv_delete);
         }
 
+        /**
+         * Binds event poster image data to the view components and sets up click listeners.
+         *
+         * <p>This method handles three types of image data:</p>
+         * <ul>
+         *     <li>Firebase Storage URLs (http:// or https://) - loaded using Glide</li>
+         *     <li>Base64-encoded strings - decoded and displayed as Bitmap</li>
+         *     <li>Missing/null data - displays placeholder image</li>
+         * </ul>
+         *
+         * <p>Base64 strings with data URI prefixes (e.g., "data:image/jpeg;base64,")
+         * are automatically stripped before decoding.</p>
+         *
+         * @param event the event object containing the poster image data
+         * @param listener the listener to handle image deletion action
+         */
         public void bind(Event event, OnImageActionListener listener) {
             tvEventName.setText(event.getName() != null ? event.getName() : "[No Name]");
 

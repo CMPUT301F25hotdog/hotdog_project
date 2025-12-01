@@ -20,35 +20,83 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import android.graphics.drawable.GradientDrawable;
+
 /**
- * Adapter for displaying Event items in a RecyclerView.
- * Binds Event data to the event_card xml layout for each item in the list.
- * The View layer of mvc
+ * Adapter for displaying Event items in a RecyclerView for the entrant's home screen.
  *
- * Outstanding Issues: Still need to implement image loading
+ * <p>This adapter binds Event data to the event_card layout and displays event information
+ * including name, date, location, entry count, and status badges. Status badges dynamically
+ * show the current user's registration status for each event with color-coded indicators.</p>
  *
- * uses RecyclerView: https://www.geeksforgeeks.org/android/android-recyclerview/
+ * <p>Supports Base64-encoded event poster images with fallback to placeholder images.</p>
+ *
+ * <p>View layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently</p>
+ *
+ * @author Bhuvnesh Batta
+ * @version 1.0
+ * @see RecyclerView.Adapter
  */
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
+    /**
+     * The list of events to display in the RecyclerView.
+     */
     private List<Event> eventList;
+
+    /**
+     * Listener for handling event item click events.
+     */
     private OnEventClickListener listener;
+
+    /**
+     * The current user's ID, used to determine status badges for each event.
+     */
     private String currentUserId;
 
-    // This will allow the fragment to know when a user clicks on an event.
+    /**
+     * Callback interface for handling event item clicks.
+     *
+     * <p>Implementing classes should handle navigation to event details or
+     * other appropriate actions when an event is clicked.</p>
+     */
     public interface OnEventClickListener {
+        /**
+         * Called when the user clicks on an event item.
+         *
+         * @param event the event that was clicked
+         */
         void onEventClick(Event event);
     }
 
+    /**
+     * Constructs a new EventAdapter with the specified events and user ID.
+     *
+     * @param eventList the list of events to display
+     * @param currentUserId the ID of the current user for status badge calculation
+     */
     public EventAdapter(List<Event> eventList, String currentUserId) {
         this.eventList = eventList;
         this.currentUserId = currentUserId;
     }
 
+    /**
+     * Sets the listener for event item click events.
+     *
+     * @param listener the listener to handle event clicks
+     */
     public void setOnEventClickListener(OnEventClickListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Creates a new ViewHolder by inflating the event card layout.
+     *
+     * @param parent the ViewGroup into which the new View will be added
+     * @param viewType the view type of the new View
+     * @return a new EventViewHolder that holds the inflated View
+     */
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -57,27 +105,54 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         return new EventViewHolder(view);
     }
 
+    /**
+     * Binds event data to the ViewHolder at the specified position.
+     *
+     * @param holder the ViewHolder to bind data to
+     * @param position the position of the item in the adapter's data set
+     */
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = eventList.get(position);
         holder.bind(event);
     }
 
+    /**
+     * Returns the total number of events in the adapter.
+     *
+     * @return the size of the event list
+     */
     @Override
     public int getItemCount() {
         return eventList.size();
     }
 
+    /**
+     * Updates the adapter with a new list of events and refreshes the display.
+     *
+     * @param newEvents the new list of events to display
+     */
     public void updateEvents(List<Event> newEvents) {
         this.eventList = newEvents;
         notifyDataSetChanged();
     }
+
+    /**
+     * Updates the current user ID and refreshes the display to update status badges.
+     *
+     * @param userId the new current user ID
+     */
     public void setCurrentUserId(String userId) {
         this.currentUserId = userId;
         notifyDataSetChanged();
     }
 
-    // ViewHolder class to reuse the views for efficiency
+    /**
+     * ViewHolder class for individual event items in the event list.
+     *
+     * <p>Displays event information and status badges. Reuses views for efficiency
+     * through the ViewHolder pattern. Handles decoding Base64 event poster images.</p>
+     */
     public class EventViewHolder extends RecyclerView.ViewHolder {
         private ImageView eventImageView;
         private TextView eventNameTextView;
@@ -87,6 +162,13 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         private TextView eventStatusTextView;
         private TextView eventStatusTextView2;
 
+        /**
+         * Constructs a new EventViewHolder and initializes all view references.
+         *
+         * <p>Also sets up the click listener for the entire item view.</p>
+         *
+         * @param itemView the root view of the event card layout
+         */
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
 
@@ -111,6 +193,15 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             });
         }
 
+        /**
+         * Binds event data to the view components.
+         *
+         * <p>This method populates all TextViews with event information, decodes and
+         * displays the Base64 event poster image (or shows placeholder), and sets
+         * the appropriate status badge based on the user's registration status.</p>
+         *
+         * @param event the event object containing data to display
+         */
         public void bind(Event event) {
             // Set event name
             eventNameTextView.setText(event.getName());
@@ -151,7 +242,23 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             // For now just the placeholder icon will show
         }
 
-        // pass in the current user id to check their status for each event
+        /**
+         * Sets the status badge(s) based on the current user's registration status for the event.
+         *
+         * <p>This method checks the user's presence in various entrant lists and displays
+         * appropriate status badges with color coding:</p>
+         * <ul>
+         *     <li>ACCEPTED: Green - User has accepted their invitation</li>
+         *     <li>SELECTED: Green with orange "ACTION REQUIRED" badge - User selected but hasn't responded</li>
+         *     <li>WAITLISTED: Orange - Lottery drawn but user not selected</li>
+         *     <li>PENDING: Yellow - User on waitlist, lottery not yet drawn</li>
+         *     <li>CANCELED: Red - User was cancelled from the event</li>
+         * </ul>
+         *
+         * <p>If the user has not joined the event, the badge is hidden.</p>
+         *
+         * @param event the event to check the user's status for
+         */
         private void setStatusBadge(Event event) {
             // Check if user has joined this event
             boolean userInWaitlist = false;

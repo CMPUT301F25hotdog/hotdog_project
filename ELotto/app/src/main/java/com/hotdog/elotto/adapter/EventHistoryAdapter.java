@@ -23,35 +23,58 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Adapter for displaying Event history items in a RecyclerView.
- * Binds Event data with user status information to the item_event_history layout.
+ * Adapter for displaying Event history items in the entrant's event history interface.
  *
- * <p>View layer in MVC pattern.</p>
+ * <p>This adapter binds Event data with the current user's registration status to
+ * the item_event_history layout. Displays event information including poster images,
+ * date, location, and color-coded status badges indicating the user's relationship
+ * with each event (accepted, selected, waitlisted, pending, etc.).</p>
+ *
+ * <p>View layer component in MVC architecture pattern.</p>
  *
  * <p><b>Outstanding Issues:</b> None currently</p>
  *
- * @author [Your Name]
+ * @author Bhuvnesh Batta
  * @version 1.0
  * @since 2025-11-23
  */
 public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapter.EventHistoryViewHolder> {
 
+    /**
+     * The list of events to display in the event history.
+     */
     private List<Event> eventList;
+
+    /**
+     * Context for accessing resources and creating User instances.
+     */
     private Context context;
+
+    /**
+     * Listener for handling event item click events.
+     */
     private OnEventClickListener listener;
 
     /**
-     * Interface for handling event item click events.
+     * Callback interface for handling event item clicks.
+     *
+     * <p>Implementing classes should handle navigation to event details or
+     * other appropriate actions when an event history item is clicked.</p>
      */
     public interface OnEventClickListener {
+        /**
+         * Called when the user clicks on an event history item.
+         *
+         * @param event the event that was clicked
+         */
         void onEventClick(Event event);
     }
 
     /**
-     * Constructor for EventHistoryAdapter.
+     * Constructs a new EventHistoryAdapter with the specified events and context.
      *
-     * @param eventList List of events to display
-     * @param context Context for accessing resources
+     * @param eventList the list of events to display in history
+     * @param context the context for accessing resources
      */
     public EventHistoryAdapter(List<Event> eventList, Context context) {
         this.eventList = eventList;
@@ -59,14 +82,21 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
     }
 
     /**
-     * Set the click listener for event items.
+     * Sets the listener for event item click events.
      *
-     * @param listener The click listener
+     * @param listener the click listener to handle event clicks
      */
     public void setOnEventClickListener(OnEventClickListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Creates a new ViewHolder by inflating the event history item layout.
+     *
+     * @param parent the ViewGroup into which the new View will be added
+     * @param viewType the view type of the new View
+     * @return a new EventHistoryViewHolder that holds the inflated View
+     */
     @NonNull
     @Override
     public EventHistoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -75,21 +105,32 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         return new EventHistoryViewHolder(view);
     }
 
+    /**
+     * Binds event data to the ViewHolder at the specified position.
+     *
+     * @param holder the ViewHolder to bind data to
+     * @param position the position of the item in the adapter's data set
+     */
     @Override
     public void onBindViewHolder(@NonNull EventHistoryViewHolder holder, int position) {
         Event event = eventList.get(position);
         holder.bind(event);
     }
 
+    /**
+     * Returns the total number of events in the adapter.
+     *
+     * @return the size of the event list
+     */
     @Override
     public int getItemCount() {
         return eventList.size();
     }
 
     /**
-     * Update the events list and refresh the RecyclerView.
+     * Updates the adapter with a new list of events and refreshes the display.
      *
-     * @param newEvents New list of events to display
+     * @param newEvents the new list of events to display
      */
     public void updateEvents(List<Event> newEvents) {
         this.eventList = newEvents;
@@ -97,7 +138,11 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
     }
 
     /**
-     * ViewHolder class for event history items.
+     * ViewHolder class for individual event history items.
+     *
+     * <p>Displays event information including poster image, name, date, location,
+     * and a color-coded status badge. Determines the user's status by checking
+     * both the User's RegisteredEvent list and the Event's entrant lists.</p>
      */
     public class EventHistoryViewHolder extends RecyclerView.ViewHolder {
         private ImageView eventImage;
@@ -106,6 +151,13 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         private TextView eventLocation;
         private TextView eventStatus;
 
+        /**
+         * Constructs a new EventHistoryViewHolder and initializes all view references.
+         *
+         * <p>Also sets up the click listener for the entire item view.</p>
+         *
+         * @param itemView the root view of the event history item layout
+         */
         public EventHistoryViewHolder(@NonNull View itemView) {
             super(itemView);
 
@@ -127,9 +179,13 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         }
 
         /**
-         * Bind event data to the view holder.
+         * Binds event data to the view components.
          *
-         * @param event The event to display
+         * <p>This method populates all TextViews with event information, loads and
+         * displays the event poster image, and sets the appropriate status badge
+         * based on the user's registration status for the event.</p>
+         *
+         * @param event the event object containing data to display
          */
         public void bind(Event event) {
             // Set event name
@@ -158,9 +214,12 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         }
 
         /**
-         * Load the event poster image from Base64 string or show placeholder.
+         * Loads and displays the event poster image from Base64 string.
          *
-         * @param event The event containing the image data
+         * <p>If the Base64 string is invalid or empty, displays a placeholder image
+         * instead. Handles decoding errors gracefully.</p>
+         *
+         * @param event the event containing the poster image data
          */
         private void loadEventImage(Event event) {
             String base64Image = event.getPosterImageUrl();
@@ -181,10 +240,13 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         }
 
         /**
-         * Set the status badge with appropriate text and background color.
-         * Determines status based on which list the user is in for this event.
+         * Determines and sets the status badge for the event.
          *
-         * @param event The event to check status for
+         * <p>This method first attempts to retrieve the user's status from their
+         * RegisteredEvent list. If not found, it falls back to checking the event's
+         * entrant lists directly. Uses a brief delay to allow user data to load.</p>
+         *
+         * @param event the event to determine status for
          */
         private void setStatusBadge(Event event) {
             // Get current user to check their status
@@ -205,11 +267,11 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         }
 
         /**
-         * Get the user's status for a specific event from their RegisteredEvent list.
+         * Retrieves the user's status for a specific event from their RegisteredEvent list.
          *
-         * @param user The current user
-         * @param eventId The event ID to check
-         * @return The user's status, or null if not found
+         * @param user the current user
+         * @param eventId the event ID to check
+         * @return the user's Status enum value, or null if not found
          */
         private Status getUserStatusForEvent(User user, String eventId) {
             List<User.RegisteredEvent> regEvents = user.getRegEvents();
@@ -226,10 +288,14 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         }
 
         /**
-         * Fallback method to check event lists if user status is not found.
+         * Fallback method to determine user status by checking event entrant lists directly.
          *
-         * @param event The event to check
-         * @param userId The current user's ID
+         * <p>This method checks the event's accepted, selected, cancelled, and waitlist
+         * entrant ID lists to determine the user's status. Status priority is: Accepted >
+         * Selected > Cancelled > Waitlisted/Pending.</p>
+         *
+         * @param event the event to check
+         * @param userId the current user's ID
          */
         private void checkEventListsForStatus(Event event, String userId) {
             boolean inAccepted = event.getAcceptedEntrantIds() != null &&
@@ -260,9 +326,17 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         }
 
         /**
-         * Update the status badge UI with the appropriate status text and color.
+         * Updates the status badge UI with appropriate text and background styling.
          *
-         * @param status The status to display
+         * <p>Status badge styling:</p>
+         * <ul>
+         *     <li>Selected/Accepted: Blue background</li>
+         *     <li>Waitlisted: Red background</li>
+         *     <li>Pending: Yellow background</li>
+         *     <li>Declined/Withdrawn: Gray background</li>
+         * </ul>
+         *
+         * @param status the Status enum value to display
          */
         private void setStatusBadgeUI(Status status) {
             String statusText;

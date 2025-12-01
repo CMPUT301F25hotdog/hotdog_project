@@ -47,8 +47,7 @@ public class NotificationRepository {
         db.collection(COLLECTION_NAME).document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        List<Map<String, Object>> rawList = (List<Map<String, Object>>) documentSnapshot
-                                .get(FIELD_NOTIFICATIONS);
+                        List<Map<String, Object>> rawList = (List<Map<String, Object>>) documentSnapshot.get(FIELD_NOTIFICATIONS);
                         List<Notification> notifications = new ArrayList<>();
 
                         if (rawList != null) {

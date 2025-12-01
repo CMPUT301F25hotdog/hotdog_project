@@ -19,41 +19,91 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * A controller class to update the UserRepository model for a single user.
+ * Controller for managing user update operations with retry logic.
+ *
+ * <p>This controller handles updating user data in Firestore with built-in error
+ * handling and retry mechanisms. It ensures data integrity by verifying user existence
+ * before updates and automatically retrying failed operations until successful.</p>
+ *
+ * <p>The controller uses background threads to perform updates asynchronously and
+ * implements a retry mechanism that waits 60 seconds between failed attempts.</p>
+ *
+ * <p>Controller layer component in MVC architecture pattern.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently</p>
+ *
  * @author Layne Pitman
  * @version 1.0.0
  */
 public class UserController {
     /**
-     * Reference to the user of this controller that will be used in the model updating.
+     * The user object to be updated in the repository.
      */
     User user;
 
+    /**
+     * Executor for running update operations on a background thread.
+     */
     Executor updateThread = Executors.newSingleThreadExecutor();
+
+    /**
+     * Latch for synchronizing update operations.
+     */
     CountDownLatch updateLatch = new CountDownLatch(1);
+
+    /**
+     * Flag indicating whether an update should be performed.
+     */
     Boolean doUpdate = true;
+
+    /**
+     * Flag indicating whether the update was successful.
+     */
     Boolean updateSuccess = false;
 
     /**
-     * Instantiate the controller with a single user.
-     * @param user The user to be referenced by this controller.
+     * Constructs a new UserController for the specified user.
+     *
+     * @param user the user to be managed by this controller
      */
     public UserController(User user) {
         this.user=user;
     }
 
     /**
-     * Starts the updating cycle for the user.
-     * NOTE: In the event that updating the user results in an error, the update will continue to attempt until there is a successful update, or the app closes.
+     * Starts the asynchronous update cycle for the user.
+     *
+     * <p>This method executes the update operation on a background thread. In the event
+     * that updating the user results in an error, the update will continue to retry
+     * automatically until successful or the app closes.</p>
+     *
+     * <p><b>Note:</b> This method returns immediately and performs updates asynchronously.</p>
      */
     public void updateUser() {
         updateThread.execute(this::attemptUpdate);
     }
 
     /**
-     * WARNING: This <b>WILL</b> block whatever thread it is in, and is intended only to be used internally by the UserController
-     * This method will attempt confirm whether or not the user exists if we were unable to get their information prior, it will then attempt to update the user in the case that we were able to confirm whether or not they exist in Firestore. If either of these tasks fail, the thread will block for 1 minute and try again.
-     * This is to maintain data integrity in the case that we encounter an error in fetching the user info and the user actually existed.
+     * Attempts to update the user with automatic retry logic.
+     *
+     * <p><b>WARNING:</b> This method <b>WILL</b> block the thread it runs on and is
+     * intended only for internal use by the UserController on the background thread.</p>
+     *
+     * <p>This method performs the following operations:</p>
+     * <ol>
+     *     <li>If user existence is unknown, attempts to fetch user from Firestore</li>
+     *     <li>Merges fetched data with local user object if found</li>
+     *     <li>Attempts to update user in Firestore</li>
+     *     <li>On failure, waits 60 seconds and retries</li>
+     *     <li>Continues retry loop until successful</li>
+     * </ol>
+     *
+     * <p>This retry mechanism maintains data integrity by ensuring the user actually
+     * exists before overwriting data, and guarantees eventual consistency by retrying
+     * failed operations.</p>
+     *
+     * <p>The method uses reflection to update the user's status field, which is
+     * otherwise private to maintain encapsulation.</p>
      */
     private void attemptUpdate() {
         while (!updateSuccess) {// If the user was never able to be properly fetched, we retry to make sure we aren't overriding data.
