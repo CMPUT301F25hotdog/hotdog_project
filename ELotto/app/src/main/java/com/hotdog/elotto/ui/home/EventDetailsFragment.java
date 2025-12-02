@@ -338,7 +338,7 @@ public class EventDetailsFragment extends Fragment {
 
         // Set entries count
         int currentEntries = event.getCurrentEntrantsCount();
-        int maxEntries = event.getWaitlistLimit();
+        int maxEntries = event.getMaxEntrants();
         entriesCountTextView.setText(currentEntries + " of " + maxEntries);
 
         // Set registration end date
@@ -571,7 +571,7 @@ public class EventDetailsFragment extends Fragment {
                                 updateUIBasedOnStatus(currentUser);
 
                                 int currentEntries = event.getCurrentEntrantsCount();
-                                int maxEntries = event.getWaitlistLimit();
+                                int maxEntries = event.getMaxEntrants();
                                 entriesCountTextView.setText(currentEntries + " of " + maxEntries);
                             }
 
@@ -613,7 +613,7 @@ public class EventDetailsFragment extends Fragment {
                         updateUIBasedOnStatus(currentUser); // ADD THIS LINE
 
                         int currentEntries = event.getCurrentEntrantsCount();
-                        int maxEntries = event.getWaitlistLimit();
+                        int maxEntries = event.getMaxEntrants();
                         entriesCountTextView.setText(currentEntries + " of " + maxEntries);
                     }
 
@@ -708,7 +708,7 @@ public class EventDetailsFragment extends Fragment {
                     updateUIBasedOnStatus(currentUser);
 
                     int currentEntries = event.getCurrentEntrantsCount();
-                    int maxEntries = event.getWaitlistLimit();
+                    int maxEntries = event.getMaxEntrants();
                     entriesCountTextView.setText(currentEntries + " of " + maxEntries);
                 }
 
