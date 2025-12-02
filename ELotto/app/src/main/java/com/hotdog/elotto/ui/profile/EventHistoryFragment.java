@@ -1,5 +1,8 @@
 package com.hotdog.elotto.ui.profile;
 
+import static com.hotdog.elotto.helpers.Status.Declined;
+
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.firebase.Timestamp;
 import com.hotdog.elotto.R;
 import com.hotdog.elotto.adapter.EventAdapter;
 import com.hotdog.elotto.adapter.EventHistoryAdapter;
@@ -117,6 +121,7 @@ public class EventHistoryFragment extends Fragment {
      * Setup both RecyclerViews with their adapters and layout managers.
      */
     private void setupRecyclerViews(User user) {
+
         // Setup Drawn Events RecyclerView
         drawnEventsAdapter = new EventAdapter(drawnEvents, user.getId());
         drawnEventsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -207,26 +212,46 @@ public class EventHistoryFragment extends Fragment {
         drawnEvents.clear();
         pendingEvents.clear();
 
+        boolean userInWaitlist;
+        boolean userSelected;
+        boolean userAccepted;
+        boolean userCanceled;
+
         for (Event event : events) {
             if(event == null) continue;
-            Status userStatus = getUserStatusForEvent(event.getId(), user);
 
-            if (userStatus != null) {
-                // Categorize based on status
-                switch (userStatus) {
-                    case Selected:
-                    case Accepted:
-                    case Declined:
-                        drawnEvents.add(event);
-                        break;
-                    case Pending:
-                    case Waitlisted:
-                    case Withdrawn:
-                        pendingEvents.add(event);
-                        break;
-                }
+            userInWaitlist = false;
+             userSelected = false;
+             userAccepted = false;
+             userCanceled = false;
+
+            if (event.getWaitlistEntrantIds() != null) {
+                userInWaitlist = event.getWaitlistEntrantIds().contains(user.getId());
+            }
+
+            if (event.getSelectedEntrantIds() != null) {
+                userSelected = event.getSelectedEntrantIds().contains(user.getId());
+            }
+
+            if (event.getAcceptedEntrantIds() != null) {
+                userAccepted = event.getAcceptedEntrantIds().contains(user.getId());
+            }
+
+            if(event.getCancelledEntrantIds() != null) {
+                userCanceled = event.getCancelledEntrantIds().contains(user.getId());
+            }
+
+            if (userAccepted || userSelected || userCanceled || (userInWaitlist && event.getSelectedEntrantIds() != null && !event.getSelectedEntrantIds().isEmpty())) {
+                // Event drawn
+                drawnEvents.add(event);
+            } else {
+                // Event not drawn
+                pendingEvents.add(event);
             }
         }
+
+        drawnEventsAdapter.notifyDataSetChanged();
+        pendingEventsAdapter.notifyDataSetChanged();
     }
 
     /**
