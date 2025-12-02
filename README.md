@@ -119,6 +119,6 @@
    
 - Unified Modeling Language diagram documenting class structures, relationships, and system architecture.
 
-8. [Project Demo Video]([https://youtu.be/YOUR_VIDEO_ID_HERE](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Video_Demo))
+8. [Project Demo Video](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/Video_Demo)
    
 - Comprehensive video demonstration of application features and functionality.
