@@ -115,7 +115,7 @@
 
 - Contains weekly meeting logs, action items, decisions, assigned tasks, and progress tracking for each sprint.
 
-7. [UML Diagram](https://github.com/CMPUT301F25hotdog/hotdog_project.wiki.git)
+7. [UML Diagram](https://github.com/CMPUT301F25hotdog/hotdog_project/wiki/UML_Dia.)
    
 - Unified Modeling Language diagram documenting class structures, relationships, and system architecture.
 
