@@ -208,6 +208,7 @@ public class EventHistoryFragment extends Fragment {
         pendingEvents.clear();
 
         for (Event event : events) {
+            if(event == null) continue;
             Status userStatus = getUserStatusForEvent(event.getId(), user);
 
             if (userStatus != null) {
