@@ -42,7 +42,7 @@
 - **Profile Management:**  
   Entrants can maintain personal profiles with editable information and a history of past lottery results.
 
-- **Geolocation Verification (Optional):**  
+- **Geolocation Verification:**  
   Organizers can enable location verification to ensure entrants are joining from a specific geographic area.
 
 - **Firebase Integration:**  
