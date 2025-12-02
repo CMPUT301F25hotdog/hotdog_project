@@ -349,7 +349,7 @@ public class EventDetailsFragment extends Fragment {
 
         // Set lottery drawn date
         // TODO: Add lottery drawn date to Event model once its ready
-        lotteryDrawnDateTextView.setText("Monday, June 8");
+        lotteryDrawnDateTextView.setText(event.getRegistrationEndDate().toString());
 
         // Set description
         if (event.getDescription() != null && !event.getDescription().isEmpty()) {
