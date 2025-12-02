@@ -355,6 +355,11 @@ public class OrganizerEventEntrantsFragment extends Fragment {
             tvEventTime.setText(dateFormat.format(event.getEventDateTime()));
         }
 
+        loadWaitingList();
+        loadAcceptedList();
+        loadCancelledList();
+        loadSelectedList();
+
         tvEventLocation.setText(event.getLocation());
         tvEventSpots.setText(event.getMaxEntrants() + " Spots");
 

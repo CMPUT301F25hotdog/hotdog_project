@@ -287,7 +287,7 @@ public class AcceptDeclineInvitationFragment extends Fragment {
         if (event.getEventDateTime() != null) {
             SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
             String startTime = timeFormat.format(event.getEventDateTime());
-            eventTimeTextView.setText(startTime + " - 17:30");
+            eventTimeTextView.setText(startTime);
         }
 
         // Set event location

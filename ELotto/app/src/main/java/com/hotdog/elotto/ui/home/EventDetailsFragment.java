@@ -290,7 +290,7 @@ public class EventDetailsFragment extends Fragment {
      * Populates all event data into the UI components.
      *
      * <p>Displays event title, date (formatted as "EEEE, MMMM dd"), time (formatted as
-     * "HH:mm - 17:30"), location, entries count, registration end date, lottery drawn
+     * "HH:mm"), location, entries count, registration end date, lottery drawn
      * date (currently hardcoded), and description. Loads the event poster image and
      * updates UI based on user status.</p>
      *
@@ -330,15 +330,15 @@ public class EventDetailsFragment extends Fragment {
         if (event.getEventDateTime() != null) {
             SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
             String startTime = timeFormat.format(event.getEventDateTime());
-            eventTimeTextView.setText(startTime + " - 17:30");
+            eventTimeTextView.setText(startTime);
         }
 
         // Set location
         eventLocationTextView.setText(event.getLocation());
 
         // Set entries count
-        int currentEntries = event.getCurrentAcceptedCount();
-        int maxEntries = event.getMaxEntrants();
+        int currentEntries = event.getCurrentEntrantsCount();
+        int maxEntries = event.getWaitlistLimit();
         entriesCountTextView.setText(currentEntries + " of " + maxEntries);
 
         // Set registration end date
@@ -570,8 +570,8 @@ public class EventDetailsFragment extends Fragment {
                                 currentUser.addRegEvent(event.getId());
                                 updateUIBasedOnStatus(currentUser);
 
-                                int currentEntries = event.getCurrentWaitlistCount();
-                                int maxEntries = event.getMaxEntrants();
+                                int currentEntries = event.getCurrentEntrantsCount();
+                                int maxEntries = event.getWaitlistLimit();
                                 entriesCountTextView.setText(currentEntries + " of " + maxEntries);
                             }
 
@@ -612,8 +612,8 @@ public class EventDetailsFragment extends Fragment {
                         currentUser.addRegEvent(event.getId());
                         updateUIBasedOnStatus(currentUser); // ADD THIS LINE
 
-                        int currentEntries = event.getCurrentWaitlistCount();
-                        int maxEntries = event.getMaxEntrants();
+                        int currentEntries = event.getCurrentEntrantsCount();
+                        int maxEntries = event.getWaitlistLimit();
                         entriesCountTextView.setText(currentEntries + " of " + maxEntries);
                     }
 
@@ -707,8 +707,8 @@ public class EventDetailsFragment extends Fragment {
                             Toast.LENGTH_SHORT).show();
                     updateUIBasedOnStatus(currentUser);
 
-                    int currentEntries = event.getCurrentWaitlistCount();
-                    int maxEntries = event.getMaxEntrants();
+                    int currentEntries = event.getCurrentEntrantsCount();
+                    int maxEntries = event.getWaitlistLimit();
                     entriesCountTextView.setText(currentEntries + " of " + maxEntries);
                 }
 

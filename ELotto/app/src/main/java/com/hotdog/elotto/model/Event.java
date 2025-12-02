@@ -613,6 +613,14 @@ public class Event implements Serializable {
                 ", status='" + status + '\'' +
                 '}';
     }
+
+    /**
+     * Gets the total amount of entrants in the event (not including canceled)
+     * @return The total amount of entrants accross accepted, selected, and waitlisted
+     */
+    public int getCurrentEntrantsCount() {
+        return getCurrentWaitlistCount()+getCurrentAcceptedCount() + (selectedEntrantIds==null?0:selectedEntrantIds.size());
+    }
     public Map<String,GeoPoint> getEntrantLocations(){
         return entrantLocations;
     }
