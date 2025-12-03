@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,15 +34,10 @@ import com.hotdog.elotto.model.Event;
 import com.hotdog.elotto.model.User;
 import com.hotdog.elotto.repository.EventRepository;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 /**
@@ -302,6 +296,7 @@ public class EventDetailsFragment extends Fragment {
 
         status = getUserStatus(user);
         List<String> entrantIds = event.getWaitlistEntrantIds();
+        if(entrantIds == null) entrantIds=new ArrayList<>();
         if (user.findRegEvent(event.getId()) && !entrantIds.contains(user.getId())) {
             user.removeRegEvent(event.getId());
         } else if (!user.findRegEvent(event.getId()) && entrantIds.contains(user.getId())) {
